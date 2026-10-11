@@ -1,0 +1,150 @@
+---
+/**
+ * Slim branded header for the client gallery. Transparent over photos,
+ * glassy once scrolled (then it also shows the gallery's title).
+ * The language link keeps the query string (set by the gallery script).
+ */
+import Logo from '~/components/ui/Logo.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { str } from './copy';
+import { localizePath, otherLang, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const alt = otherLang(lang);
+const home = localizePath('/', lang);
+const altGallery = localizePath('/gallery/', alt);
+---
+<header class="g-head" data-g-head data-mode="entry">
+  <div class="g-head__bar">
+    <a class="g-head__brand" href={home} aria-label={str('home', lang)}>
+      <Logo size="sm" />
+    </a>
+    <p class="g-head__title" data-g-head-title aria-hidden="true" dir="auto"></p>
+    <nav class="g-head__actions" aria-label={str('seoTitle', lang)}>
+      <a class="g-head__back" href={home}>
+        <Icon name="arrow-left" size={15} class="flip-rtl" />
+        <span>{str('backToSite', lang)}</span>
+      </a>
+      <a class="g-head__lang" href={altGallery} hreflang={alt} lang={alt} aria-label={str('switchLang', lang)} data-g-lang data-base={altGallery}>
+        {alt === 'en' ? 'EN' : 'עב'}
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style is:global>
+  :root {
+    --g-head-h: 64px;
+    --g-bar-h: 60px;
+    --g-pad: clamp(6px, 0.2rem + 1.6vw, 36px);
+    --g-max: 1840px;
+  }
+  @media (max-width: 760px) {
+    :root {
+      --g-head-h: 56px;
+      --g-bar-h: 54px;
+    }
+  }
+
+  .g-head {
+    --gh-fg: var(--on-noir);
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 70;
+    color: var(--gh-fg);
+    transition: transform 0.5s var(--ease-out), color 0.35s;
+  }
+  .g-head::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgb(246 242 236 / 0.93);
+    backdrop-filter: saturate(1.5) blur(18px);
+    -webkit-backdrop-filter: saturate(1.5) blur(18px);
+    border-block-end: 1px solid var(--line);
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+  .g-head__bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    block-size: var(--g-head-h);
+    max-inline-size: var(--g-max);
+    margin-inline: auto;
+    padding-inline: max(var(--g-pad), 1rem);
+  }
+  .g-head__brand { display: inline-flex; padding: 0.4rem 0; flex: none; }
+  .g-head__title {
+    position: absolute;
+    inset-inline: 30%;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s, transform 0.5s var(--ease-out);
+    pointer-events: none;
+  }
+  .g-head__actions { display: flex; align-items: center; gap: 0.35rem; flex: none; }
+  .g-head__back,
+  .g-head__lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-block-size: 2.5rem;
+    padding-inline: 0.85rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.25s, color 0.25s;
+  }
+  .g-head__lang { min-inline-size: 2.5rem; justify-content: center; padding-inline: 0.6rem; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); }
+  .g-head__back:hover,
+  .g-head__lang:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+  /* Code entry: logo over the photo, actions over the paper panel */
+  .g-head[data-mode='entry'] .g-head__title { display: none; }
+  @media (min-width: 901px) {
+    .g-head[data-mode='entry'] .g-head__actions { color: var(--ink); }
+    html.g-booting .g-head[data-mode='entry'] .g-head__actions { color: var(--on-noir); }
+  }
+
+  /* Gallery: fixed, transparent over the cover, glass when scrolled */
+  .g-head[data-mode='gallery'] { position: fixed; }
+  .g-head[data-mode='gallery']:not([data-solid])::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 -40px;
+    z-index: -1;
+    background: linear-gradient(to bottom, rgb(10 8 6 / 0.45), transparent);
+    pointer-events: none;
+  }
+  .g-head[data-solid] { --gh-fg: var(--ink); }
+  .g-head[data-solid]::before { opacity: 1; }
+  .g-head[data-solid] .g-head__title { opacity: 1; transform: none; }
+  .g-head[data-hidden] { transform: translateY(-100%); }
+
+  @media (max-width: 760px) {
+    .g-head__back span { display: none; }
+    .g-head__back { padding-inline: 0.7rem; }
+    /* Phones: once scrolled, the gallery title takes the logo's place. */
+    .g-head__brand { transition: opacity 0.3s, visibility 0.3s; }
+    .g-head[data-solid] .g-head__brand { opacity: 0; visibility: hidden; }
+    .g-head__title { inset-inline: max(var(--g-pad), 1rem) 6.9rem; text-align: start; font-size: 1.15rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-head, .g-head__title { transition: none; }
+  }
+</style>

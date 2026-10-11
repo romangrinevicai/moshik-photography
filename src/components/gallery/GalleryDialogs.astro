@@ -1,0 +1,617 @@
+---
+/**
+ * Modal dialogs of the client gallery (native <dialog>: focus stays inside,
+ * Esc closes). Centered on desktop, bottom sheets on phones.
+ */
+import Icon from '~/components/ui/Icon.astro';
+import type { Lang } from '~/i18n';
+import { str } from './copy';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const s = (k: Parameters<typeof str>[0]) => str(k, lang);
+---
+<!-- Send favourites to Moshik -->
+<dialog class="g-dlg" data-dlg="select" aria-labelledby="g-sel-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <div class="g-dlg__pane" data-sel-pane="form">
+      <span class="g-dlg__badge" aria-hidden="true"><Icon name="heart" size={20} /></span>
+      <h2 class="g-dlg__title" id="g-sel-title">{s('selTitle')}</h2>
+      <p class="g-dlg__lead" data-sel-intro></p>
+      <div class="g-sel__thumbs" data-sel-thumbs aria-hidden="true"></div>
+      <form class="g-sel__form" data-sel-form novalidate>
+        <div class="field">
+          <label class="field__label" for="g-sel-name">{s('selName')} *</label>
+          <input class="input" id="g-sel-name" name="name" type="text" autocomplete="name" required maxlength="120" />
+          <p class="field__error" data-error-for="name"></p>
+        </div>
+        <div class="g-sel__row">
+          <div class="field">
+            <label class="field__label" for="g-sel-phone">{s('selPhone')}</label>
+            <input class="input ltr" id="g-sel-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" dir="ltr" maxlength="40" placeholder="050-000-0000" aria-describedby="g-sel-contact-hint" />
+            <p class="field__error" data-error-for="phone"></p>
+          </div>
+          <div class="field">
+            <label class="field__label" for="g-sel-email">{s('selEmail')}</label>
+            <input class="input ltr" id="g-sel-email" name="email" type="email" autocomplete="email" dir="ltr" maxlength="160" aria-describedby="g-sel-contact-hint" />
+            <p class="field__error" data-error-for="email"></p>
+          </div>
+        </div>
+        <p class="field__hint g-sel__hint" id="g-sel-contact-hint" data-sel-contact-hint aria-live="polite">{s('selContactHint')}</p>
+        <div class="field">
+          <label class="field__label" for="g-sel-note">{s('selNote')} <span class="field__hint">({s('optional')})</span></label>
+          <textarea class="textarea" id="g-sel-note" name="note" rows="3" maxlength="2000" placeholder={s('selNotePh')}></textarea>
+        </div>
+        <div class="g-sel__fail" data-sel-fail hidden role="alert">
+          <strong>{s('selFailTitle')}</strong>
+          <p>{s('selFailText')}</p>
+          <a class="btn btn--sm" data-sel-wa href="#" target="_blank" rel="noopener"><Icon name="whatsapp" /> {s('selSendWa')}</a>
+        </div>
+        <button class="btn btn--solid btn--block" type="submit" data-sel-submit>
+          <span data-sel-submit-label></span>
+          <Icon name="send" class="flip-rtl" />
+        </button>
+        <p class="g-sel__privacy"><Icon name="lock" size={13} /> {s('selPrivacy')}</p>
+      </form>
+    </div>
+    <div class="g-dlg__pane g-done" data-sel-pane="done" hidden>
+      <span class="g-done__icon" aria-hidden="true"><Icon name="check" size={30} stroke={1.4} /></span>
+      <h2 class="g-dlg__title" tabindex="-1" data-sel-done-title>{s('selDoneTitle')}</h2>
+      <p class="g-dlg__lead" data-sel-done-text></p>
+      <button type="button" class="btn btn--solid" data-close>{s('selDoneBack')}</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Downloads -->
+<dialog class="g-dlg" data-dlg="download" aria-labelledby="g-dl-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <span class="g-dlg__badge" aria-hidden="true"><Icon name="download" size={20} /></span>
+    <h2 class="g-dlg__title" id="g-dl-title">{s('dlTitle')}</h2>
+    <fieldset class="g-seg" data-dl-quality hidden>
+      <legend class="field__label">{s('dlQuality')}</legend>
+      <label class="g-seg__opt">
+        <input type="radio" name="g-dl-variant" value="web" checked />
+        <span><strong>{s('dlWeb')}</strong><small>{s('dlWebSub')}</small></span>
+      </label>
+      <label class="g-seg__opt">
+        <input type="radio" name="g-dl-variant" value="original" />
+        <span><strong>{s('dlOrig')}</strong><small>{s('dlOrigSub')}</small></span>
+      </label>
+    </fieldset>
+    <section class="g-dl__group">
+      <h3 class="g-dl__heading"><Icon name="heart" size={15} /> {s('dlFavs')}</h3>
+      <div data-dl-favs></div>
+    </section>
+    <section class="g-dl__group">
+      <h3 class="g-dl__heading"><Icon name="images" size={15} /> {s('dlAll')}</h3>
+      <ul class="g-dl__list" role="list" data-dl-all></ul>
+    </section>
+    <p class="g-dl__note" data-dl-note></p>
+  </div>
+</dialog>
+
+<!-- Find me (selfie) -->
+<dialog class="g-dlg g-dlg--find" data-dlg="findme" aria-labelledby="g-fm-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <div class="g-dlg__pane" data-fm-pane="intro">
+      <span class="g-dlg__badge g-dlg__badge--gold" aria-hidden="true"><Icon name="scan-face" size={22} /></span>
+      <h2 class="g-dlg__title" id="g-fm-title">{s('fmTitle')}</h2>
+      <p class="g-dlg__lead">{s('fmIntro')}</p>
+      <div class="g-fm__options">
+        <button type="button" class="g-fm__opt" data-fm-camera>
+          <span class="g-fm__opt-icon"><Icon name="camera" size={22} /></span>
+          <span class="g-fm__opt-text"><strong>{s('fmCamera')}</strong><small>{s('fmCameraSub')}</small></span>
+          <Icon name="arrow-right" size={16} />
+        </button>
+        <button type="button" class="g-fm__opt" data-fm-upload>
+          <span class="g-fm__opt-icon"><Icon name="image" size={22} /></span>
+          <span class="g-fm__opt-text"><strong>{s('fmUpload')}</strong><small>{s('fmUploadSub')}</small></span>
+          <Icon name="arrow-right" size={16} />
+        </button>
+      </div>
+      <input type="file" accept="image/*" data-fm-file hidden />
+      <input type="file" accept="image/*" capture="user" data-fm-file-camera hidden />
+      <div class="g-fm__privacy">
+        <Icon name="shield-check" size={20} />
+        <div>
+          <strong>{s('fmPrivacyTitle')}</strong>
+          <p>{s('fmPrivacy')}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="g-dlg__pane" data-fm-pane="camera" hidden>
+      <h2 class="g-dlg__title g-dlg__title--sm">{s('fmCamera')}</h2>
+      <div class="g-cam">
+        <video class="g-cam__video" data-fm-video playsinline muted autoplay></video>
+        <span class="g-cam__oval" aria-hidden="true"></span>
+      </div>
+      <p class="g-cam__guide">{s('fmGuide')}</p>
+      <div class="g-cam__controls">
+        <button type="button" class="btn btn--sm" data-fm-back><Icon name="arrow-left" class="flip-rtl" /> {s('fmBack')}</button>
+        <button type="button" class="g-cam__shutter" data-fm-capture aria-label={s('fmCapture')}><span></span></button>
+        <span class="g-cam__spacer" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <div class="g-dlg__pane g-fm__work" data-fm-pane="work" hidden>
+      <div class="g-scan" aria-hidden="true">
+        <canvas class="g-scan__img" data-fm-preview></canvas>
+        <span class="g-scan__line"></span>
+        <span class="g-scan__ring"></span>
+      </div>
+      <p class="g-fm__status" data-fm-status role="status"></p>
+      <div class="g-progress" aria-hidden="true"><span data-fm-progress></span></div>
+    </div>
+
+    <div class="g-dlg__pane g-fm__result" data-fm-pane="result" hidden>
+      <span class="g-dlg__badge" data-fm-result-icon aria-hidden="true"></span>
+      <h2 class="g-dlg__title" data-fm-result-title tabindex="-1"></h2>
+      <p class="g-dlg__lead" data-fm-result-text></p>
+      <div class="g-fm__thumbs" data-fm-thumbs aria-hidden="true"></div>
+      <div class="g-fm__actions">
+        <button type="button" class="btn btn--solid" data-fm-show hidden>{s('fmShow')} <Icon name="arrow-right" /></button>
+        <button type="button" class="btn" data-fm-retry>{s('fmRetry')}</button>
+        <button type="button" class="btn" data-fm-upload-alt hidden><Icon name="image" /> {s('fmUpload')}</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- All people (toolbar) -->
+<dialog class="g-dlg g-dlg--wide" data-dlg="people" aria-labelledby="g-pp-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <h2 class="g-dlg__title" id="g-pp-title">{s('peopleDialogTitle')}</h2>
+    <p class="g-dlg__lead">{s('peopleHint')}</p>
+    <ul class="g-people-grid" role="list" data-people-grid></ul>
+  </div>
+</dialog>
+
+<!-- More (phones) -->
+<dialog class="g-dlg g-dlg--menu" data-dlg="more" aria-labelledby="g-more-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <h2 class="g-dlg__title g-dlg__title--sm" id="g-more-title">{s('moreTitle')}</h2>
+    <div class="g-more__people" data-more-people hidden>
+      <p class="g-more__label">{s('peopleTitle')}</p>
+      <ul class="g-people__strip g-more__strip" role="list" data-more-strip></ul>
+    </div>
+    <ul class="g-menu" role="list">
+      <li><button type="button" class="g-menu__item" data-act="download" hidden><Icon name="download" size={20} /> <span>{s('download')}</span></button></li>
+      <li><button type="button" class="g-menu__item" data-act="slideshow"><Icon name="play" size={20} /> <span>{s('slideshow')}</span></button></li>
+      <li><button type="button" class="g-menu__item" data-act="share"><Icon name="share2" size={20} /> <span>{s('share')}</span></button></li>
+      <li><button type="button" class="g-menu__item" data-act="qr"><Icon name="qr-code" size={20} /> <span>{s('qr')}</span></button></li>
+    </ul>
+  </div>
+</dialog>
+
+<!-- QR code -->
+<dialog class="g-dlg g-dlg--qr" data-dlg="qr" aria-labelledby="g-qr-title">
+  <div class="g-dlg__box">
+    <button type="button" class="g-dlg__close" data-close aria-label={s('close')}><Icon name="x" size={20} /></button>
+    <h2 class="g-dlg__title g-dlg__title--sm" id="g-qr-title">{s('qrTitle')}</h2>
+    <div class="g-qr" data-qr role="img" aria-label={s('qrTitle')}></div>
+    <p class="g-dlg__lead g-qr__text">{s('qrText')}</p>
+    <button type="button" class="btn btn--sm" data-act="copy"><Icon name="copy" /> {s('copyLink')}</button>
+  </div>
+</dialog>
+
+<style is:global>
+  .g-dlg {
+    inline-size: min(36rem, calc(100% - 2rem));
+    max-inline-size: none;
+    max-block-size: min(54rem, calc(100dvh - 2.5rem));
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 18px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 40px 100px -30px rgb(15 13 11 / 0.55), 0 0 0 1px rgb(22 19 17 / 0.06);
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  .g-dlg[open] { display: flex; flex-direction: column; animation: g-dlg-in 0.5s var(--ease-out); }
+  .g-dlg.is-closing { animation: g-dlg-out 0.22s var(--ease-soft) forwards; }
+  .g-dlg::backdrop { background: rgb(15 13 11 / 0.55); backdrop-filter: blur(3px); }
+  .g-dlg[open]::backdrop { animation: g-fade-in 0.4s var(--ease-soft); }
+  .g-dlg.is-closing::backdrop { animation: g-fade-out 0.22s var(--ease-soft) forwards; }
+  @keyframes g-dlg-in { from { opacity: 0; transform: translateY(18px) scale(0.98); } }
+  @keyframes g-dlg-out { to { opacity: 0; transform: translateY(12px) scale(0.98); } }
+  @keyframes g-fade-in { from { opacity: 0; } }
+  @keyframes g-fade-out { to { opacity: 0; } }
+  .g-dlg--wide { inline-size: min(52rem, calc(100% - 2rem)); }
+  .g-dlg--qr { inline-size: min(26rem, calc(100% - 2rem)); text-align: center; }
+  .g-dlg__box {
+    position: relative;
+    display: grid;
+    gap: 1.1rem;
+    padding: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .g-dlg__pane { display: grid; gap: 1.1rem; }
+  .g-dlg__pane[hidden] { display: none; }
+  .g-dlg__close {
+    position: absolute;
+    inset-block-start: 0.9rem;
+    inset-inline-end: 0.9rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 50%;
+    color: var(--ink-soft);
+    transition: background 0.25s;
+  }
+  .g-dlg__close:hover { background: var(--paper-deep); }
+  .g-dlg__badge {
+    display: grid;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    color: var(--accent);
+  }
+  .g-dlg__badge--gold { background: var(--gold-soft); border-color: var(--gold-soft); color: var(--ink); }
+  .g-dlg__title { font-size: clamp(1.8rem, 1.45rem + 1.2vw, 2.5rem); line-height: 1.08; padding-inline-end: 2.5rem; }
+  .g-dlg__title:focus { outline: none; }
+  .g-dlg__title--sm { font-size: clamp(1.45rem, 1.25rem + 0.8vw, 1.9rem); }
+  .g-dlg__lead { color: var(--fg-soft); line-height: 1.6; }
+
+  /* selection */
+  .g-sel__thumbs { display: flex; gap: 0.35rem; overflow: hidden; }
+  .g-sel__thumbs:empty { display: none; }
+  .g-sel__thumbs img, .g-sel__more {
+    flex: none;
+    inline-size: 3.4rem;
+    block-size: 3.4rem;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--paper-deep);
+  }
+  .g-sel__more { display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .g-sel__form { display: grid; gap: 0.85rem; }
+  .g-sel__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .g-sel__hint { margin-block-start: -0.6rem; }
+  .g-sel__hint.is-error { color: var(--danger); }
+  .g-sel__form .field__error:empty { display: none; }
+  .g-sel__form .textarea { min-block-size: 4.6rem; }
+  .g-sel__fail { display: grid; gap: 0.5rem; justify-items: start; padding: 1rem; border: 1px solid var(--danger); border-radius: 10px; font-size: 0.95rem; }
+  .g-sel__fail[hidden] { display: none; }
+  .g-sel__privacy { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.82rem; color: var(--muted); text-align: center; }
+  .g-done { justify-items: center; text-align: center; padding-block: 1rem; }
+  .g-done .g-dlg__title { padding-inline-end: 0; }
+  .g-done__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 4.4rem;
+    block-size: 4.4rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--gold-soft);
+    animation: g-done 0.8s var(--ease-out);
+  }
+  @keyframes g-done { from { transform: scale(0.6); opacity: 0; } }
+
+  /* downloads */
+  .g-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; border: 0; padding: 0; margin: 0; }
+  .g-seg[hidden] { display: none; }
+  .g-seg legend { margin-block-end: 0.5rem; }
+  .g-seg__opt { position: relative; cursor: pointer; }
+  .g-seg__opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .g-seg__opt span {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    transition: border-color 0.25s, background 0.25s, color 0.25s;
+  }
+  .g-seg__opt strong { font-size: 0.95rem; }
+  .g-seg__opt small { font-size: 0.8rem; color: var(--muted); }
+  .g-seg__opt input:checked + span { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .g-seg__opt input:checked + span small { color: var(--on-noir-muted); }
+  .g-seg__opt input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .g-dl__group { display: grid; gap: 0.6rem; }
+  .g-dl__heading { display: flex; align-items: center; gap: 0.45rem; font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: var(--label-transform); color: var(--accent); }
+  .g-dl__list { display: grid; gap: 0.45rem; }
+  .g-dl__item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    transition: border-color 0.25s, background 0.25s;
+  }
+  .g-dl__item:hover { border-color: var(--ink); background: var(--paper-deep); }
+  .g-dl__item-icon { display: grid; place-items: center; inline-size: 2.4rem; block-size: 2.4rem; border-radius: 50%; background: var(--paper-deep); color: var(--ink); }
+  .g-dl__item:hover .g-dl__item-icon { background: var(--ink); color: var(--paper); }
+  .g-dl__item-text { display: grid; line-height: 1.3; min-inline-size: 0; }
+  .g-dl__item-text strong { font-weight: 650; }
+  .g-dl__item-text small { font-size: 0.82rem; color: var(--muted); }
+  .g-dl__size { font-size: 0.85rem; font-weight: 650; color: var(--fg-soft); font-variant-numeric: tabular-nums; white-space: nowrap; direction: ltr; unicode-bidi: isolate; }
+  .g-dl__empty { font-size: 0.92rem; color: var(--muted); padding: 0.75rem 0.9rem; border: 1px dashed var(--line-strong); border-radius: 12px; }
+  .g-dl__note { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+  /* find me */
+  .g-fm__options { display: grid; gap: 0.6rem; }
+  .g-fm__opt {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    text-align: start;
+    transition: border-color 0.25s, background 0.25s, transform 0.4s var(--ease-out);
+  }
+  .g-fm__opt:hover { border-color: var(--ink); background: var(--paper-deep); }
+  .g-fm__opt:active { transform: scale(0.99); }
+  .g-fm__opt-icon { display: grid; place-items: center; inline-size: 2.8rem; block-size: 2.8rem; border-radius: 50%; background: var(--ink); color: var(--gold-soft); }
+  .g-fm__opt-text { display: grid; line-height: 1.3; }
+  .g-fm__opt-text strong { font-size: 1.02rem; font-weight: 650; }
+  .g-fm__opt-text small { font-size: 0.85rem; color: var(--muted); }
+  [dir='rtl'] .g-fm__opt > .icon:last-child { transform: scaleX(-1); }
+  .g-fm__privacy {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
+    padding: 1rem 1.1rem;
+    border-radius: 14px;
+    background: var(--paper-deep);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--fg-soft);
+  }
+  .g-fm__privacy > .icon { color: var(--success); margin-block-start: 0.1rem; }
+  .g-fm__privacy strong { display: block; color: var(--ink); font-size: 0.95rem; margin-block-end: 0.15rem; }
+  .g-cam {
+    position: relative;
+    inline-size: min(100%, 22rem);
+    aspect-ratio: 3 / 4;
+    margin-inline: auto;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--noir);
+  }
+  .g-cam__video { inline-size: 100%; block-size: 100%; object-fit: cover; transform: scaleX(-1); }
+  .g-cam__oval {
+    position: absolute;
+    inset: 14% 18% 18%;
+    border-radius: 50%;
+    box-shadow: 0 0 0 999px rgb(15 13 11 / 0.42);
+    outline: 2px dashed rgb(243 237 229 / 0.7);
+    outline-offset: -2px;
+  }
+  .g-cam__guide { text-align: center; font-size: 0.92rem; color: var(--muted); }
+  .g-cam__controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; }
+  .g-cam__controls .btn { justify-self: start; }
+  .g-cam__shutter {
+    display: grid;
+    place-items: center;
+    inline-size: 4.4rem;
+    block-size: 4.4rem;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    transition: transform 0.2s;
+  }
+  .g-cam__shutter span { inline-size: 3.3rem; block-size: 3.3rem; border-radius: 50%; background: var(--gold); transition: transform 0.2s, background 0.2s; }
+  .g-cam__shutter:hover span { background: var(--gold-text); }
+  .g-cam__shutter:active span { transform: scale(0.9); }
+  .g-fm__work { justify-items: center; text-align: center; padding-block: 1rem 0.5rem; }
+  .g-scan { position: relative; inline-size: 9.5rem; block-size: 9.5rem; border-radius: 50%; overflow: hidden; background: var(--noir); }
+  .g-scan__img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .g-scan__line {
+    position: absolute;
+    inset-inline: 0;
+    block-size: 2px;
+    background: var(--gold-soft);
+    box-shadow: 0 0 14px 3px var(--gold-soft);
+    animation: g-scan 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes g-scan { 0%, 100% { inset-block-start: 8%; } 50% { inset-block-start: 90%; } }
+  .g-scan__ring { position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 3px rgb(201 174 132 / 0.8); }
+  .g-fm__status { font-weight: 600; min-block-size: 1.5em; }
+  .g-progress { inline-size: min(18rem, 100%); block-size: 3px; border-radius: 3px; background: var(--paper-deep); overflow: hidden; }
+  .g-progress span { display: block; block-size: 100%; inline-size: 4%; background: var(--gold); border-radius: inherit; transition: inline-size 0.4s var(--ease-out); }
+  .g-progress.is-indeterminate span { inline-size: 35%; animation: g-indet 1.3s var(--ease-in-out) infinite; }
+  @keyframes g-indet { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
+  [dir='rtl'] .g-progress.is-indeterminate span { animation-name: g-indet-rtl; }
+  @keyframes g-indet-rtl { from { transform: translateX(110%); } to { transform: translateX(-310%); } }
+  .g-fm__result { justify-items: center; text-align: center; }
+  .g-fm__result .g-dlg__title { padding-inline-end: 0; }
+  .g-fm__thumbs { display: flex; justify-content: center; }
+  .g-fm__thumbs:empty { display: none; }
+  .g-fm__thumbs img {
+    inline-size: 4.2rem;
+    block-size: 4.2rem;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 3px var(--paper);
+    background: var(--paper-deep);
+    animation: g-thumb-in 0.6s var(--ease-out) both;
+  }
+  .g-fm__thumbs img + img { margin-inline-start: -0.9rem; }
+  @keyframes g-thumb-in { from { opacity: 0; transform: translateY(10px) scale(0.9); } }
+  .g-fm__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+
+  /* people dialog */
+  .g-people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr)); gap: 1.2rem 0.8rem; list-style: none; padding: 0.4rem 0.2rem; }
+  .g-people-grid .g-person { --face: 76px; }
+
+  /* more menu */
+  .g-more__people { display: grid; gap: 0.4rem; }
+  .g-more__people[hidden] { display: none; }
+  .g-more__label { font-size: 0.82rem; font-weight: 700; color: var(--muted); }
+  .g-more__strip { --face: 58px; }
+  .g-menu { display: grid; list-style: none; padding: 0; border-block-start: 1px solid var(--line); }
+  .g-menu li + li { border-block-start: 1px solid var(--line); }
+  .g-menu__item { display: flex; align-items: center; gap: 0.9rem; inline-size: 100%; padding: 1rem 0.2rem; font-size: 1.02rem; font-weight: 600; text-align: start; }
+  .g-menu__item[hidden] { display: none; }
+  .g-menu__item .icon { color: var(--accent); }
+
+  /* qr */
+  .g-dlg--qr .g-dlg__box { justify-items: center; }
+  .g-dlg--qr .g-dlg__title { padding-inline: 2.5rem; }
+  .g-qr { inline-size: min(15rem, 70vw); aspect-ratio: 1; padding: 0.9rem; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+  .g-qr svg { inline-size: 100%; block-size: 100%; }
+  .g-qr__text { font-size: 0.92rem; }
+
+  /* toasts (above the lightbox too) */
+  .g-toasts {
+    position: fixed;
+    z-index: 100001;
+    inset-inline: 0;
+    inset-block-end: calc(5.4rem + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding-inline: 1rem;
+    pointer-events: none;
+  }
+  .g-toast {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    max-inline-size: min(34rem, 100%);
+    padding-block: 0.55rem;
+    padding-inline: 1.1rem 0.55rem;
+    min-block-size: 3rem;
+    border-radius: 999px;
+    background: rgb(15 13 11 / 0.94);
+    color: var(--on-noir);
+    font-size: 0.92rem;
+    font-weight: 600;
+    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(243 237 229 / 0.1);
+    animation: g-toast-in 0.5s var(--ease-out);
+  }
+  .g-toast:not(:has(.g-toast__action)) { padding-inline-end: 1.2rem; }
+  .g-toast .icon { color: var(--gold-soft); flex: none; }
+  .g-toast__action {
+    flex: none;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    background: var(--gold-soft);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background 0.25s;
+  }
+  .g-toast__action:hover { background: var(--paper); }
+  .g-toast.is-leaving { animation: g-toast-out 0.3s var(--ease-soft) forwards; }
+  @keyframes g-toast-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+  @keyframes g-toast-out { to { opacity: 0; transform: translateY(8px); } }
+
+  /* lightbox */
+  .pswp--gallery .pswp__top-bar {
+    block-size: 64px;
+    padding-inline: 4px;
+    background: linear-gradient(to bottom, rgb(10 8 6 / 0.5), transparent);
+  }
+  .pswp--gallery .pswp__button {
+    display: grid;
+    place-items: center;
+    inline-size: 46px;
+    block-size: 64px;
+    color: var(--on-noir);
+    opacity: 0.82;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .pswp--gallery .pswp__button:hover, .pswp--gallery .pswp__button:focus-visible { opacity: 1; }
+  .pswp--gallery .pswp__button:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: -8px; border-radius: 12px; }
+  .pswp--gallery .pswp__button .g-lb-ic { position: static; inline-size: 22px; block-size: 22px; filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.4)); }
+  .pswp--gallery .pswp__button--close { margin: 0; margin-inline-end: 4px; }
+  .pswp--gallery .pswp__button--close .g-lb-ic { inline-size: 26px; block-size: 26px; }
+  .pswp--gallery .pswp__button--arrow { inline-size: 76px; block-size: 110px; margin-block-start: -55px; }
+  .pswp--gallery .pswp__button--arrow .g-lb-ic { inline-size: 34px; block-size: 34px; stroke-width: 1.2; }
+  .pswp--gallery.pswp--zoomed-in .g-lb-ic__v { display: none; }
+  .pswp--gallery .pswp__preloader { margin: 0; margin-inline-end: auto; }
+  .g-lb-counter {
+    margin-block-start: 17px;
+    margin-inline-start: 18px;
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    letter-spacing: 0.04em;
+    color: var(--on-noir);
+    text-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .g-lb-fav.is-on { color: var(--gold-soft); opacity: 1; }
+  .g-lb-fav.is-on path { fill: currentColor; }
+  .g-lb-fav.is-pop .g-lb-ic { animation: g-pop 0.5s var(--ease-out); }
+  .g-lb-btn.is-busy { opacity: 0.4; pointer-events: none; }
+  .g-lb-caption { text-shadow: 0 1px 6px rgb(0 0 0 / 0.5); }
+  .g-lb-progress {
+    position: absolute;
+    z-index: 11;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 2px;
+    background: rgb(243 237 229 / 0.12);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .pswp.is-playing .g-lb-progress { opacity: 1; }
+  .pswp:not(.is-playing) .g-lb-progress { opacity: 0 !important; }
+  .g-lb-progress span { display: block; block-size: 100%; background: var(--gold-soft); transform: scaleX(0); transform-origin: left center; }
+  [dir='rtl'] .g-lb-progress span { transform-origin: right center; }
+  .g-lb-progress.is-running span { animation: g-lb-progress var(--slide-ms, 5000ms) linear forwards; }
+  @keyframes g-lb-progress { to { transform: scaleX(1); } }
+  .pswp--slideshow .pswp__top-bar, .pswp--slideshow .pswp__button--arrow, .pswp--slideshow .pswp__caption { transition: opacity 0.5s; }
+  @media (max-width: 640px) {
+    .pswp--gallery .pswp__button { inline-size: 42px; }
+    .pswp--gallery .pswp__button--arrow { display: none; }
+    .g-lb-counter { margin-inline-start: 12px; font-size: 1rem; }
+  }
+
+  @media (max-width: 640px) {
+    .g-dlg,
+    .g-dlg--wide,
+    .g-dlg--qr {
+      inline-size: 100%;
+      max-block-size: 92dvh;
+      margin: auto 0 0;
+      border-radius: 20px 20px 0 0;
+    }
+    .g-dlg[open] { animation-name: g-sheet-in; animation-duration: 0.55s; }
+    .g-dlg.is-closing { animation-name: g-sheet-out; }
+    @keyframes g-sheet-in { from { transform: translateY(100%); } }
+    @keyframes g-sheet-out { to { transform: translateY(100%); } }
+    .g-dlg__box { padding: 1.6rem 1.25rem calc(1.4rem + env(safe-area-inset-bottom, 0px)); }
+    .g-dlg__box::before {
+      content: '';
+      position: absolute;
+      inset-block-start: 0.55rem;
+      inset-inline: 0;
+      margin-inline: auto;
+      inline-size: 2.6rem;
+      block-size: 4px;
+      border-radius: 4px;
+      background: var(--line-strong);
+    }
+    .g-sel__row { grid-template-columns: 1fr; }
+    .g-cam { inline-size: min(100%, 17rem); }
+    .g-fm__actions .btn, .g-done .btn { flex: 1 1 100%; inline-size: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-dlg[open], .g-dlg.is-closing, .g-dlg[open]::backdrop, .g-dlg.is-closing::backdrop, .g-scan__line, .g-done__icon, .g-fm__thumbs img { animation: none !important; }
+  }
+  html.a11y-motion .g-scan__line { animation: none; }
+</style>
