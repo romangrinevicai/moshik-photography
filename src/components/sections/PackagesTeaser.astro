@@ -1,0 +1,34 @@
+---
+import Icon from '~/components/ui/Icon.astro';
+import PackageCard from '~/components/ui/PackageCard.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { pricingById } from '~/data/packages';
+import { home } from '~/data/home';
+import { site } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  category?: string;
+}
+const { lang, category = 'weddings' } = Astro.props;
+const t = useTranslations(lang);
+const cat = pricingById(category)!;
+---
+<section class="pteaser section section--deep" data-section="packages">
+  <div class="container">
+    <SectionHead eyebrow={home.pricing.eyebrow[lang]} title={home.pricing.title[lang]} intro={home.pricing.intro[lang]} align="split">
+      <a class="link" href={localizePath('/pricing/', lang)}>{home.pricing.cta[lang]} <Icon name="arrow-right" /></a>
+    </SectionHead>
+    <div class="pteaser__grid">
+      {cat.tiers.map((tier, i) => <PackageCard tier={tier} category={cat.id} lang={lang} index={i} />)}
+    </div>
+    {site.pricing.showPrices && site.pricing.includesVat && <p class="pteaser__note small muted">{t('common.vatIncluded')}</p>}
+  </div>
+</section>
+
+<style>
+  .pteaser__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; align-items: stretch; }
+  .pteaser__note { margin-block-start: 1.6rem; text-align: center; }
+  @media (max-width: 960px) { .pteaser__grid { grid-template-columns: 1fr; max-inline-size: 520px; margin-inline: auto; } }
+</style>

@@ -1,0 +1,297 @@
+---
+import { Picture } from 'astro:assets';
+import Icon from '~/components/ui/Icon.astro';
+import { photosIn, altFor } from '~/data/photos';
+import { home } from '~/data/home';
+import { site } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+import { splitWords } from '~/shared/text';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const slides = photosIn('hero').slice(0, 6);
+const captions = home.hero.captions;
+---
+<section class="hero on-noir" data-hero data-section="hero" data-captions={JSON.stringify(captions.map((c) => c[lang]))} aria-roledescription="carousel" aria-label={site.tagline[lang]}>
+  <div class="hero__slides" aria-live="off">
+    {
+      slides.map((p, i) => (
+        <div class:list={['hero__slide', { 'is-active': i === 0 }]} data-slide={i} aria-hidden={i === 0 ? undefined : 'true'}>
+          <Picture
+            src={p.src}
+            alt={altFor(p, lang, captions[i]?.[lang])}
+            widths={[640, 960, 1280, 1600, 2000, 2400]}
+            sizes="100vw"
+            formats={['avif', 'webp']}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchpriority={i === 0 ? 'high' : 'auto'}
+            decoding={i === 0 ? 'sync' : 'async'}
+          />
+        </div>
+      ))
+    }
+  </div>
+  <div class="hero__shade" aria-hidden="true"></div>
+
+  <div class="hero__content container container--wide">
+    <p class="eyebrow hero__eyebrow" data-reveal="fade" style="--reveal-delay:200">{home.hero.eyebrow[lang]}</p>
+    <h1 class="display display-hero hero__title" data-split data-reveal-now set:html={splitWords(home.hero.title[lang], 250, 90)} />
+    <p class="hero__text" data-reveal style="--reveal-delay:700">{home.hero.text[lang]}</p>
+    <div class="cluster hero__actions" data-reveal style="--reveal-delay:850">
+      <a class="btn btn--gold btn--lg" href={localizePath('/contact/', lang)} data-magnetic>
+        {t('nav.cta')}
+        <Icon name="arrow-right" />
+      </a>
+      <a class="btn btn--light btn--lg" href={localizePath('/portfolio/', lang)}>{t('common.viewPortfolio')}</a>
+    </div>
+  </div>
+
+  <div class="hero__bar container container--wide" data-reveal="fade" style="--reveal-delay:1100">
+    <div class="hero__counter">
+      <button type="button" class="hero__ctrl" data-hero-toggle aria-label={home.hero.pause[lang]} data-label-pause={home.hero.pause[lang]} data-label-play={home.hero.play[lang]}>
+        <Icon name="pause" size={14} class="hero__ctrl-pause" />
+        <Icon name="play" size={14} class="hero__ctrl-play" />
+      </button>
+      <span class="hero__num nums" data-hero-num>01</span>
+      <span class="hero__progress" aria-hidden="true">
+        {slides.map((_, i) => <span class="hero__tick" data-tick={i}><span /></span>)}
+      </span>
+      <span class="hero__num hero__num--total nums">{String(slides.length).padStart(2, '0')}</span>
+      <span class="hero__caption" data-hero-caption>{captions[0]?.[lang]}</span>
+    </div>
+    <a class="hero__rating" href={site.social.googleReviews || localizePath('/#testimonials', lang)} target={site.social.googleReviews ? '_blank' : undefined} rel="noopener">
+      <span class="hero__stars" aria-hidden="true">★★★★★</span>
+      <span class="nums">{site.stats.rating}</span>
+      <span class="hero__rating-sep" aria-hidden="true">·</span>
+      <span>{site.stats.reviews}+ {home.hero.reviews[lang]}</span>
+    </a>
+    <a class="hero__scroll" href="#after-hero" aria-label={t('common.scroll')}>
+      <span>{t('common.scroll')}</span>
+      <span class="hero__scroll-line" aria-hidden="true"></span>
+    </a>
+  </div>
+</section>
+<div id="after-hero"></div>
+
+<script>
+  import { motionOff } from '~/scripts/core';
+
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (hero) {
+    const slides = [...hero.querySelectorAll<HTMLElement>('[data-slide]')];
+    const ticks = [...hero.querySelectorAll<HTMLElement>('[data-tick]')];
+    const num = hero.querySelector<HTMLElement>('[data-hero-num]')!;
+    const caption = hero.querySelector<HTMLElement>('[data-hero-caption]')!;
+    const toggle = hero.querySelector<HTMLButtonElement>('[data-hero-toggle]')!;
+    const captions = JSON.parse(hero.dataset.captions ?? '[]') as string[];
+    const DURATION = 6500;
+    let index = 0;
+    let timer = 0;
+    let playing = !motionOff() && slides.length > 1;
+
+    // The headline animates on load rather than on scroll.
+    requestAnimationFrame(() => hero.querySelector('[data-reveal-now]')?.classList.add('is-in'));
+
+    const show = (next: number) => {
+      const prev = index;
+      index = (next + slides.length) % slides.length;
+      slides.forEach((s, i) => {
+        s.classList.toggle('is-active', i === index);
+        s.classList.toggle('is-leaving', i === prev && prev !== index);
+        if (i === index) s.removeAttribute('aria-hidden');
+        else s.setAttribute('aria-hidden', 'true');
+      });
+      ticks.forEach((tk, i) => {
+        tk.classList.toggle('is-done', i < index);
+        tk.classList.remove('is-running');
+      });
+      num.textContent = String(index + 1).padStart(2, '0');
+      if (captions[index]) caption.textContent = captions[index]!;
+      if (playing) {
+        // restart the progress animation for the active tick
+        void ticks[index]?.offsetWidth;
+        ticks[index]?.classList.add('is-running');
+      }
+    };
+
+    const schedule = () => {
+      clearTimeout(timer);
+      if (playing) timer = window.setTimeout(() => {
+        show(index + 1);
+        schedule();
+      }, DURATION);
+    };
+
+    const setPlaying = (state: boolean) => {
+      playing = state;
+      hero.classList.toggle('is-paused', !state);
+      toggle.setAttribute('aria-label', state ? toggle.dataset.labelPause! : toggle.dataset.labelPlay!);
+      ticks[index]?.classList.toggle('is-running', state);
+      schedule();
+    };
+
+    toggle.addEventListener('click', () => setPlaying(!playing));
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) clearTimeout(timer);
+      else schedule();
+    });
+    // Pause while the hero is off-screen to save battery.
+    new IntersectionObserver(([e]) => {
+      if (!e) return;
+      if (e.isIntersecting) schedule();
+      else clearTimeout(timer);
+    }).observe(hero);
+
+    hero.style.setProperty('--slide-duration', `${DURATION}ms`);
+    setPlaying(playing);
+    show(0);
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-block-size: max(640px, 100svh);
+    display: grid;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--noir);
+  }
+  .hero__slides { position: absolute; inset: 0; z-index: -2; }
+  .hero__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.6s var(--ease-soft);
+  }
+  .hero__slide.is-active { opacity: 1; z-index: 1; }
+  .hero__slide :global(picture), .hero__slide :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .hero__slide :global(img) { transform: scale(1.1); transition: transform 9s linear; }
+  .hero__slide.is-active :global(img) { transform: scale(1); }
+  .hero.is-paused .hero__slide :global(img) { transition-duration: 0s; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__slide :global(img) { transform: none !important; transition: none !important; }
+  }
+  :global(html.a11y-motion) .hero__slide :global(img) { transform: none !important; }
+
+  .hero__shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(to top, rgb(10 8 6 / 0.85) 0%, rgb(10 8 6 / 0.45) 34%, rgb(10 8 6 / 0.08) 62%, rgb(10 8 6 / 0.32) 100%),
+      linear-gradient(to right, rgb(10 8 6 / 0.55) 0%, rgb(10 8 6 / 0.25) 38%, transparent 65%),
+      radial-gradient(120% 90% at 50% 40%, transparent 50%, rgb(10 8 6 / 0.45) 100%);
+  }
+  :global([dir='rtl']) .hero__shade {
+    background:
+      linear-gradient(to top, rgb(10 8 6 / 0.85) 0%, rgb(10 8 6 / 0.45) 34%, rgb(10 8 6 / 0.08) 62%, rgb(10 8 6 / 0.32) 100%),
+      linear-gradient(to left, rgb(10 8 6 / 0.55) 0%, rgb(10 8 6 / 0.25) 38%, transparent 65%),
+      radial-gradient(120% 90% at 50% 40%, transparent 50%, rgb(10 8 6 / 0.45) 100%);
+  }
+
+  .hero__content {
+    align-self: end;
+    display: grid;
+    justify-items: start;
+    gap: 1.6rem;
+    padding-block: calc(var(--header-h) + 3rem) clamp(2rem, 1rem + 3vw, 3.5rem);
+  }
+  .hero__eyebrow { color: var(--gold-soft); }
+  .hero__title { max-inline-size: 12ch; color: var(--on-noir); text-shadow: 0 2px 40px rgb(0 0 0 / 0.35); }
+  :global(:lang(he)) .hero__title { max-inline-size: 11ch; }
+  .hero__title :global(em) { color: var(--gold-soft); }
+  .hero__text {
+    max-inline-size: 46ch;
+    font-size: var(--fs-lead);
+    line-height: 1.6;
+    color: rgb(243 237 229 / 0.86);
+    font-weight: 350;
+  }
+  .hero__actions { --cluster: 0.9rem; margin-block-start: 0.4rem; }
+
+  .hero__bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    padding-block: 1.4rem 1.8rem;
+    border-block-start: 1px solid var(--line-noir);
+    font-size: 0.82rem;
+    color: rgb(243 237 229 / 0.8);
+  }
+  .hero__counter { display: flex; align-items: center; gap: 0.9rem; min-inline-size: 0; }
+  .hero__ctrl {
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border: 1px solid var(--line-noir);
+    border-radius: 50%;
+    transition: background 0.3s, color 0.3s;
+  }
+  .hero__ctrl:hover { background: var(--on-noir); color: var(--ink); }
+  .hero__ctrl :global(.hero__ctrl-play) { display: none; }
+  .hero.is-paused .hero__ctrl :global(.hero__ctrl-play) { display: block; }
+  .hero.is-paused .hero__ctrl :global(.hero__ctrl-pause) { display: none; }
+  .hero__num { font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; color: var(--on-noir); }
+  .hero__num--total { opacity: 0.6; }
+  .hero__progress { display: flex; gap: 0.35rem; }
+  .hero__tick { position: relative; inline-size: 2.2rem; block-size: 1px; background: rgb(243 237 229 / 0.25); overflow: hidden; }
+  .hero__tick span {
+    position: absolute;
+    inset: 0;
+    background: var(--on-noir);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  :global([dir='rtl']) .hero__tick span { transform-origin: right; }
+  .hero__tick.is-done span { transform: scaleX(1); }
+  .hero__tick.is-running span { animation: hero-tick var(--slide-duration, 6500ms) linear forwards; }
+  @keyframes hero-tick { to { transform: scaleX(1); } }
+  .hero__caption {
+    padding-inline-start: 0.9rem;
+    border-inline-start: 1px solid var(--line-noir);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hero__rating { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+  .hero__stars { color: var(--gold-soft); letter-spacing: 0.12em; font-size: 0.8rem; }
+  .hero__rating-sep { opacity: 0.5; }
+  .hero__scroll { display: inline-flex; align-items: center; gap: 0.8rem; text-transform: var(--label-transform); letter-spacing: var(--label-tracking); font-size: 0.72rem; font-weight: 600; }
+  .hero__scroll-line { position: relative; inline-size: 1px; block-size: 2.6rem; background: rgb(243 237 229 / 0.25); overflow: hidden; }
+  .hero__scroll-line::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -40%;
+    block-size: 40%;
+    background: var(--on-noir);
+    animation: scroll-line 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes scroll-line { to { inset-block-start: 100%; } }
+
+  @media (max-width: 760px) {
+    .hero__shade, :global([dir='rtl']) .hero__shade {
+      background:
+        linear-gradient(to top, rgb(10 8 6 / 0.92) 0%, rgb(10 8 6 / 0.68) 42%, rgb(10 8 6 / 0.2) 72%, rgb(10 8 6 / 0.4) 100%);
+    }
+  }
+  @media (max-width: 860px) {
+    .hero__rating, .hero__scroll { display: none; }
+    .hero__progress { display: none; }
+  }
+  @media (max-width: 520px) {
+    .hero__actions { inline-size: 100%; }
+    .hero__actions .btn { flex: 1 1 100%; }
+    .hero__caption { display: none; }
+  }
+</style>

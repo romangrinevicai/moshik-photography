@@ -1,0 +1,212 @@
+---
+import Logo from '~/components/ui/Logo.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { footerNav } from '~/data/nav';
+import { services } from '~/data/services';
+import { site, whatsappLink, telLink, mailLink } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  /** Hide the big call-to-action (e.g. on the contact page itself). */
+  cta?: boolean;
+}
+const { lang, cta = true } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+
+const ctaCopy = {
+  eyebrow: { he: 'בואו נדבר', en: "Let's talk" },
+  title: { he: 'בואו ניצור משהו <em>שתרצו לראות שוב ושוב</em>', en: 'Let’s create something <em>you’ll want to see again and again</em>' },
+};
+const socials = [
+  { key: 'instagram', href: site.social.instagram, label: t('contact.instagram') },
+  { key: 'facebook', href: site.social.facebook, label: t('contact.facebook') },
+  { key: 'tiktok', href: site.social.tiktok, label: 'TikTok' },
+  { key: 'youtube', href: site.social.youtube, label: 'YouTube' },
+] as const;
+---
+<footer class="site-footer on-noir">
+  <div class="container container--wide">
+    {
+      cta && (
+        <div class="site-footer__cta">
+          <p class="eyebrow">{ctaCopy.eyebrow[lang]}</p>
+          <h2 class="site-footer__title display" data-reveal set:html={ctaCopy.title[lang]} />
+          <div class="cluster site-footer__cta-actions" data-reveal style="--reveal-delay:150">
+            <a class="btn btn--gold btn--lg" href={localizePath('/contact/', lang)}>
+              {t('nav.cta')}
+              <Icon name="arrow-right" />
+            </a>
+            <a class="btn btn--light btn--lg" href={whatsappLink(t('wa.greeting'))} target="_blank" rel="noopener" data-track="whatsapp_click">
+              <Icon name="whatsapp" />
+              {t('wa.chat')}
+            </a>
+          </div>
+        </div>
+      )
+    }
+
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a href={localizePath('/', lang)} aria-label={site.name[lang]}><Logo size="lg" /></a>
+        <p class="site-footer__tagline">{t('footer.tagline')}</p>
+        <ul role="list" class="site-footer__social">
+          {
+            socials
+              .filter((s) => s.href && !/instagram\.com\/?$/.test(s.href))
+              .map((s) => (
+                <li>
+                  <a href={s.href} target="_blank" rel="noopener" aria-label={s.label}>
+                    <Icon name={s.key} size={18} />
+                  </a>
+                </li>
+              ))
+          }
+        </ul>
+      </div>
+
+      <nav class="site-footer__col" aria-label={t('footer.explore')}>
+        <h2 class="site-footer__heading">{t('footer.explore')}</h2>
+        <ul role="list">
+          {footerNav.map((item) => <li><a href={localizePath(item.href, lang)}>{t(item.key)}</a></li>)}
+        </ul>
+      </nav>
+
+      <nav class="site-footer__col" aria-label={t('footer.services')}>
+        <h2 class="site-footer__heading">{t('footer.services')}</h2>
+        <ul role="list">
+          {services.map((s) => <li><a href={localizePath(`/services/${s.slug}/`, lang)}>{s.title[lang]}</a></li>)}
+        </ul>
+      </nav>
+
+      <div class="site-footer__col">
+        <h2 class="site-footer__heading">{t('footer.contact')}</h2>
+        <ul role="list" class="site-footer__contact">
+          <li>
+            <a href={whatsappLink(t('wa.greeting'))} target="_blank" rel="noopener" data-track="whatsapp_click">
+              <Icon name="whatsapp" size={16} /> <span>{t('common.whatsapp')}</span>
+            </a>
+          </li>
+          <li>
+            <a href={telLink} data-track="phone_click"><Icon name="phone" size={16} /> <span class="ltr">{site.contact.phoneDisplay}</span></a>
+          </li>
+          <li>
+            <a href={mailLink} data-track="email_click"><Icon name="mail" size={16} /> <span class="ltr">{site.contact.email}</span></a>
+          </li>
+          <li class="site-footer__muted"><Icon name="map-pin" size={16} /> <span>{site.location.base[lang]}</span></li>
+          <li>
+            <a href="/moshik.vcf" download><Icon name="user-plus" size={16} /> <span>{t('contact.saveContact')}</span></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="site-footer__mark" aria-hidden="true" dir="ltr">{site.brand}</div>
+
+    <div class="site-footer__bottom">
+      <p>© {year} {site.name[lang]}. {t('footer.rights')}. <span class="site-footer__muted">{t('footer.photosNote')}</span></p>
+      <ul role="list" class="cluster">
+        <li><a href={localizePath('/accessibility/', lang)}>{t('footer.accessibility')}</a></li>
+        <li><a href={localizePath('/privacy/', lang)}>{t('footer.privacy')}</a></li>
+        <li>
+          <a href="#top" class="site-footer__top" data-scroll-top>
+            {t('footer.backToTop')} <Icon name="arrow-up" size={14} />
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(4.5rem, 3rem + 6vw, 8rem) 2rem;
+  }
+  .site-footer__cta {
+    display: grid;
+    justify-items: start;
+    gap: 1.6rem;
+    padding-block-end: clamp(4rem, 3rem + 4vw, 7rem);
+    margin-block-end: clamp(3rem, 2rem + 3vw, 5rem);
+    border-block-end: 1px solid var(--line-noir);
+  }
+  .site-footer__title {
+    font-size: clamp(2.4rem, 1.4rem + 4.4vw, 6rem);
+    max-inline-size: 15ch;
+    line-height: 1.02;
+  }
+  .site-footer__cta-actions { --cluster: 1rem; margin-block-start: 0.5rem; }
+
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.3fr;
+    gap: 3rem;
+  }
+  .site-footer__brand { display: grid; gap: 1.5rem; align-content: start; justify-items: start; }
+  .site-footer__tagline { color: var(--on-noir-muted); max-inline-size: 34ch; font-size: 0.98rem; }
+  .site-footer__social { display: flex; gap: 0.6rem; }
+  .site-footer__social a {
+    display: grid;
+    place-items: center;
+    inline-size: 2.6rem;
+    block-size: 2.6rem;
+    border: 1px solid var(--line-noir);
+    border-radius: 50%;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .site-footer__social a:hover { background: var(--on-noir); color: var(--ink); border-color: var(--on-noir); }
+  .site-footer__heading {
+    font-family: var(--font-body);
+    font-size: var(--fs-eyebrow);
+    font-weight: 600;
+    letter-spacing: var(--eyebrow-tracking);
+    text-transform: var(--label-transform);
+    color: var(--gold-soft);
+    margin-block-end: 1.3rem;
+  }
+  .site-footer__col ul { display: grid; gap: 0.6rem; }
+  .site-footer__col a { color: var(--on-noir); opacity: 0.86; transition: opacity 0.3s, color 0.3s; }
+  .site-footer__col a:hover { opacity: 1; color: var(--gold-soft); }
+  .site-footer__contact li, .site-footer__contact a { display: inline-flex; align-items: center; gap: 0.7rem; }
+  .site-footer__muted { color: var(--on-noir-muted); }
+
+  .site-footer__mark {
+    margin-block: clamp(3rem, 2rem + 4vw, 6rem) 1.5rem;
+    font-family: 'Cormorant', 'Cormorant Fallback', Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(5rem, 22vw, 23rem);
+    line-height: 0.75;
+    letter-spacing: 0.08em;
+    text-align: center;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(243 237 229 / 0.16);
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .site-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-block-start: 1.6rem;
+    border-block-start: 1px solid var(--line-noir);
+    font-size: 0.86rem;
+    color: var(--on-noir-muted);
+  }
+  .site-footer__bottom a:hover { color: var(--on-noir); }
+  .site-footer__bottom .cluster { --cluster: 1.6rem; }
+  .site-footer__top { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+  @media (max-width: 1024px) {
+    .site-footer__grid { grid-template-columns: 1fr 1fr; }
+    .site-footer__brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    .site-footer__grid { grid-template-columns: 1fr; gap: 2.4rem; }
+    .site-footer__cta-actions .btn { inline-size: 100%; }
+  }
+</style>

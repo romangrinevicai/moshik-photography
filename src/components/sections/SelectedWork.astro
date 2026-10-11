@@ -1,0 +1,90 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import LightboxLink from '~/components/ui/LightboxLink.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { services } from '~/data/services';
+import { photosIn, altFor, type Photo } from '~/data/photos';
+import { home } from '~/data/home';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// One or two photos from each category, interleaved, so the mix always reflects the portfolio.
+const pools = services.map((s) => ({ service: s, photos: photosIn(s.portfolio) }));
+const picks: { photo: Photo; label: string }[] = [];
+for (let round = 0; round < 2 && picks.length < 6; round++) {
+  for (const pool of pools) {
+    const p = pool.photos[round];
+    if (p && picks.length < 6) picks.push({ photo: p, label: pool.service.title[lang] });
+  }
+}
+const columns = [0, 1, 2].map((c) => picks.filter((_, i) => i % 3 === c));
+// Alternate tall/wide tiles so the three staggered columns end at similar heights.
+const ratioFor = (c: number, i: number) => ((c + i) % 2 === 0 ? 'ratio-4x5' : 'ratio-3x2');
+---
+<section class="work section on-noir" data-section="selected-work">
+  <div class="container container--wide">
+    <SectionHead eyebrow={home.work.eyebrow[lang]} title={home.work.title[lang]} align="split">
+      <a class="btn btn--light" href={localizePath('/portfolio/', lang)}>
+        {t('common.viewAll')}
+        <Icon name="arrow-right" />
+      </a>
+    </SectionHead>
+    <div class="work__grid" data-lightbox>
+      {
+        columns.map((col, c) => (
+          <div class="work__col" style={`--offset:${[0, 7, 3][c]}rem`}>
+            {col.map((item, i) => (
+              <figure class="work__item" data-reveal style={`--reveal-delay:${c * 100 + i * 80}`}>
+                <LightboxLink photo={item.photo} caption={item.label} cursorLabel={t('lb.view')} class="work__link">
+                  <span class:list={['media media--zoom', ratioFor(c, i)]}>
+                    <Img photo={item.photo} alt={altFor(item.photo, lang)} preset="third" />
+                  </span>
+                </LightboxLink>
+                <figcaption class="work__caption">
+                  <span>{item.label}</span>
+                  <span class="nums">{String(c + i * 3 + 1).padStart(2, '0')}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  import '~/scripts/lightbox';
+</script>
+
+<style>
+  .work__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+    align-items: start;
+  }
+  .work__col { display: grid; gap: clamp(1.5rem, 1rem + 2vw, 3rem); padding-block-start: var(--offset); }
+  .work__link { display: block; }
+  .work__caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 0.9rem;
+    font-size: var(--label-size);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    color: var(--fg-muted);
+  }
+  @media (max-width: 860px) {
+    .work__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .work__col:nth-child(3) { display: none; }
+    .work__col { padding-block-start: calc(var(--offset) * 0.5); }
+  }
+</style>

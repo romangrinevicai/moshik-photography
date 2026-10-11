@@ -1,0 +1,63 @@
+---
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import { site } from '~/config/site';
+import { languages, langs, localizePath, defaultLang, type Lang } from '~/i18n';
+import { photosIn } from '~/data/photos';
+
+interface Props {
+  lang: Lang;
+  /** Language-neutral path, e.g. "/pricing/" */
+  path: string;
+  title: string;
+  description: string;
+  image?: ImageMetadata;
+  type?: 'website' | 'article' | 'profile';
+  noindex?: boolean;
+  /** Pages that exist in one language only can disable alternates. */
+  alternates?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { lang, path, title, description, image, type = 'website', noindex = false, alternates = true, jsonLd = [] } = Astro.props;
+
+const siteUrl = Astro.site ?? new URL('https://moshik-photography.example');
+const brand = site.name[lang];
+const fullTitle = title.includes(brand) ? title : `${title} | ${brand} — ${site.tagline[lang]}`;
+const canonical = new URL(localizePath(path, lang), siteUrl).href;
+
+// Social share image: page photo or the first hero shot, cropped to 1200×630.
+const ogSource = image ?? photosIn('hero')[0]?.src;
+const og = ogSource
+  ? await getImage({ src: ogSource, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 })
+  : undefined;
+const ogUrl = og ? new URL(og.src, siteUrl).href : undefined;
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+{
+  alternates &&
+    langs.map((l) => (
+      <link rel="alternate" hreflang={languages[l].locale.split('-')[0]} href={new URL(localizePath(path, l), siteUrl).href} />
+    ))
+}
+{alternates && <link rel="alternate" hreflang="x-default" href={new URL(localizePath(path, defaultLang), siteUrl).href} />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={`${brand} — ${site.tagline[lang]}`} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content={languages[lang].ogLocale} />
+{langs.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={languages[l].ogLocale} />)}
+{ogUrl && <meta property="og:image" content={ogUrl} />}
+{ogUrl && <meta property="og:image:width" content="1200" />}
+{ogUrl && <meta property="og:image:height" content="630" />}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{ogUrl && <meta name="twitter:image" content={ogUrl} />}
+
+{jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}

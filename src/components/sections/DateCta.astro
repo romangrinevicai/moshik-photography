@@ -1,0 +1,182 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { photosIn } from '~/data/photos';
+import { home } from '~/data/home';
+import { fallbackAvailability } from '~/data/availability';
+import { whatsappLink } from '~/config/site';
+import { localizePath, type Lang } from '~/i18n';
+import { accent } from '~/shared/text';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const bg = photosIn('hero')[0]!;
+const copy = {
+  label: { he: 'תאריך האירוע', en: 'Event date' },
+  check: { he: 'בדיקה', en: 'Check' },
+  available: { he: 'יש! {date} עדיין פנוי. כדאי לשריין לפני שמישהו אחר יקדים אתכם.', en: 'Good news — {date} is still available! Let’s hold it for you before someone else does.' },
+  limited: { he: '{date} כמעט מלא — נשאר מקום אחד אחרון. כדאי לדבר עכשיו.', en: '{date} is almost fully booked — one spot left. Let’s talk now.' },
+  booked: { he: '{date} כבר תפוס — אבל אל תתייאשו: אשמח להמליץ על צלם מהצוות שלי או לבדוק אפשרויות.', en: '{date} is already booked — but don’t give up: I’d be happy to recommend a photographer from my team or explore options.' },
+  past: { he: 'התאריך הזה כבר עבר 🙂 נסו תאריך אחר.', en: 'That date has already passed 🙂 Try another one.' },
+  wa: { he: 'שריון בוואטסאפ', en: 'Hold it on WhatsApp' },
+  form: { he: 'להשלמת פרטים', en: 'Continue to the form' },
+  waMsg: { he: 'היי מושיק! רציתי לבדוק אם {date} פנוי לאירוע שלנו 🙏', en: 'Hi Moshik! I’d love to check if {date} is available for our event 🙏' },
+  note: { he: 'הזמינות מתעדכנת באופן שוטף. אישור סופי — בשיחה איתי.', en: 'Availability is updated regularly. Final confirmation is personal.' },
+};
+const strings = Object.fromEntries(Object.entries(copy).map(([k, v]) => [k, v[lang]]));
+---
+<section class="datecta on-noir" data-section="date-cta">
+  <div class="datecta__bg" aria-hidden="true">
+    <div class="datecta__bg-inner" data-parallax="0.12">
+      <Img photo={bg} alt="" preset="full" />
+    </div>
+  </div>
+  <div class="container container--narrow datecta__inner">
+    <p class="eyebrow eyebrow--plain">{home.cta.eyebrow[lang]}</p>
+    <h2 class="datecta__title" data-reveal set:html={accent(home.cta.title[lang])} />
+    <p class="lead datecta__text" data-reveal style="--reveal-delay:120">{home.cta.text[lang]}</p>
+
+    <form class="datecta__form" data-date-check data-strings={JSON.stringify(strings)} data-fallback={JSON.stringify(fallbackAvailability)} data-lang={lang} data-reveal style="--reveal-delay:220" novalidate>
+      <label class="sr-only" for="date-check-input">{copy.label[lang]}</label>
+      <span class="datecta__field">
+        <Icon name="calendar" size={20} />
+        <input class="datecta__input" id="date-check-input" type="date" name="date" required />
+      </span>
+      <button class="btn btn--gold btn--lg" type="submit">
+        {copy.check[lang]}
+        <Icon name="arrow-right" />
+      </button>
+    </form>
+
+    <div class="datecta__result" data-date-result aria-live="polite" hidden>
+      <p class="datecta__status" data-status></p>
+      <p class="datecta__hebrew" data-hebrew></p>
+      <div class="cluster datecta__actions">
+        <a class="btn btn--light" data-wa href={whatsappLink()} target="_blank" rel="noopener" data-track="whatsapp_click">
+          <Icon name="whatsapp" />
+          {copy.wa[lang]}
+        </a>
+        <a class="btn btn--gold" data-form href={localizePath('/contact/', lang)}>
+          {copy.form[lang]}
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+      <p class="datecta__note small">{copy.note[lang]}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { loadAvailability, statusFor, formatLongDate, hebrewDate, todayInIsrael } from '~/scripts/availability';
+  import { whatsappLinkClient } from '~/scripts/wa';
+  import { track } from '~/scripts/core';
+
+  document.querySelectorAll<HTMLFormElement>('[data-date-check]').forEach((form) => {
+    const strings = JSON.parse(form.dataset.strings!) as Record<string, string>;
+    const fallback = JSON.parse(form.dataset.fallback!);
+    const lang = (form.dataset.lang ?? 'he') as 'he' | 'en';
+    const input = form.querySelector<HTMLInputElement>('input[type="date"]')!;
+    const result = form.parentElement!.querySelector<HTMLElement>('[data-date-result]')!;
+    input.min = todayInIsrael();
+    loadAvailability(fallback); // warm up
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!input.value) {
+        input.focus();
+        input.showPicker?.();
+        return;
+      }
+      const availability = await loadAvailability(fallback);
+      const status = statusFor(input.value, availability);
+      const pretty = formatLongDate(input.value, lang);
+      const msg = (strings[status] ?? strings.available!).replace('{date}', pretty);
+      result.hidden = false;
+      result.dataset.state = status;
+      result.querySelector('[data-status]')!.textContent = msg;
+      const heb = hebrewDate(input.value);
+      result.querySelector('[data-hebrew]')!.textContent = heb ? `${lang === 'he' ? 'בתאריך עברי:' : 'Hebrew date:'} ${heb}` : '';
+      const wa = result.querySelector<HTMLAnchorElement>('[data-wa]')!;
+      wa.href = whatsappLinkClient(strings.waMsg!.replace('{date}', pretty));
+      const formLink = result.querySelector<HTMLAnchorElement>('[data-form]')!;
+      const url = new URL(formLink.href, location.href);
+      url.searchParams.set('date', input.value);
+      formLink.href = url.pathname + url.search;
+      result.querySelector('.datecta__actions')!.toggleAttribute('hidden', status === 'past');
+      track('date_check', { status });
+    });
+  });
+</script>
+
+<style>
+  .datecta {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding-block: clamp(6rem, 4rem + 8vw, 11rem);
+    text-align: center;
+  }
+  .datecta__bg { position: absolute; inset: 0; z-index: -1; }
+  .datecta__bg-inner { position: absolute; inset: -12% 0; }
+  .datecta__bg :global(picture), .datecta__bg :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .datecta__bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgb(10 8 6 / 0.72), rgb(10 8 6 / 0.82)); }
+  .datecta__inner { display: grid; justify-items: center; gap: 1.4rem; }
+  .datecta__title { font-size: clamp(2.6rem, 1.6rem + 4.4vw, 6rem); max-inline-size: 14ch; }
+  .datecta__title :global(em) { color: var(--gold-soft); }
+  .datecta__text { max-inline-size: 50ch; }
+  .datecta__form {
+    display: flex;
+    gap: 0.8rem;
+    inline-size: min(560px, 100%);
+    margin-block-start: 1rem;
+  }
+  .datecta__field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding-inline: 1.1rem;
+    border: 1px solid rgb(243 237 229 / 0.4);
+    background: rgb(15 13 11 / 0.35);
+    backdrop-filter: blur(6px);
+  }
+  .datecta__input {
+    flex: 1;
+    min-inline-size: 0;
+    block-size: 3.9rem;
+    border: 0;
+    background: transparent;
+    color: var(--on-noir);
+    font-size: 1.05rem;
+    color-scheme: dark;
+  }
+  .datecta__input:focus { outline: none; }
+  .datecta__field:focus-within { border-color: var(--on-noir); }
+  .datecta__result {
+    display: grid;
+    justify-items: center;
+    gap: 0.8rem;
+    inline-size: min(640px, 100%);
+    margin-block-start: 0.6rem;
+    padding: 1.6rem;
+    border: 1px solid var(--line-noir);
+    background: rgb(15 13 11 / 0.55);
+    backdrop-filter: blur(8px);
+    animation: rise 0.6s var(--ease-out);
+  }
+  .datecta__result[hidden] { display: none; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .datecta__status { font-size: 1.15rem; font-weight: 500; }
+  .datecta__result[data-state='available'] .datecta__status::before { content: '✓ '; color: #8fd9a8; }
+  .datecta__result[data-state='booked'] .datecta__status::before { content: '● '; color: #f0a597; }
+  .datecta__result[data-state='limited'] .datecta__status::before { content: '● '; color: var(--gold-soft); }
+  .datecta__hebrew { color: var(--on-noir-muted); font-size: 0.95rem; }
+  .datecta__actions { --cluster: 0.7rem; justify-content: center; }
+  .datecta__actions[hidden] { display: none; }
+  .datecta__note { color: var(--on-noir-muted); }
+  @media (max-width: 560px) {
+    .datecta__form { flex-direction: column; }
+  }
+</style>

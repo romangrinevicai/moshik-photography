@@ -1,0 +1,67 @@
+---
+import type { FaqItem } from '~/data/faq';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  items: FaqItem[];
+  lang: Lang;
+  group?: string;
+}
+const { items, lang, group = 'faq' } = Astro.props;
+---
+<div class="faq-list">
+  {
+    items.map((item, i) => (
+      <details class="faq" name={group} id={`q-${item.id}`} data-reveal style={`--reveal-delay:${i * 50}`}>
+        <summary class="faq__q">
+          <span>{item.q[lang]}</span>
+          <span class="faq__icon" aria-hidden="true" />
+        </summary>
+        <div class="faq__a">
+          <p>{item.a[lang]}</p>
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  .faq-list { border-block-start: 1px solid var(--rule); }
+  .faq { border-block-end: 1px solid var(--rule); interpolate-size: allow-keywords; }
+  .faq__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 1.1rem + 0.7vw, 1.75rem);
+    font-weight: var(--display-weight);
+    line-height: 1.25;
+    transition: color 0.3s;
+  }
+  .faq__q::-webkit-details-marker { display: none; }
+  .faq__q:hover { color: var(--accent); }
+  .faq__icon { position: relative; flex: none; inline-size: 1.1rem; block-size: 1.1rem; }
+  .faq__icon::before, .faq__icon::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    block-size: 1px;
+    background: currentColor;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .faq__icon::after { transform: rotate(90deg); }
+  .faq[open] .faq__icon::after { transform: rotate(0deg); }
+  .faq__a { padding-block-end: 1.6rem; padding-inline-end: 2.5rem; color: var(--fg-soft); max-inline-size: 70ch; }
+  .faq::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size 0.5s var(--ease-out), content-visibility 0.5s allow-discrete;
+  }
+  .faq[open]::details-content { block-size: auto; }
+  @media (prefers-reduced-motion: reduce) { .faq::details-content { transition: none; } }
+</style>

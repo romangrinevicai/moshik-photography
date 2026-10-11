@@ -1,0 +1,39 @@
+---
+import { Picture } from 'astro:assets';
+import type { Photo } from '~/data/photos';
+
+type Preset = 'full' | 'wide' | 'half' | 'third' | 'card' | 'thumb';
+
+interface Props {
+  photo: Photo;
+  alt: string;
+  preset?: Preset;
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+  priority?: boolean;
+}
+
+const presets: Record<Preset, { widths: number[]; sizes: string }> = {
+  full: { widths: [640, 960, 1280, 1600, 2000, 2400], sizes: '100vw' },
+  wide: { widths: [640, 960, 1280, 1600, 2000], sizes: '(min-width: 1400px) 1360px, 100vw' },
+  half: { widths: [480, 720, 960, 1280, 1600], sizes: '(min-width: 1400px) 680px, (min-width: 860px) 50vw, 100vw' },
+  third: { widths: [400, 600, 800, 1100], sizes: '(min-width: 1400px) 460px, (min-width: 860px) 33vw, 100vw' },
+  card: { widths: [360, 540, 720, 960], sizes: '(min-width: 1100px) 400px, (min-width: 700px) 45vw, 90vw' },
+  thumb: { widths: [160, 320, 480], sizes: '160px' },
+};
+
+const { photo, alt, preset = 'half', sizes, loading = 'lazy', class: className, priority = false } = Astro.props;
+const cfg = presets[preset];
+const widths = cfg.widths.filter((w) => w <= photo.width).concat(photo.width < cfg.widths[0]! ? [photo.width] : []);
+---
+<Picture
+  src={photo.src}
+  alt={alt}
+  widths={widths.length ? widths : [photo.width]}
+  sizes={sizes ?? cfg.sizes}
+  formats={['avif', 'webp']}
+  loading={priority ? 'eager' : loading}
+  fetchpriority={priority ? 'high' : undefined}
+  class={className}
+/>

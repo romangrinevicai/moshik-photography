@@ -1,0 +1,397 @@
+---
+import { Picture } from 'astro:assets';
+import Logo from '~/components/ui/Logo.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { mainNav } from '~/data/nav';
+import { services } from '~/data/services';
+import { photo } from '~/data/photos';
+import { site, whatsappLink, telLink, mailLink } from '~/config/site';
+import { localizePath, otherLang, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  path: string;
+  variant?: 'overlay' | 'solid';
+}
+const { lang, path, variant = 'solid' } = Astro.props;
+const t = useTranslations(lang);
+const alt = otherLang(lang);
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<header class="site-header" data-header data-variant={variant}>
+  <div class="site-header__bar container container--wide">
+    <a class="site-header__logo" href={localizePath('/', lang)} aria-label={`${site.name[lang]} — ${t('nav.home')}`}>
+      <Logo />
+    </a>
+
+    <nav class="site-nav" aria-label={t('nav.main')}>
+      <ul role="list" class="site-nav__list">
+        {
+          mainNav.map((item) =>
+            item.services ? (
+              <li class="site-nav__item has-mega" data-mega>
+                <a class="site-nav__link" href={localizePath(item.href, lang)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {t(item.key)}
+                </a>
+                <button class="site-nav__toggle" type="button" aria-expanded="false" aria-controls="mega-services" aria-label={t(item.key)} data-mega-toggle>
+                  <Icon name="chevron-down" size={14} />
+                </button>
+                <div class="mega" id="mega-services" data-mega-panel>
+                  <div class="mega__inner">
+                    <ul role="list" class="mega__list">
+                      {services.map((s, i) => (
+                        <li>
+                          <a class="mega__link" href={localizePath(`/services/${s.slug}/`, lang)} data-mega-index={i}>
+                            <span class="mega__num">0{i + 1}</span>
+                            <span class="mega__text">
+                              <span class="mega__title">{s.title[lang]}</span>
+                              <span class="mega__summary">{s.summary[lang]}</span>
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <div class="mega__media" aria-hidden="true">
+                      {services.map((s, i) => (
+                        <div class:list={['mega__img', { 'is-active': i === 0 }]} data-mega-img={i}>
+                          <Picture src={photo(s.cover).src} alt="" widths={[360, 540]} sizes="300px" formats={['avif', 'webp']} loading="lazy" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ) : (
+              <li class="site-nav__item">
+                <a class="site-nav__link" href={localizePath(item.href, lang)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {t(item.key)}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      {
+        site.features.clientGalleries && (
+          <a class="site-header__gallery" href={localizePath('/gallery/', lang)} title={t('nav.gallery')}>
+            <Icon name="lock" size={15} />
+            <span>{t('nav.gallery')}</span>
+          </a>
+        )
+      }
+      <a class="site-header__lang" href={localizePath(path, alt)} hreflang={alt} lang={alt} aria-label={t('nav.switchLangLabel')} data-lang-switch>
+        {alt === 'en' ? 'EN' : 'עב'}
+      </a>
+      <a class="btn btn--sm site-header__cta" href={localizePath('/contact/', lang)}>
+        {t('nav.cta')}
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span class="sr-only">{t('nav.menu')}</span>
+        <span class="menu-toggle__lines" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu on-noir" id="mobile-menu" data-mobile-menu hidden>
+  <div class="mobile-menu__inner container">
+    <nav aria-label={t('nav.main')}>
+      <ul role="list" class="mobile-menu__list">
+        <li style="--i:0"><a href={localizePath('/', lang)} aria-current={path === '/' ? 'page' : undefined}>{t('nav.home')}</a></li>
+        {
+          mainNav.map((item, i) => (
+            <li style={`--i:${i + 1}`}>
+              <a href={localizePath(item.href, lang)} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {t(item.key)}
+              </a>
+              {item.services && (
+                <ul role="list" class="mobile-menu__sub">
+                  {services.map((s) => (
+                    <li>
+                      <a href={localizePath(`/services/${s.slug}/`, lang)}>{s.title[lang]}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+        <li style={`--i:${mainNav.length + 1}`}><a href={localizePath('/faq/', lang)}>{t('nav.faq')}</a></li>
+        <li style={`--i:${mainNav.length + 2}`}><a href={localizePath('/contact/', lang)}>{t('nav.contact')}</a></li>
+      </ul>
+    </nav>
+    <div class="mobile-menu__foot">
+      <a class="btn btn--gold btn--block" href={localizePath('/contact/', lang)}>{t('nav.cta')}</a>
+      <div class="mobile-menu__contact">
+        <a href={whatsappLink(t('wa.greeting'))} target="_blank" rel="noopener" data-track="whatsapp_click" aria-label={t('common.whatsapp')}><Icon name="whatsapp" size={20} /></a>
+        <a href={telLink} data-track="phone_click" aria-label={t('common.call')}><Icon name="phone" size={20} /></a>
+        <a href={mailLink} data-track="email_click" aria-label={t('common.email')}><Icon name="mail" size={20} /></a>
+        {site.social.instagram && <a href={site.social.instagram} target="_blank" rel="noopener" aria-label={t('contact.instagram')}><Icon name="instagram" size={20} /></a>}
+        {site.social.facebook && <a href={site.social.facebook} target="_blank" rel="noopener" aria-label={t('contact.facebook')}><Icon name="facebook" size={20} /></a>}
+      </div>
+      <div class="mobile-menu__meta">
+        {site.features.clientGalleries && <a href={localizePath('/gallery/', lang)}><Icon name="lock" size={14} /> {t('nav.gallery')}</a>}
+        <a href={localizePath(path, alt)} hreflang={alt} lang={alt}><Icon name="globe" size={14} /> {t('nav.switchLang')}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .site-header {
+    --hfg: var(--ink);
+    --hbg: rgb(246 242 236 / 0.92);
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 100;
+    color: var(--hfg);
+    transition:
+      transform 0.6s var(--ease-out),
+      color 0.4s var(--ease-soft),
+      background-color 0.4s var(--ease-soft),
+      box-shadow 0.4s;
+    background-color: var(--hbg);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .site-header[data-variant='overlay']:not([data-scrolled]) {
+    --hfg: var(--on-noir);
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+  .site-header[data-variant='overlay']:not([data-scrolled])::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -60% 0;
+    background: linear-gradient(to bottom, rgb(10 8 6 / 0.45), transparent);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .site-header[data-hidden] { transform: translateY(-100%); }
+  :global(html.menu-open) .site-header {
+    --hfg: var(--on-noir);
+    background-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transform: none;
+  }
+  :global(html.menu-open) .site-header::before { display: none; }
+
+  .site-header__bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    block-size: var(--header-h);
+  }
+  .site-header__logo { flex: none; display: inline-flex; padding-block: 0.5rem; }
+
+  .site-nav { margin-inline: auto; }
+  .site-nav__list { display: flex; align-items: center; gap: clamp(1rem, 2.2vw, 2.6rem); }
+  .site-nav__item { position: relative; display: flex; align-items: center; gap: 0.15rem; }
+  .site-nav__link {
+    position: relative;
+    padding-block: 0.6rem;
+    font-size: var(--label-size);
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    white-space: nowrap;
+  }
+  .site-nav__link::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0.2rem;
+    block-size: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .site-nav__link:hover::after,
+  .site-nav__link[aria-current='page']::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  .site-nav__toggle {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.4rem;
+    block-size: 1.4rem;
+    transition: transform 0.4s var(--ease-out);
+  }
+  .site-nav__toggle[aria-expanded='true'] { transform: rotate(180deg); }
+
+  /* Services mega menu */
+  .mega {
+    position: absolute;
+    inset-block-start: calc(100% + 1.1rem);
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    inline-size: min(780px, 90vw);
+    color: var(--ink);
+    background: var(--paper);
+    box-shadow: 0 30px 80px -20px rgb(15 13 11 / 0.35), 0 0 0 1px var(--line);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.35s var(--ease-soft), transform 0.5s var(--ease-out), visibility 0s linear 0.35s;
+  }
+  :global([dir='rtl']) .mega { translate: 50% 0; }
+  .mega::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: -1.2rem;
+    block-size: 1.2rem;
+  }
+  .has-mega.is-open .mega {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  .mega__inner { display: grid; grid-template-columns: 1fr 260px; gap: 0; }
+  .mega__list { padding: 1.1rem; }
+  .mega__link {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 0.75rem;
+    padding: 0.85rem 0.9rem;
+    border-radius: var(--radius-lg);
+    transition: background 0.3s;
+  }
+  .mega__link:hover, .mega__link:focus-visible { background: var(--paper-deep); }
+  .mega__num { font-family: var(--font-display); font-size: 0.95rem; color: var(--gold-text); padding-block-start: 0.15rem; }
+  .mega__title { display: block; font-family: var(--font-display); font-size: 1.35rem; line-height: 1.2; }
+  .mega__summary { display: block; font-size: 0.86rem; line-height: 1.5; color: var(--muted); margin-block-start: 0.2rem; }
+  .mega__media { position: relative; overflow: hidden; background: var(--sand); }
+  .mega__img {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity 0.6s var(--ease-soft), transform 1.2s var(--ease-out);
+  }
+  .mega__img.is-active { opacity: 1; transform: none; }
+  .mega__img :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+  .site-header__actions { display: flex; align-items: center; gap: 1.25rem; flex: none; }
+  .site-nav + .site-header__actions { margin-inline-start: 0; }
+  .site-header__gallery {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.85;
+    transition: opacity 0.3s;
+  }
+  .site-header__gallery:hover { opacity: 1; }
+  .site-header__lang {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 2.4rem;
+    block-size: 2.4rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    border-radius: 999px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .site-header__lang:hover { border-color: currentColor; }
+  .site-header__cta { --btn-fg: var(--hfg); }
+
+  .menu-toggle {
+    display: none;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    place-items: center;
+    margin-inline-end: -0.5rem;
+  }
+  .menu-toggle__lines { position: relative; inline-size: 1.6rem; block-size: 0.6rem; }
+  .menu-toggle__lines span {
+    position: absolute;
+    inset-inline: 0;
+    block-size: 1.5px;
+    background: currentColor;
+    transition: transform 0.5s var(--ease-out), inset 0.5s var(--ease-out);
+  }
+  .menu-toggle__lines span:first-child { inset-block-start: 0; }
+  .menu-toggle__lines span:last-child { inset-block-end: 0; inset-inline-start: 0.5rem; }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__lines span:first-child { inset-block-start: 0.28rem; transform: rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__lines span:last-child { inset-block-end: 0.28rem; inset-inline-start: 0; transform: rotate(-45deg); }
+
+  @media (max-width: 1280px) {
+    .site-header__gallery span { display: none; }
+  }
+  @media (max-width: 1120px) {
+    .site-nav, .site-header__gallery { display: none; }
+    .menu-toggle { display: inline-grid; }
+    .site-header__actions { margin-inline-start: auto; gap: 0.9rem; }
+  }
+  @media (max-width: 520px) {
+    .site-header__cta { display: none; }
+  }
+
+  /* Mobile menu */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block: calc(var(--header-h) + 2rem) 2rem;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.8s var(--ease-in-out);
+  }
+  .mobile-menu[hidden] { display: block; visibility: hidden; }
+  :global(html.menu-open) .mobile-menu { clip-path: inset(0 0 0 0); visibility: visible; }
+  .mobile-menu__inner { display: flex; flex-direction: column; min-block-size: 100%; gap: 3rem; }
+  .mobile-menu__list > li {
+    border-block-end: 1px solid var(--line-noir);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s var(--ease-out), transform 0.8s var(--ease-out);
+    transition-delay: calc(0.25s + var(--i) * 0.06s);
+  }
+  :global(html.menu-open) .mobile-menu__list > li { opacity: 1; transform: none; }
+  .mobile-menu__list > li > a {
+    display: block;
+    padding-block: 0.9rem;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.4rem + 3vw, 3rem);
+    font-weight: 350;
+    line-height: 1.1;
+  }
+  .mobile-menu__list a[aria-current='page'] { color: var(--gold-soft); }
+  .mobile-menu__sub { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; padding-block-end: 1.1rem; }
+  .mobile-menu__sub a { font-size: 0.95rem; color: var(--on-noir-muted); }
+  .mobile-menu__sub a:hover { color: var(--on-noir); }
+  .mobile-menu__foot { margin-block-start: auto; display: grid; gap: 1.6rem; }
+  .mobile-menu__contact { display: flex; gap: 0.75rem; }
+  .mobile-menu__contact a {
+    display: grid;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    border: 1px solid var(--line-noir);
+    border-radius: 50%;
+    transition: background 0.3s, color 0.3s;
+  }
+  .mobile-menu__contact a:hover { background: var(--on-noir); color: var(--ink); }
+  .mobile-menu__meta { display: flex; flex-wrap: wrap; gap: 1.4rem; font-size: 0.9rem; color: var(--on-noir-muted); }
+  .mobile-menu__meta a { display: inline-flex; align-items: center; gap: 0.4rem; }
+  @media (min-width: 1121px) {
+    .mobile-menu { display: none !important; }
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+import { site } from '~/config/site';
+
+interface Props {
+  size?: 'sm' | 'md' | 'lg';
+  class?: string;
+}
+const { size = 'md', class: className } = Astro.props;
+---
+<span class:list={['logo', `logo--${size}`, className]} dir="ltr">
+  <span class="logo__word">{site.brand}</span>
+  <span class="logo__sub">Photography</span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    color: currentColor;
+    white-space: nowrap;
+  }
+  .logo__word {
+    font-family: 'Cormorant', 'Cormorant Fallback', Georgia, serif;
+    font-weight: 450;
+    font-size: 1.55rem;
+    letter-spacing: 0.4em;
+    margin-inline-end: -0.4em;
+  }
+  .logo__sub {
+    font-family: var(--font-body);
+    font-size: 0.52rem;
+    font-weight: 600;
+    letter-spacing: 0.62em;
+    margin-inline-end: -0.62em;
+    text-transform: uppercase;
+    margin-block-start: 0.45rem;
+    opacity: 0.8;
+  }
+  .logo--sm .logo__word { font-size: 1.3rem; }
+  .logo--sm .logo__sub { font-size: 0.46rem; margin-block-start: 0.35rem; }
+  .logo--lg .logo__word { font-size: 2.4rem; }
+  .logo--lg .logo__sub { font-size: 0.7rem; margin-block-start: 0.6rem; }
+</style>

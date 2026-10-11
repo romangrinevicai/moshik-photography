@@ -1,0 +1,99 @@
+---
+import Icon from '~/components/ui/Icon.astro';
+import type { Tier } from '~/data/packages';
+import { site } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  tier: Tier;
+  category: string;
+  lang: Lang;
+  index?: number;
+}
+const { tier, category, lang, index = 0 } = Astro.props;
+const t = useTranslations(lang);
+const href = `${localizePath('/contact/', lang)}?package=${encodeURIComponent(`${category}:${tier.id}`)}`;
+const latinName = /^[A-Za-z\s]+$/.test(tier.name[lang]);
+---
+<article class:list={['pkg', { 'pkg--popular': tier.popular }]} data-reveal style={`--reveal-delay:${index * 100}`}>
+  {tier.popular && <span class="pkg__badge">{t('common.mostPopular')}</span>}
+  <header class="pkg__head">
+    <h3 class:list={['pkg__name', { 'pkg__name--latin': latinName }]} lang={latinName ? 'en' : undefined}>{tier.name[lang]}</h3>
+    {tier.unit && <p class="pkg__unit">{tier.unit[lang]}</p>}
+  </header>
+  <div class="pkg__price">
+    {
+      site.pricing.showPrices ? (
+        <>
+          <span class="pkg__from">{t('common.startingFrom')}</span>
+          <span class="pkg__amount nums">{formatPrice(tier.price, lang)}</span>
+        </>
+      ) : (
+        <span class="pkg__amount pkg__amount--quote">{t('common.contactForQuote')}</span>
+      )
+    }
+  </div>
+  <p class="pkg__desc">{tier.description[lang]}</p>
+  <ul class="pkg__features" role="list">
+    {
+      tier.features[lang].map((f) => (
+        <li>
+          <Icon name="check" size={16} stroke={1.8} />
+          <span>{f}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <a class:list={['btn btn--block', tier.popular ? 'btn--gold' : '']} href={href}>
+    {t('common.getQuote')}
+    <Icon name="arrow-right" />
+  </a>
+</article>
+
+<style>
+  .pkg {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    padding: clamp(1.8rem, 1.2rem + 1.5vw, 2.6rem);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+  }
+  .pkg:hover { transform: translateY(-6px); box-shadow: 0 40px 70px -40px rgb(15 13 11 / 0.35); }
+  .pkg--popular {
+    --bg: var(--noir);
+    --fg: var(--on-noir);
+    --fg-soft: rgb(243 237 229 / 0.82);
+    --fg-muted: var(--on-noir-muted);
+    --accent: var(--gold-soft);
+    --rule: var(--line-noir);
+    color: var(--fg);
+  }
+  .pkg__badge {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: clamp(1.8rem, 1.2rem + 1.5vw, 2.6rem);
+    translate: 0 -50%;
+    padding: 0.4rem 0.9rem;
+    background: var(--gold-soft);
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+  }
+  .pkg__name { font-family: var(--font-display); font-size: 2.2rem; font-weight: var(--display-weight); line-height: 1; }
+  .pkg__name--latin { font-family: 'Cormorant', var(--font-display); font-size: 2.4rem; font-weight: 400; letter-spacing: 0.01em; }
+  .pkg__unit { color: var(--fg-muted); font-size: 0.92rem; margin-block-start: 0.4rem; }
+  .pkg__price { display: grid; gap: 0.2rem; padding-block: 1.2rem; border-block: 1px solid var(--rule); }
+  .pkg__from { font-size: 0.78rem; color: var(--fg-muted); letter-spacing: 0.06em; }
+  .pkg__amount { font-family: var(--font-display); font-size: clamp(2.4rem, 2rem + 1.5vw, 3.2rem); font-weight: 300; line-height: 1; color: var(--fg); }
+  .pkg__amount--quote { font-size: 1.8rem; }
+  .pkg__desc { color: var(--fg-soft); }
+  .pkg__features { display: grid; gap: 0.75rem; margin-block-end: auto; padding-block-end: 0.5rem; }
+  .pkg__features li { display: grid; grid-template-columns: 1.2rem 1fr; gap: 0.7rem; font-size: 0.97rem; align-items: start; }
+  .pkg__features :global(.icon) { color: var(--accent); margin-block-start: 0.3rem; }
+  .pkg--popular .btn:not(.btn--gold) { --btn-fg: var(--on-noir); }
+</style>

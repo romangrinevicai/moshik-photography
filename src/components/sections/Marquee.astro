@@ -1,0 +1,58 @@
+---
+import { home } from '~/data/home';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  items?: string[];
+  tone?: 'paper' | 'noir';
+}
+const { lang, items = home.marquee[lang], tone = 'paper' } = Astro.props;
+const row = [...items, ...items];
+---
+<div class:list={['marquee', { 'on-noir': tone === 'noir' }]} aria-hidden="true">
+  <div class="marquee__track">
+    {[0, 1].map(() => (
+      <ul class="marquee__group" role="list">
+        {row.map((item) => (
+          <li>
+            <span>{item}</span>
+            <svg class="marquee__star" viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l1.8 8.2L22 12l-8.2 1.8L12 22l-1.8-8.2L2 12l8.2-1.8z" fill="currentColor" /></svg>
+          </li>
+        ))}
+      </ul>
+    ))}
+  </div>
+</div>
+
+<style>
+  .marquee {
+    overflow: hidden;
+    border-block: 1px solid var(--rule);
+    padding-block: 1.6rem;
+    background: var(--bg);
+    user-select: none;
+  }
+  .marquee__track { display: flex; inline-size: max-content; animation: marquee 60s linear infinite; }
+  :global([dir='rtl']) .marquee__track { animation-name: marquee-rtl; }
+  .marquee:hover .marquee__track { animation-play-state: paused; }
+  .marquee__group { display: flex; flex: none; }
+  .marquee__group li {
+    display: flex;
+    align-items: center;
+    gap: 2.6rem;
+    padding-inline-end: 2.6rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 1.2rem + 2.4vw, 3.4rem);
+    font-weight: 300;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .marquee__group li:nth-child(even) span { font-style: italic; color: var(--accent); }
+  :global(:lang(he)) .marquee__group li:nth-child(even) span { font-style: normal; }
+  .marquee__star { color: var(--gold); flex: none; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  @keyframes marquee-rtl { to { transform: translateX(50%); } }
+  @media (prefers-reduced-motion: reduce) { .marquee__track { animation: none; } }
+  :global(html.a11y-motion) .marquee__track { animation: none; }
+</style>

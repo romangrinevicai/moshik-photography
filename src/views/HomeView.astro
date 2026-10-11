@@ -1,0 +1,50 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Hero from '~/components/sections/Hero.astro';
+import Intro from '~/components/sections/Intro.astro';
+import Marquee from '~/components/sections/Marquee.astro';
+import ServicesList from '~/components/sections/ServicesList.astro';
+import SelectedWork from '~/components/sections/SelectedWork.astro';
+import Stats from '~/components/sections/Stats.astro';
+import StoriesRail from '~/components/sections/StoriesRail.astro';
+import Process from '~/components/sections/Process.astro';
+import Testimonials from '~/components/sections/Testimonials.astro';
+import GalleryFeature from '~/components/sections/GalleryFeature.astro';
+import PackagesTeaser from '~/components/sections/PackagesTeaser.astro';
+import FaqSection from '~/components/sections/FaqSection.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { home } from '~/data/home';
+import { faq } from '~/data/faq';
+import { photosIn } from '~/data/photos';
+import { businessSchema, websiteSchema, faqSchema } from '~/data/schema';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const faqItems = faq.filter((f) => f.topics.includes('general') || f.topics.includes('booking')).slice(0, 6);
+---
+<BaseLayout
+  lang={lang}
+  path="/"
+  title={home.seo.title[lang]}
+  description={home.seo.description[lang]}
+  header="overlay"
+  image={photosIn('hero')[0]?.src}
+  jsonLd={[businessSchema(lang), websiteSchema(lang), faqSchema(lang, faqItems)]}
+>
+  <Hero lang={lang} />
+  <Intro lang={lang} />
+  <Marquee lang={lang} />
+  <ServicesList lang={lang} />
+  <SelectedWork lang={lang} />
+  <Stats lang={lang} />
+  <StoriesRail lang={lang} />
+  <Process lang={lang} />
+  <Testimonials lang={lang} />
+  <GalleryFeature lang={lang} />
+  <PackagesTeaser lang={lang} />
+  <FaqSection lang={lang} items={faqItems} />
+  <DateCta lang={lang} />
+</BaseLayout>

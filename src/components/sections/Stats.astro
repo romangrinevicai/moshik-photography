@@ -1,0 +1,54 @@
+---
+import { site } from '~/config/site';
+import { home } from '~/data/home';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const years = new Date().getFullYear() - site.since;
+const items = [
+  { value: years, suffix: '+', label: home.stats.years[lang] },
+  { value: site.stats.events, suffix: '+', label: home.stats.events[lang] },
+  { value: site.stats.couples, suffix: '+', label: home.stats.couples[lang] },
+  { value: site.stats.rating, suffix: '★', label: home.stats.rating[lang] },
+];
+---
+<section class="stats section--tight" data-section="stats">
+  <div class="container">
+    <dl class="stats__grid">
+      {
+        items.map((it, i) => (
+          <div class="stats__item" data-reveal style={`--reveal-delay:${i * 90}`}>
+            <dt class="stats__label">{it.label}</dt>
+            <dd class="stats__value nums">
+              <span data-count={String(it.value)}>{it.value}</span>
+              <span class="stats__suffix">{it.suffix}</span>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .stats { border-block: 1px solid var(--rule); }
+  .stats__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stats__item {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+    padding: 1rem clamp(1rem, 2vw, 2.5rem);
+    border-inline-start: 1px solid var(--rule);
+  }
+  .stats__item:first-child { border-inline-start: 0; padding-inline-start: 0; }
+  .stats__value { font-family: var(--font-display); font-size: clamp(2.8rem, 2rem + 3vw, 5rem); font-weight: 300; line-height: 1; }
+  .stats__suffix { color: var(--accent); font-size: 0.6em; margin-inline-start: 0.1em; vertical-align: super; }
+  .stats__label { font-size: 0.92rem; color: var(--fg-muted); }
+  @media (max-width: 760px) {
+    .stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 2rem; }
+    .stats__item:nth-child(3) { border-inline-start: 0; padding-inline-start: 0; }
+  }
+</style>

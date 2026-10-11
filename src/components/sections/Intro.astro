@@ -1,0 +1,96 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { photo, altFor } from '~/data/photos';
+import { home } from '~/data/home';
+import { localizePath, type Lang } from '~/i18n';
+import { accent } from '~/shared/text';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const portrait = photo('about/moshik.jpg');
+const detail = photo('about/behind-the-scenes-01.jpg');
+---
+<section class="intro section" data-section="intro">
+  <div class="container intro__grid">
+    <div class="intro__media">
+      <div class="media ratio-4x5 intro__portrait" data-reveal="image">
+        <Img photo={portrait} alt={altFor(portrait, lang)} preset="half" />
+      </div>
+      <div class="media ratio-3x2 intro__detail" data-reveal="image" style="--reveal-delay:250">
+        <Img photo={detail} alt={altFor(detail, lang)} preset="third" />
+      </div>
+      <span class="intro__badge" aria-hidden="true">
+        <svg viewBox="0 0 120 120" width="120" height="120"><defs><path id="intro-circle" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0" /></defs><text><textPath href="#intro-circle">MOSHIK · PHOTOGRAPHY · MOSHIK · PHOTOGRAPHY ·</textPath></text></svg>
+        <span><Icon name="aperture" size={22} stroke={1.2} /></span>
+      </span>
+    </div>
+    <div class="intro__text stack" style="--stack:1.6rem">
+      <p class="eyebrow" data-reveal="fade">{home.intro.eyebrow[lang]}</p>
+      <h2 data-reveal set:html={accent(home.intro.title[lang])} />
+      {home.intro.text[lang].map((p, i) => <p class:list={[i === 0 ? 'lead' : 'muted']} data-reveal style={`--reveal-delay:${120 + i * 80}`}>{p}</p>)}
+      <div class="intro__sign" data-reveal style="--reveal-delay:300">
+        <span class="intro__signature">{home.intro.signature[lang]}</span>
+        <a class="link" href={localizePath('/about/', lang)}>{home.intro.cta[lang]} <Icon name="arrow-right" /></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .intro__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(3rem, 2rem + 5vw, 8rem);
+    align-items: center;
+  }
+  .intro__media { position: relative; padding-block-end: 18%; padding-inline-end: 12%; }
+  .intro__detail {
+    position: absolute;
+    inline-size: 52%;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    box-shadow: 0 30px 60px -30px rgb(15 13 11 / 0.5);
+    outline: 10px solid var(--bg);
+  }
+  .intro__badge {
+    position: absolute;
+    inset-block-start: 6%;
+    inset-inline-end: 2%;
+    inline-size: 7.5rem;
+    block-size: 7.5rem;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+  }
+  .intro__badge svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; animation: spin 26s linear infinite; overflow: visible; }
+  .intro__badge text { font-size: 9.2px; letter-spacing: 2.6px; fill: currentColor; font-family: var(--font-body); font-weight: 600; }
+  .intro__badge > span {
+    display: grid;
+    place-items: center;
+    inline-size: 3.2rem;
+    block-size: 3.2rem;
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .intro__badge svg { animation: none; } }
+  .intro__text h2 { font-size: var(--fs-h2); max-inline-size: 16ch; }
+  .intro__sign { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; padding-block-start: 0.5rem; }
+  .intro__signature {
+    font-family: 'Cormorant', var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 2.8rem;
+    line-height: 1;
+    color: var(--accent);
+  }
+  :global(:lang(he)) .intro__signature { font-family: var(--font-display); font-style: normal; font-size: 2.4rem; }
+  @media (max-width: 900px) {
+    .intro__grid { grid-template-columns: 1fr; }
+    .intro__media { max-inline-size: 560px; }
+  }
+</style>

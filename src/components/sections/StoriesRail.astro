@@ -1,0 +1,125 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { stories } from '~/data/stories';
+import { serviceBySlug } from '~/data/services';
+import { firstIn, altFor } from '~/data/photos';
+import { home } from '~/data/home';
+import { formatDate, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  eyebrow?: string;
+  exclude?: string;
+}
+const { lang, title = home.stories.title[lang], eyebrow = home.stories.eyebrow[lang], exclude } = Astro.props;
+const t = useTranslations(lang);
+const list = stories.filter((s) => s.slug !== exclude);
+---
+<section class="stories section" data-section="stories">
+  <div class="container container--wide">
+    <SectionHead eyebrow={eyebrow} title={title} align="split">
+      <div class="stories__nav">
+        <button type="button" class="stories__btn" data-rail-prev aria-label={t('common.prev')}><Icon name="arrow-left" size={18} class="flip-rtl" /></button>
+        <button type="button" class="stories__btn" data-rail-next aria-label={t('common.next')}><Icon name="arrow-right" size={18} class="flip-rtl" /></button>
+        <a class="link" href={localizePath('/stories/', lang)}>{t('common.allStories')} <Icon name="arrow-right" /></a>
+      </div>
+    </SectionHead>
+  </div>
+  <div class="stories__rail" data-rail data-cursor={lang === 'he' ? 'גררו' : 'Drag'} tabindex="0" aria-label={title.replace(/\*/g, '')}>
+    {
+      list.map((s, i) => {
+        const cover = firstIn(`stories/${s.slug}`);
+        return (
+          <article class="story-card" data-reveal style={`--reveal-delay:${i * 90}`}>
+            <a href={localizePath(`/stories/${s.slug}/`, lang)} class="story-card__link" draggable="false">
+              <span class="media media--zoom ratio-4x5 story-card__media">
+                <Img photo={cover} alt={altFor(cover, lang, s.title[lang])} preset="card" sizes="(min-width: 1100px) 34vw, 80vw" />
+              </span>
+              <span class="story-card__meta">
+                <span class="label">{serviceBySlug(s.service)?.title[lang]}</span>
+                <span class="story-card__dot" aria-hidden="true" />
+                <span>{s.location[lang]}</span>
+                <span class="story-card__dot" aria-hidden="true" />
+                <span>{formatDate(`${s.date}-01`, lang, { month: 'long', year: 'numeric' })}</span>
+              </span>
+              <h3 class="story-card__title">{s.title[lang]}</h3>
+              <p class="story-card__subtitle">{s.subtitle[lang]}</p>
+            </a>
+          </article>
+        );
+      })
+    }
+    <div class="stories__spacer" aria-hidden="true"></div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rail]').forEach((rail) => {
+    const section = rail.closest('section')!;
+    const rtl = document.documentElement.dir === 'rtl';
+    const step = () => (rail.querySelector<HTMLElement>('.story-card')?.offsetWidth ?? 400) + 32;
+    section.querySelector('[data-rail-prev]')?.addEventListener('click', () => rail.scrollBy({ left: rtl ? step() : -step(), behavior: 'smooth' }));
+    section.querySelector('[data-rail-next]')?.addEventListener('click', () => rail.scrollBy({ left: rtl ? -step() : step(), behavior: 'smooth' }));
+
+    // Drag to scroll with a mouse; touch uses native scrolling.
+    let down = false, startX = 0, startScroll = 0, moved = false;
+    rail.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      down = true; moved = false; startX = e.clientX; startScroll = rail.scrollLeft;
+      rail.classList.add('is-dragging');
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      rail.scrollLeft = startScroll - dx;
+    });
+    window.addEventListener('pointerup', () => { down = false; rail.classList.remove('is-dragging'); });
+    rail.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
+  });
+</script>
+
+<style>
+  .stories__nav { display: flex; align-items: center; gap: 0.6rem; }
+  .stories__nav .link { margin-inline-start: 1rem; }
+  .stories__btn {
+    display: grid;
+    place-items: center;
+    inline-size: 3.2rem;
+    block-size: 3.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    transition: background 0.3s, color 0.3s;
+  }
+  .stories__btn:hover { background: var(--ink); color: var(--paper); }
+  .stories__rail {
+    display: flex;
+    gap: 2rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    padding-inline: max(var(--gutter), calc((100vw - var(--container-wide)) / 2));
+    padding-block-end: 1rem;
+    scrollbar-width: none;
+    cursor: grab;
+  }
+  .stories__rail::-webkit-scrollbar { display: none; }
+  .stories__rail.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+  .stories__rail.is-dragging * { pointer-events: none; }
+  .story-card { flex: 0 0 clamp(280px, 34vw, 520px); scroll-snap-align: start; }
+  .story-card__link { display: grid; gap: 0.9rem; user-select: none; }
+  .story-card__media { margin-block-end: 0.4rem; }
+  .story-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; font-size: 0.86rem; color: var(--fg-muted); }
+  .story-card__meta .label { color: var(--accent); }
+  .story-card__dot { inline-size: 3px; block-size: 3px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+  .story-card__title { font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.6rem); }
+  .story-card__subtitle { color: var(--fg-soft); }
+  .stories__spacer { flex: 0 0 1px; }
+  @media (max-width: 700px) {
+    .story-card { flex-basis: 82vw; }
+    .stories__nav .stories__btn { display: none; }
+  }
+</style>

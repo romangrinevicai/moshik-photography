@@ -593,3 +593,85 @@ html.a11y-motion .js [data-reveal], html.a11y-motion [data-reveal], html.a11y-mo
   .grain::after, .site-header, .wa-float, .action-bar, .a11y, .site-footer__mark { display: none !important; }
   body { background: #fff; color: #000; }
 }
+
+/* ═══════════════════════════════ CUSTOM CURSOR ════════════════════════════════ */
+.cursor {
+  position: fixed;
+  inset-block-start: 0;
+  left: 0;
+  z-index: 400;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: difference;
+  transition: opacity 0.3s;
+}
+.cursor.is-visible { opacity: 1; }
+.cursor__ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  inline-size: 8px;
+  block-size: 8px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #fff;
+  transition:
+    inline-size 0.5s var(--ease-out),
+    block-size 0.5s var(--ease-out),
+    background-color 0.3s,
+    border-color 0.3s;
+  border: 1px solid transparent;
+}
+.cursor.is-link .cursor__ring {
+  inline-size: 42px;
+  block-size: 42px;
+  background: transparent;
+  border-color: #fff;
+}
+.cursor.has-label { mix-blend-mode: normal; }
+.cursor.has-label .cursor__ring {
+  inline-size: 92px;
+  block-size: 92px;
+  background: rgb(246 242 236 / 0.92);
+  backdrop-filter: blur(4px);
+}
+.cursor__label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.cursor.has-label .cursor__label { opacity: 1; transition-delay: 0.1s; }
+@media (hover: none), (pointer: coarse) { .cursor { display: none; } }
+html.a11y-motion .cursor, html.a11y-contrast .cursor { display: none; }
+
+/* ═══════════════════════════════ PHOTOSWIPE ═════════════════════════════════ */
+.pswp--brand {
+  --pswp-bg: #0f0d0b;
+  --pswp-placeholder-bg: #1b1815;
+  --pswp-icon-color: #f3ede5;
+  --pswp-icon-color-secondary: #0f0d0b;
+  --pswp-icon-stroke-color: #0f0d0b;
+  --pswp-error-text-color: #f3ede5;
+  font-family: var(--font-body);
+}
+.pswp__caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 1.4rem;
+  text-align: center;
+  color: rgb(243 237 229 / 0.8);
+  font-size: 0.85rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
+  pointer-events: none;
+}
+.pswp__counter { font-family: var(--font-display); font-size: 1rem; opacity: 0.8; direction: ltr; }

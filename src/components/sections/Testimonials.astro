@@ -1,0 +1,142 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { testimonials } from '~/data/testimonials';
+import { photo, altFor } from '~/data/photos';
+import { home } from '~/data/home';
+import { site } from '~/config/site';
+import { useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+<section class="testimonials section on-noir" id="testimonials" data-section="testimonials" data-testimonials>
+  <div class="container">
+    <div class="testimonials__grid">
+      <div class="testimonials__media" aria-hidden="true">
+        {
+          testimonials.map((item, i) =>
+            item.photo ? (
+              <div class:list={['testimonials__img media', { 'is-active': i === 0 }]} data-t-img={i}>
+                <Img photo={photo(item.photo)} alt="" preset="half" sizes="(min-width: 900px) 40vw, 100vw" />
+              </div>
+            ) : null,
+          )
+        }
+      </div>
+      <div class="testimonials__body">
+        <p class="eyebrow">{home.testimonials.eyebrow[lang]}</p>
+        <div class="testimonials__quote-mark" aria-hidden="true">“</div>
+        <div class="testimonials__slides" aria-live="polite">
+          {
+            testimonials.map((item, i) => (
+              <figure class:list={['testimonials__slide', { 'is-active': i === 0 }]} data-t-slide={i} aria-hidden={i === 0 ? undefined : 'true'}>
+                <blockquote class="testimonials__quote">{item.quote[lang]}</blockquote>
+                <figcaption class="testimonials__who">
+                  <span class="testimonials__stars" aria-label="5/5">★★★★★</span>
+                  <strong>{item.name[lang]}</strong>
+                  <span>{item.event[lang]}</span>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+        <div class="testimonials__controls">
+          <button type="button" class="testimonials__btn" data-t-prev aria-label={t('common.prev')}><Icon name="arrow-left" size={18} class="flip-rtl" /></button>
+          <span class="testimonials__count nums" dir="ltr"><span data-t-num>01</span> / {String(testimonials.length).padStart(2, '0')}</span>
+          <button type="button" class="testimonials__btn" data-t-next aria-label={t('common.next')}><Icon name="arrow-right" size={18} class="flip-rtl" /></button>
+          {site.social.googleReviews && (
+            <a class="link testimonials__all" href={site.social.googleReviews} target="_blank" rel="noopener">
+              <Icon name="google" size={14} /> {home.testimonials.allReviews[lang]}
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-testimonials]').forEach((root) => {
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-t-slide]')];
+    const imgs = [...root.querySelectorAll<HTMLElement>('[data-t-img]')];
+    const num = root.querySelector<HTMLElement>('[data-t-num]')!;
+    let i = 0;
+    const go = (n: number) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        s.classList.toggle('is-active', k === i);
+        if (k === i) s.removeAttribute('aria-hidden');
+        else s.setAttribute('aria-hidden', 'true');
+      });
+      imgs.forEach((im) => im.classList.toggle('is-active', Number(im.dataset.tImg) === i));
+      num.textContent = String(i + 1).padStart(2, '0');
+    };
+    root.querySelector('[data-t-prev]')?.addEventListener('click', () => go(i - 1));
+    root.querySelector('[data-t-next]')?.addEventListener('click', () => go(i + 1));
+    // swipe on touch
+    let x0: number | null = null;
+    root.addEventListener('touchstart', (e) => (x0 = e.touches[0]?.clientX ?? null), { passive: true });
+    root.addEventListener('touchend', (e) => {
+      if (x0 === null) return;
+      const dx = (e.changedTouches[0]?.clientX ?? x0) - x0;
+      const rtl = document.documentElement.dir === 'rtl';
+      if (Math.abs(dx) > 50) go(i + ((dx < 0) !== rtl ? 1 : -1));
+      x0 = null;
+    });
+  });
+</script>
+
+<style>
+  .testimonials__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(2.5rem, 1rem + 6vw, 8rem);
+    align-items: center;
+  }
+  .testimonials__media { position: relative; aspect-ratio: 4 / 5; }
+  .testimonials__img { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 0.9s var(--ease-soft), transform 1.6s var(--ease-out); }
+  .testimonials__img.is-active { opacity: 1; transform: none; }
+  .testimonials__img :global(picture), .testimonials__img :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .testimonials__body { display: grid; gap: 1.2rem; }
+  .testimonials__quote-mark { font-family: 'Cormorant', serif; font-size: 8rem; line-height: 0.6; color: var(--gold-soft); block-size: 3.4rem; }
+  .testimonials__slides { display: grid; }
+  .testimonials__slide {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.7s var(--ease-soft), transform 0.9s var(--ease-out);
+    pointer-events: none;
+  }
+  .testimonials__slide.is-active { opacity: 1; transform: none; pointer-events: auto; }
+  .testimonials__quote {
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 1.15rem + 1.6vw, 2.5rem);
+    font-weight: 300;
+    line-height: 1.32;
+    text-wrap: pretty;
+  }
+  .testimonials__who { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; margin-block-start: 1.8rem; font-size: 0.95rem; color: var(--fg-muted); }
+  .testimonials__who strong { color: var(--fg); font-weight: 650; }
+  .testimonials__stars { color: var(--gold-soft); letter-spacing: 0.15em; font-size: 0.85rem; }
+  .testimonials__controls { display: flex; align-items: center; gap: 1rem; margin-block-start: 1rem; flex-wrap: wrap; }
+  .testimonials__btn {
+    display: grid;
+    place-items: center;
+    inline-size: 3.2rem;
+    block-size: 3.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    transition: background 0.3s, color 0.3s;
+  }
+  .testimonials__btn:hover { background: var(--on-noir); color: var(--ink); }
+  .testimonials__count { font-family: var(--font-display); font-size: 1.05rem; }
+  .testimonials__all { margin-inline-start: auto; }
+  @media (max-width: 900px) {
+    .testimonials__grid { grid-template-columns: 1fr; }
+    .testimonials__media { aspect-ratio: 3 / 2; }
+  }
+</style>

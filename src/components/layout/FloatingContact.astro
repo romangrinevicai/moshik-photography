@@ -1,0 +1,158 @@
+---
+import Icon from '~/components/ui/Icon.astro';
+import { site, whatsappLink, telLink } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  /** Pre-filled WhatsApp message (defaults to a friendly greeting). */
+  message?: string;
+}
+const { lang, message } = Astro.props;
+const t = useTranslations(lang);
+const wa = whatsappLink(message ?? t('wa.greeting'));
+const hours = JSON.stringify({ tz: site.hours.timeZone, schedule: site.hours.schedule });
+---
+<a
+  class="wa-float"
+  data-wa-float
+  href={wa}
+  target="_blank"
+  rel="noopener"
+  data-track="whatsapp_click"
+  data-wa-hours={hours}
+  data-online-text={t('wa.online')}
+  data-offline-text={site.hours.replyTime[lang]}
+  aria-label={t('wa.chat')}
+>
+  <span class="wa-float__label" aria-hidden="true">
+    <strong>{t('wa.chat')}</strong>
+    <small data-wa-text>{site.hours.replyTime[lang]}</small>
+  </span>
+  <span class="wa-float__icon">
+    <Icon name="whatsapp" size={26} />
+    <span class="wa-float__dot" data-wa-dot></span>
+  </span>
+</a>
+
+<nav class="action-bar" aria-label={t('footer.contact')} data-action-bar>
+  <a href={telLink} data-track="phone_click">
+    <Icon name="phone" size={18} />
+    <span>{t('common.call')}</span>
+  </a>
+  <a href={wa} target="_blank" rel="noopener" data-track="whatsapp_click">
+    <Icon name="whatsapp" size={18} />
+    <span>{t('common.whatsapp')}</span>
+  </a>
+  <a href={localizePath('/contact/', lang)} class="action-bar__primary">
+    <Icon name="calendar-check" size={18} />
+    <span>{t('nav.cta')}</span>
+  </a>
+</nav>
+
+<style>
+  .wa-float {
+    position: fixed;
+    inset-block-end: 1.5rem;
+    inset-inline-end: 1.5rem;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    color: var(--paper);
+    transform: translateY(140%);
+    opacity: 0;
+    transition: transform 0.6s var(--ease-out), opacity 0.4s;
+  }
+  .wa-float[data-visible] { transform: none; opacity: 1; }
+  .wa-float__icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 3.6rem;
+    block-size: 3.6rem;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 0 14px 34px -10px rgb(15 13 11 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.06);
+    transition: transform 0.5s var(--ease-out), background 0.3s;
+  }
+  .wa-float:hover .wa-float__icon { transform: scale(1.07); background: #128c4b; }
+  .wa-float__dot {
+    position: absolute;
+    inset-block-start: 0.2rem;
+    inset-inline-end: 0.2rem;
+    inline-size: 0.8rem;
+    block-size: 0.8rem;
+    border-radius: 50%;
+    background: var(--on-noir-muted);
+    border: 2px solid var(--ink);
+  }
+  .wa-float__dot[data-online] { background: #2fd27a; }
+  .wa-float__dot[data-online]::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid #2fd27a;
+    animation: wa-pulse 2.4s var(--ease-out) infinite;
+  }
+  @keyframes wa-pulse {
+    from { transform: scale(1); opacity: 0.8; }
+    to { transform: scale(2.4); opacity: 0; }
+  }
+  .wa-float__label {
+    display: grid;
+    padding: 0.65rem 1.1rem;
+    background: var(--ink);
+    border-radius: 999px;
+    line-height: 1.25;
+    box-shadow: 0 14px 34px -14px rgb(15 13 11 / 0.6);
+    opacity: 0;
+    transform: translateX(12px);
+    pointer-events: none;
+    transition: opacity 0.4s var(--ease-soft), transform 0.6s var(--ease-out);
+  }
+  :global([dir='rtl']) .wa-float__label { transform: translateX(-12px); }
+  .wa-float__label strong { font-size: 0.86rem; font-weight: 650; }
+  .wa-float__label small { font-size: 0.74rem; color: var(--on-noir-muted); }
+  .wa-float:hover .wa-float__label,
+  .wa-float:focus-visible .wa-float__label { opacity: 1; transform: none; }
+  :global(html.menu-open) .wa-float { opacity: 0; pointer-events: none; }
+
+  .action-bar { display: none; }
+
+  @media (max-width: 760px) {
+    .wa-float { display: none; }
+    .action-bar {
+      position: fixed;
+      inset-inline: 0.75rem;
+      inset-block-end: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      z-index: 80;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 0.35rem;
+      padding: 0.35rem;
+      background: rgb(22 19 17 / 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 999px;
+      box-shadow: 0 18px 40px -16px rgb(15 13 11 / 0.6);
+      color: var(--on-noir);
+      transform: translateY(160%);
+      transition: transform 0.6s var(--ease-out);
+    }
+    .action-bar[data-visible] { transform: none; }
+    :global(html.menu-open) .action-bar { transform: translateY(160%); }
+    .action-bar a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-block-size: 3rem;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+    .action-bar__primary { background: var(--gold-soft); color: var(--ink); }
+  }
+</style>

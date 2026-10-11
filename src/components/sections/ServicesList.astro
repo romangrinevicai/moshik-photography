@@ -1,0 +1,143 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { services } from '~/data/services';
+import { startingPrice } from '~/data/packages';
+import { photo, altFor } from '~/data/photos';
+import { home } from '~/data/home';
+import { site } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+<section class="services section" data-section="services" id="services">
+  <div class="container">
+    <SectionHead eyebrow={home.services.eyebrow[lang]} title={home.services.title[lang]} intro={home.services.intro[lang]} align="split" />
+    <div class="services__grid" data-services>
+      <ol class="services__list" role="list">
+        {
+          services.map((s, i) => {
+            const price = startingPrice(s.pricing);
+            const cover = photo(s.cover);
+            return (
+              <li class="services__item" data-reveal style={`--reveal-delay:${i * 60}`}>
+                <a class="services__link" href={localizePath(`/services/${s.slug}/`, lang)} data-service-index={i}>
+                  <span class="services__num nums">0{i + 1}</span>
+                  <span class="services__body">
+                    <span class="services__title">{s.title[lang]}</span>
+                    <span class="services__summary">{s.summary[lang]}</span>
+                  </span>
+                  <span class="services__meta">
+                    {site.pricing.showPrices && price ? (
+                      <span class="services__price">
+                        <small>{t('common.startingFrom')}</small>
+                        <span class="nums">{formatPrice(price, lang)}</span>
+                      </span>
+                    ) : null}
+                    <span class="services__arrow"><Icon name="arrow-up-right" size={20} /></span>
+                  </span>
+                  <span class="services__thumb media ratio-3x2" aria-hidden="true">
+                    <Img photo={cover} alt="" preset="card" />
+                  </span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ol>
+      <div class="services__preview" aria-hidden="true">
+        <div class="services__frame media ratio-4x5">
+          {services.map((s, i) => (
+            <div class:list={['services__img', { 'is-active': i === 0 }]} data-service-img={i}>
+              <Img photo={photo(s.cover)} alt={altFor(photo(s.cover), lang)} preset="half" sizes="(min-width: 1100px) 440px, 40vw" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-services]').forEach((root) => {
+    const imgs = root.querySelectorAll<HTMLElement>('[data-service-img]');
+    root.querySelectorAll<HTMLElement>('[data-service-index]').forEach((link) => {
+      const show = () => imgs.forEach((im) => im.classList.toggle('is-active', im.dataset.serviceImg === link.dataset.serviceIndex));
+      link.addEventListener('mouseenter', show);
+      link.addEventListener('focus', show);
+    });
+  });
+</script>
+
+<style>
+  .services__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    gap: clamp(2rem, 1rem + 4vw, 6rem);
+    align-items: start;
+  }
+  .services__list { border-block-start: 1px solid var(--rule); }
+  .services__item { border-block-end: 1px solid var(--rule); }
+  .services__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr) auto;
+    gap: 1.4rem;
+    align-items: center;
+    padding-block: clamp(1.4rem, 1rem + 1vw, 2.1rem);
+    transition: padding 0.6s var(--ease-out);
+  }
+  .services__link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--paper-deep);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.6s var(--ease-out);
+    z-index: -1;
+  }
+  .services__item { position: relative; isolation: isolate; }
+  @media (hover: hover) {
+    .services__link:hover { padding-inline: 1.2rem; }
+    .services__link:hover::before { transform: scaleY(1); }
+    .services__link:hover .services__arrow { background: var(--ink); color: var(--paper); transform: rotate(45deg); }
+    :global([dir='rtl']) .services__link:hover .services__arrow { transform: rotate(-45deg); }
+  }
+  .services__num { font-family: var(--font-display); font-size: 1.05rem; color: var(--accent); align-self: start; padding-block-start: 0.65rem; }
+  .services__body { display: grid; gap: 0.35rem; }
+  .services__title { font-family: var(--font-display); font-size: clamp(1.8rem, 1.3rem + 1.8vw, 2.9rem); font-weight: var(--display-weight); line-height: 1.05; }
+  .services__summary { color: var(--fg-muted); font-size: 0.98rem; max-inline-size: 52ch; }
+  .services__meta { display: flex; align-items: center; gap: 1.4rem; }
+  .services__price { display: grid; text-align: end; line-height: 1.2; }
+  .services__price small { font-size: 0.72rem; color: var(--fg-muted); letter-spacing: 0.06em; }
+  .services__price span { font-family: var(--font-display); font-size: 1.35rem; }
+  .services__arrow {
+    display: grid;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    transition: background 0.4s, color 0.4s, transform 0.6s var(--ease-out);
+  }
+  .services__thumb { display: none; }
+  .services__preview { position: sticky; inset-block-start: calc(var(--header-h) + 2rem); }
+  .services__img { position: absolute; inset: 0; opacity: 0; transform: scale(1.06); transition: opacity 0.7s var(--ease-soft), transform 1.4s var(--ease-out); }
+  .services__img.is-active { opacity: 1; transform: none; }
+  .services__img :global(picture), .services__img :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+  @media (max-width: 960px) {
+    .services__grid { grid-template-columns: 1fr; }
+    .services__preview { display: none; }
+    .services__link { grid-template-columns: 2.4rem minmax(0, 1fr); }
+    .services__meta { grid-column: 2; justify-content: space-between; }
+    .services__price { text-align: start; }
+    .services__thumb { display: block; grid-column: 1 / -1; grid-row: 1; margin-block-end: 0.4rem; }
+  }
+</style>

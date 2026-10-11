@@ -1,0 +1,28 @@
+---
+import { getImage } from 'astro:assets';
+import type { Photo } from '~/data/photos';
+
+interface Props {
+  photo: Photo;
+  caption?: string;
+  cursorLabel?: string;
+  class?: string;
+  index?: number;
+}
+const { photo, caption, cursorLabel, class: className, index } = Astro.props;
+const max = Math.min(photo.width, 2400);
+const widths = [960, 1440, 1920, 2400].filter((w) => w < max).concat(max);
+const large = await getImage({ src: photo.src, width: max, widths, format: 'webp', quality: 84 });
+---
+<a
+  class={className}
+  href={large.src}
+  data-pswp-width={photo.width}
+  data-pswp-height={photo.height}
+  data-pswp-srcset={large.srcSet.attribute}
+  data-caption={caption}
+  data-cursor={cursorLabel}
+  data-index={index}
+>
+  <slot />
+</a>

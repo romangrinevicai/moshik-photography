@@ -11,7 +11,7 @@ export const ui = {
   'nav.portfolio': { he: 'עבודות', en: 'Portfolio' },
   'nav.services': { he: 'שירותים', en: 'Services' },
   'nav.stories': { he: 'סיפורים', en: 'Stories' },
-  'nav.pricing': { he: 'חבילות ומחירים', en: 'Pricing' },
+  'nav.pricing': { he: 'מחירים', en: 'Pricing' },
   'nav.about': { he: 'אודות', en: 'About' },
   'nav.faq': { he: 'שאלות נפוצות', en: 'FAQ' },
   'nav.contact': { he: 'צור קשר', en: 'Contact' },

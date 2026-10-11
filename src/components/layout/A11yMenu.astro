@@ -1,0 +1,137 @@
+---
+import Icon from '~/components/ui/Icon.astro';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const toggles = [
+  { key: 'contrast', label: t('a11y.contrast'), icon: 'contrast' },
+  { key: 'links', label: t('a11y.links'), icon: 'link2' },
+  { key: 'font', label: t('a11y.font'), icon: 'type' },
+  { key: 'motion', label: t('a11y.motion'), icon: 'pause' },
+  { key: 'gray', label: t('a11y.grayscale'), icon: 'sun' },
+] as const;
+---
+<div class="a11y" data-a11y>
+  <button class="a11y__toggle" type="button" aria-expanded="false" aria-controls="a11y-panel" data-a11y-toggle>
+    <Icon name="accessibility" size={22} stroke={1.6} />
+    <span class="sr-only">{t('a11y.open')}</span>
+  </button>
+  <div class="a11y__panel" id="a11y-panel" role="dialog" aria-labelledby="a11y-title" hidden data-a11y-panel>
+    <div class="a11y__head">
+      <h2 id="a11y-title" class="a11y__title">{t('a11y.title')}</h2>
+      <button type="button" class="a11y__close" data-a11y-close aria-label={t('common.close')}>
+        <Icon name="x" size={18} />
+      </button>
+    </div>
+    <div class="a11y__size" role="group" aria-label={t('a11y.textSize')}>
+      <span>{t('a11y.textSize')}</span>
+      <div class="a11y__stepper">
+        <button type="button" data-a11y-size="-1" aria-label={t('a11y.smaller')}><Icon name="minus" size={16} /></button>
+        <output data-a11y-size-value aria-live="polite">100%</output>
+        <button type="button" data-a11y-size="1" aria-label={t('a11y.bigger')}><Icon name="plus" size={16} /></button>
+      </div>
+    </div>
+    <div class="a11y__grid">
+      {
+        toggles.map((tg) => (
+          <button type="button" class="a11y__opt" aria-pressed="false" data-a11y-opt={tg.key}>
+            <Icon name={tg.icon} size={20} />
+            <span>{tg.label}</span>
+          </button>
+        ))
+      }
+    </div>
+    <div class="a11y__foot">
+      <button type="button" class="a11y__reset" data-a11y-reset><Icon name="rotate-ccw" size={14} /> {t('a11y.reset')}</button>
+      <a href={localizePath('/accessibility/', lang)}>{t('a11y.statement')}</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initA11yMenu } from '~/scripts/a11y';
+  initA11yMenu();
+</script>
+
+<style>
+  .a11y {
+    position: fixed;
+    inset-block-start: 42%;
+    inset-inline-start: 0;
+    z-index: 81;
+  }
+  .a11y__toggle {
+    display: grid;
+    place-items: center;
+    inline-size: 2.6rem;
+    block-size: 2.9rem;
+    border-start-end-radius: 10px;
+    border-end-end-radius: 10px;
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 0 10px 26px -10px rgb(15 13 11 / 0.45);
+    transition: inline-size 0.4s var(--ease-out), background 0.3s;
+  }
+  .a11y__toggle:hover, .a11y__toggle[aria-expanded='true'] { inline-size: 3rem; background: #2a6df4; }
+  .a11y__panel {
+    position: absolute;
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    inset-inline-start: calc(100% + 0.6rem);
+    inline-size: min(330px, calc(100vw - 2rem));
+    padding: 1.3rem;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 14px;
+    box-shadow: 0 30px 70px -20px rgb(15 13 11 / 0.45), 0 0 0 1px var(--line);
+    display: grid;
+    gap: 1.1rem;
+    font-size: 0.95rem;
+  }
+  .a11y__panel[hidden] { display: none; }
+  .a11y__head { display: flex; align-items: center; justify-content: space-between; }
+  .a11y__title { font-family: var(--font-body); font-size: 1.05rem; font-weight: 700; }
+  .a11y__close { display: grid; place-items: center; inline-size: 2rem; block-size: 2rem; border-radius: 50%; }
+  .a11y__close:hover { background: var(--paper-deep); }
+  .a11y__size { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .a11y__stepper { display: flex; align-items: center; gap: 0.4rem; }
+  .a11y__stepper button {
+    display: grid;
+    place-items: center;
+    inline-size: 2.2rem;
+    block-size: 2.2rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+  }
+  .a11y__stepper output { min-inline-size: 3.2rem; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .a11y__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .a11y__opt {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 0.85rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-align: center;
+    transition: background 0.25s, border-color 0.25s;
+  }
+  .a11y__opt:hover { border-color: var(--line-strong); }
+  .a11y__opt[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .a11y__foot { display: flex; justify-content: space-between; align-items: center; font-size: 0.86rem; }
+  .a11y__foot a { text-decoration: underline; text-underline-offset: 0.2em; }
+  .a11y__reset { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+  :global(html.menu-open) .a11y { opacity: 0; pointer-events: none; }
+
+  @media (max-width: 760px) {
+    .a11y { inset-block-start: auto; inset-block-end: calc(5.6rem + env(safe-area-inset-bottom, 0px)); }
+    .a11y__toggle { inline-size: 2.3rem; block-size: 2.6rem; }
+    .a11y__panel { inset-block-start: auto; inset-block-end: 0; translate: none; }
+  }
+  @media print { .a11y { display: none; } }
+</style>

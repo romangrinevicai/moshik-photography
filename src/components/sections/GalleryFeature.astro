@@ -1,0 +1,177 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { photosIn, photo } from '~/data/photos';
+import { home } from '~/data/home';
+import { localizePath, type Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const g = home.gallery;
+const story = photosIn('stories/noa-and-daniel');
+const grid = [...story, ...photosIn('portfolio/weddings')].slice(0, 9);
+const faces = [...photosIn('portfolio/portraits'), ...photosIn('portfolio/couples')].slice(0, 5);
+const cover = story[0] ?? photo('portfolio/weddings/01.jpg');
+---
+<section class="gfeature section" data-section="gallery-feature">
+  <div class="container gfeature__grid">
+    <div class="gfeature__text">
+      <SectionHead eyebrow={g.eyebrow[lang]} title={g.title[lang]} intro={g.intro[lang]} />
+      <ul class="gfeature__list" role="list">
+        {
+          g.features.map((f, i) => (
+            <li class="gfeature__item" data-reveal style={`--reveal-delay:${i * 90}`}>
+              <span class="gfeature__icon"><Icon name={f.icon as IconName} size={22} stroke={1.3} /></span>
+              <div>
+                <h3 class="gfeature__title">{f.title[lang]}</h3>
+                <p class="gfeature__desc">{f.text[lang]}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="btn btn--solid" href={localizePath('/gallery/', lang)} data-reveal>
+        <Icon name="lock" />
+        {g.cta[lang]}
+      </a>
+    </div>
+
+    <div class="gfeature__device-wrap" aria-hidden="true">
+      <div class="gfeature__glow"></div>
+      <div class="phone" data-reveal="scale">
+        <div class="phone__screen">
+          <div class="phone__notch"></div>
+          <div class="phone__cover">
+            <Img photo={cover} alt="" preset="thumb" sizes="300px" />
+            <div class="phone__cover-text">
+              <span class="phone__title">{g.mock.title[lang]}</span>
+              <span class="phone__date">{g.mock.date[lang]}</span>
+            </div>
+          </div>
+          <div class="phone__people">
+            <span class="phone__label">{g.mock.people[lang]}</span>
+            <div class="phone__faces">
+              {faces.map((f, i) => (
+                <span class:list={['phone__face', { 'is-match': i === 1 }]}>
+                  <Img photo={f} alt="" preset="thumb" sizes="48px" />
+                </span>
+              ))}
+            </div>
+          </div>
+          <div class="phone__toast">
+            <Icon name="scan-face" size={16} />
+            <span>{g.mock.found[lang]}</span>
+          </div>
+          <div class="phone__grid">
+            {grid.map((p) => (
+              <span class="phone__cell">
+                <Img photo={p} alt="" preset="thumb" sizes="100px" />
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .gfeature { overflow: hidden; }
+  .gfeature__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(3rem, 2rem + 5vw, 8rem);
+    align-items: center;
+  }
+  .gfeature__list { display: grid; gap: 1.6rem; margin-block-end: 2.6rem; }
+  .gfeature__item { display: grid; grid-template-columns: 3.2rem 1fr; gap: 1.2rem; }
+  .gfeature__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 3.2rem;
+    block-size: 3.2rem;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    color: var(--accent);
+  }
+  .gfeature__title { font-family: var(--font-body); font-size: 1.12rem; font-weight: 650; margin-block-end: 0.2rem; }
+  .gfeature__desc { color: var(--fg-muted); font-size: 0.97rem; }
+
+  .gfeature__device-wrap { position: relative; display: grid; place-items: center; padding-block: 2rem; }
+  .gfeature__glow {
+    position: absolute;
+    inset: 10% 5%;
+    background: radial-gradient(closest-side, rgb(201 174 132 / 0.45), transparent);
+    filter: blur(20px);
+  }
+  .phone {
+    position: relative;
+    inline-size: min(340px, 78vw);
+    aspect-ratio: 9 / 19;
+    padding: 12px;
+    border-radius: 48px;
+    background: #121010;
+    box-shadow: 0 50px 100px -40px rgb(15 13 11 / 0.6), inset 0 0 0 2px #2b2724, 0 0 0 1px #000;
+    transform: rotate(-4deg);
+  }
+  :global([dir='rtl']) .phone { transform: rotate(4deg); }
+  .phone__screen {
+    position: relative;
+    block-size: 100%;
+    overflow: hidden;
+    border-radius: 38px;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .phone__notch { position: absolute; inset-block-start: 10px; inset-inline-start: 50%; translate: -50% 0; inline-size: 34%; block-size: 22px; border-radius: 20px; background: #121010; z-index: 3; }
+  :global([dir='rtl']) .phone__notch { translate: 50% 0; }
+  .phone__cover { position: relative; block-size: 34%; flex: none; overflow: hidden; }
+  .phone__cover :global(picture), .phone__cover :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .phone__cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgb(0 0 0 / 0.6), transparent 60%); }
+  .phone__cover-text { position: absolute; inset-inline: 16px; inset-block-end: 14px; z-index: 1; display: grid; color: #fff; }
+  .phone__title { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; }
+  .phone__date { font-size: 0.7rem; opacity: 0.85; letter-spacing: 0.08em; }
+  .phone__people { padding-inline: 14px; display: grid; gap: 6px; }
+  .phone__label { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .phone__faces { display: flex; gap: 8px; }
+  .phone__face { position: relative; inline-size: 42px; block-size: 42px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--line); }
+  .phone__face :global(picture), .phone__face :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .phone__face.is-match { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--gold); }
+  .phone__face.is-match::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    block-size: 2px;
+    background: var(--gold-soft);
+    box-shadow: 0 0 10px 2px var(--gold-soft);
+    animation: scan 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes scan { 0%, 100% { inset-block-start: 10%; } 50% { inset-block-start: 85%; } }
+  .phone__toast {
+    margin-inline: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.74rem;
+    font-weight: 600;
+    animation: toast 5s var(--ease-out) infinite;
+  }
+  @keyframes toast { 0%, 12% { opacity: 0; transform: translateY(8px); } 20%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .phone__toast, .phone__face.is-match::after { animation: none; } }
+  .phone__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding-inline: 3px; }
+  .phone__cell { aspect-ratio: 1; overflow: hidden; }
+  .phone__cell :global(picture), .phone__cell :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  @media (max-width: 960px) {
+    .gfeature__grid { grid-template-columns: 1fr; }
+  }
+</style>

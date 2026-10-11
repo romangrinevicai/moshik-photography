@@ -1,0 +1,35 @@
+---
+import { accent } from '~/shared/text';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+  align?: 'start' | 'center' | 'split';
+  as?: 'h1' | 'h2';
+  class?: string;
+}
+const { eyebrow, title, intro, align = 'start', as: Tag = 'h2', class: className } = Astro.props;
+const hasActions = Astro.slots.has('default');
+---
+<header class:list={['section-head', { 'section-head--center': align === 'center', 'section-head--split': align === 'split' }, className]}>
+  <div class="stack" style="--stack:1.2rem">
+    {eyebrow && <p class:list={['eyebrow', { 'eyebrow--plain': align === 'center' }]} data-reveal="fade">{eyebrow}</p>}
+    <Tag class="section-head__title" data-reveal set:html={accent(title)} />
+  </div>
+  {
+    (intro || hasActions) && (
+      <div class="stack section-head__aside" style="--stack:1.6rem; --reveal-delay:120" data-reveal>
+        {intro && <p class="lead">{intro}</p>}
+        <slot />
+      </div>
+    )
+  }
+</header>
+
+<style>
+  .section-head__title { max-inline-size: 18ch; }
+  .section-head--center .section-head__title { margin-inline: auto; }
+  .section-head--center .lead { margin-inline: auto; max-inline-size: 52ch; }
+  .section-head__aside .lead { max-inline-size: 48ch; }
+</style>

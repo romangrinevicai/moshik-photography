@@ -1,0 +1,34 @@
+---
+import Icon from '~/components/ui/Icon.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import FaqList from '~/components/ui/FaqList.astro';
+import { faq, type FaqItem } from '~/data/faq';
+import { home } from '~/data/home';
+import { localizePath, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  items?: FaqItem[];
+  limit?: number;
+}
+const { lang, items = faq, limit = 6 } = Astro.props;
+---
+<section class="faqs section" data-section="faq">
+  <div class="container faqs__grid">
+    <div class="faqs__head">
+      <SectionHead eyebrow={home.faq.eyebrow[lang]} title={home.faq.title[lang]}>
+        <a class="link" href={localizePath('/faq/', lang)}>{home.faq.all[lang]} <Icon name="arrow-right" /></a>
+      </SectionHead>
+    </div>
+    <FaqList items={items.slice(0, limit)} lang={lang} />
+  </div>
+</section>
+
+<style>
+  .faqs__grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 5vw, 7rem); align-items: start; }
+  .faqs__head { position: sticky; inset-block-start: calc(var(--header-h) + 2rem); }
+  @media (max-width: 900px) {
+    .faqs__grid { grid-template-columns: 1fr; }
+    .faqs__head { position: static; }
+  }
+</style>

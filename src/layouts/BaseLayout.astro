@@ -1,0 +1,110 @@
+---
+import type { ImageMetadata } from 'astro';
+import '~/styles/global.css';
+import SEO from '~/components/layout/SEO.astro';
+import Header from '~/components/layout/Header.astro';
+import Footer from '~/components/layout/Footer.astro';
+import FloatingContact from '~/components/layout/FloatingContact.astro';
+import A11yMenu from '~/components/layout/A11yMenu.astro';
+import Analytics from '~/components/layout/Analytics.astro';
+import { site } from '~/config/site';
+import { languages, useTranslations, type Lang } from '~/i18n';
+
+import frankHe from '@fontsource-variable/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-wght-normal.woff2?url';
+import assistantHe from '@fontsource-variable/assistant/files/assistant-hebrew-wght-normal.woff2?url';
+import assistantLatin from '@fontsource-variable/assistant/files/assistant-latin-wght-normal.woff2?url';
+import cormorantLatin from '@fontsource-variable/cormorant-garamond/files/cormorant-garamond-latin-wght-normal.woff2?url';
+
+interface Props {
+  lang: Lang;
+  /** Language-neutral path of this page, e.g. "/pricing/" */
+  path: string;
+  title: string;
+  description: string;
+  image?: ImageMetadata;
+  type?: 'website' | 'article' | 'profile';
+  header?: 'overlay' | 'solid';
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+  footerCta?: boolean;
+  /** Pre-filled WhatsApp message for this page's floating button. */
+  waMessage?: string;
+  /** Minimal chrome for app-like pages (client gallery, admin). */
+  chrome?: 'full' | 'minimal';
+  alternates?: boolean;
+}
+
+const {
+  lang,
+  path,
+  title,
+  description,
+  image,
+  type,
+  header = 'solid',
+  jsonLd,
+  noindex,
+  footerCta = true,
+  waMessage,
+  chrome = 'full',
+  alternates,
+} = Astro.props;
+const t = useTranslations(lang);
+const { dir } = languages[lang];
+const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormorantLatin, assistantLatin];
+---
+<!doctype html>
+<html lang={lang} dir={dir} class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      // Runs before first paint: enable JS-only styles and restore accessibility preferences.
+      (function () {
+        var d = document.documentElement;
+        d.classList.remove('no-js');
+        d.classList.add('js');
+        try {
+          var p = JSON.parse(localStorage.getItem('moshik-a11y') || 'null');
+          if (p) {
+            if (p.scale) d.style.setProperty('--a11y-scale', p.scale);
+            (p.on || []).forEach(function (o) { d.classList.add('a11y-' + o); });
+          }
+        } catch (e) {}
+      })();
+    </script>
+    {preloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+    <meta name="theme-color" content="#161311" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="author" content={site.fullName[lang]} />
+    <SEO lang={lang} path={path} title={title} description={description} image={image} type={type} noindex={noindex} jsonLd={jsonLd} alternates={alternates} />
+    <slot name="head" />
+    <Analytics lang={lang} />
+  </head>
+  <body class="grain" id="top">
+    <a class="skip-link" href="#main">{t('common.skip')}</a>
+    {chrome === 'full' && <Header lang={lang} path={path} variant={header} />}
+    <slot name="chrome" />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    {chrome === 'full' && <Footer lang={lang} cta={footerCta} />}
+    {chrome === 'full' && <FloatingContact lang={lang} message={waMessage} />}
+    {site.features.accessibilityMenu && <A11yMenu lang={lang} />}
+    <script>
+      import '~/scripts/core';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  main:focus { outline: none; }
+  @media (max-width: 760px) {
+    body { padding-block-end: env(safe-area-inset-bottom, 0px); }
+  }
+</style>

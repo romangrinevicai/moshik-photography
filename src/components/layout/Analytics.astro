@@ -1,0 +1,95 @@
+---
+/**
+ * Optional analytics (Google Analytics 4 / Meta Pixel). Nothing is loaded
+ * unless an ID is configured in src/config/site.ts, and even then only
+ * after the visitor accepts the cookie notice.
+ */
+import { site } from '~/config/site';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const { ga4, metaPixel } = site.integrations;
+const enabled = Boolean(ga4 || metaPixel);
+const copy = {
+  text: {
+    he: 'אנחנו משתמשים בעוגיות למדידה אנונימית ולשיפור האתר.',
+    en: 'We use cookies for anonymous measurement and to improve the site.',
+  },
+  accept: { he: 'מאשר/ת', en: 'Accept' },
+  decline: { he: 'לא תודה', en: 'No thanks' },
+};
+---
+{
+  enabled && (
+    <>
+      <div class="consent" data-consent hidden role="region" aria-label="Cookies">
+        <p>{copy.text[lang]}</p>
+        <div class="consent__actions">
+          <button type="button" class="btn btn--sm" data-consent-decline>{copy.decline[lang]}</button>
+          <button type="button" class="btn btn--sm btn--solid" data-consent-accept>{copy.accept[lang]}</button>
+        </div>
+      </div>
+      <script is:inline define:vars={{ ga4, metaPixel }}>
+        (function () {
+          var KEY = 'moshik-consent';
+          function load() {
+            if (ga4) {
+              var s = document.createElement('script');
+              s.async = true;
+              s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ga4;
+              document.head.appendChild(s);
+              window.dataLayer = window.dataLayer || [];
+              window.gtag = function () { dataLayer.push(arguments); };
+              gtag('js', new Date());
+              gtag('config', ga4, { anonymize_ip: true });
+            }
+            if (metaPixel) {
+              !(function (f, b, e, v, n, t, s) {
+                if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+                if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+                t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+              })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', metaPixel);
+              fbq('track', 'PageView');
+            }
+          }
+          var choice = null;
+          try { choice = localStorage.getItem(KEY); } catch (e) {}
+          if (choice === 'yes') return load();
+          if (choice === 'no') return;
+          document.addEventListener('DOMContentLoaded', function () {
+            var el = document.querySelector('[data-consent]');
+            if (!el) return;
+            el.hidden = false;
+            function set(v) { try { localStorage.setItem(KEY, v); } catch (e) {} el.hidden = true; if (v === 'yes') load(); }
+            el.querySelector('[data-consent-accept]').addEventListener('click', function () { set('yes'); });
+            el.querySelector('[data-consent-decline]').addEventListener('click', function () { set('no'); });
+          });
+        })();
+      </script>
+    </>
+  )
+}
+
+<style>
+  .consent {
+    position: fixed;
+    inset-inline: 1rem;
+    inset-block-end: 1rem;
+    z-index: 120;
+    max-inline-size: 30rem;
+    margin-inline: auto;
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.1rem 1.25rem;
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: 0 24px 60px -20px rgb(15 13 11 / 0.45), 0 0 0 1px var(--line);
+    font-size: 0.92rem;
+  }
+  .consent[hidden] { display: none; }
+  .consent__actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+</style>
