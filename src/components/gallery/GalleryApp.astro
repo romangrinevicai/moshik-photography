@@ -18,7 +18,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
 ---
 <div class="g-app" data-view="gallery" hidden>
   <section class="g-cover on-noir" data-cover aria-labelledby="g-title">
-    <div class="g-cover__media" aria-hidden="true">
+    <div class="g-cover__media" aria-hidden="true" data-parallax="0.18">
       <img data-cover-img alt="" decoding="async" fetchpriority="high" />
     </div>
     <div class="g-cover__shade" aria-hidden="true"></div>
@@ -87,7 +87,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
         </div>
       </div>
       <div class="g-bar__actions">
-        <button type="button" class="g-act g-act--people" data-act="people" hidden>
+        <button type="button" class="g-act g-act--people" data-act="people" hidden aria-label={s('people')} aria-haspopup="dialog">
           <span class="g-stack" data-people-stack aria-hidden="true"></span>
           <span class="g-act__label">{s('people')}</span>
         </button>
@@ -95,7 +95,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
           <Icon name="scan-face" size={18} />
           <span class="g-act__label">{s('findMe')}</span>
         </button>
-        <button type="button" class="g-act g-act--desk" data-act="download" hidden aria-haspopup="dialog">
+        <button type="button" class="g-act g-act--desk" data-act="download" hidden aria-label={s('download')} aria-haspopup="dialog">
           <Icon name="download" size={17} />
           <span class="g-act__label">{s('download')}</span>
         </button>
@@ -148,7 +148,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
 
 <style is:global>
   html.g-in-gallery body.grain::after { display: none; }
-  html.g-in-gallery { scroll-padding-top: calc(var(--g-head-h) + var(--g-bar-h) + 16px); }
+  html.g-in-gallery { scroll-padding-top: calc(var(--g-head-h) + var(--g-bar-h) + 16px); scrollbar-gutter: stable; }
 
   /* ── cover ── */
   .g-cover {
@@ -160,7 +160,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
     isolation: isolate;
     background: var(--noir);
   }
-  .g-cover__media { position: absolute; inset: 0; z-index: -2; }
+  .g-cover__media { position: absolute; inset: 0; z-index: -2; will-change: transform; }
   .g-cover__media img {
     inline-size: 100%;
     block-size: 100%;
@@ -434,7 +434,7 @@ const dots = '<svg class="icon" aria-hidden="true" width="20" height="20" viewBo
   :lang(en) .g-tab { font-size: 0.72rem; }
   .g-tab:hover { color: var(--ink); }
   .g-tab[aria-pressed='true'] { color: var(--paper); background: var(--ink); }
-  .g-tab__n { font-size: 0.82em; font-weight: 600; letter-spacing: 0; opacity: 0.6; font-variant-numeric: tabular-nums; }
+  .g-tab__n { font-size: 0.82em; font-weight: 600; letter-spacing: 0; opacity: 0.78; font-variant-numeric: tabular-nums; }
   .g-tab .icon { inline-size: 0.95rem; block-size: 0.95rem; }
   .g-tab--favs[aria-pressed='true'] .icon path { fill: currentColor; }
 
