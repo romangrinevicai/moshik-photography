@@ -92,8 +92,10 @@ const captions = home.hero.captions;
     let timer = 0;
     let playing = !motionOff() && slides.length > 1;
 
-    // The headline animates on load rather than on scroll.
-    requestAnimationFrame(() => hero.querySelector('[data-reveal-now]')?.classList.add('is-in'));
+    // The headline animates in as soon as the web fonts are ready.
+    const reveal = () => hero.querySelector('[data-reveal-now]')?.classList.add('is-in');
+    if (document.documentElement.classList.contains('fonts-ready')) requestAnimationFrame(reveal);
+    else window.addEventListener('fonts-ready', () => requestAnimationFrame(reveal), { once: true });
 
     const show = (next: number) => {
       const prev = index;
@@ -198,6 +200,7 @@ const captions = home.hero.captions;
       radial-gradient(120% 90% at 50% 40%, transparent 50%, rgb(10 8 6 / 0.45) 100%);
   }
 
+  :global(.js:not(.fonts-ready)) .hero__content { visibility: hidden; }
   .hero__content {
     align-self: end;
     display: grid;

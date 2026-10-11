@@ -64,6 +64,24 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
         var d = document.documentElement;
         d.classList.remove('no-js');
         d.classList.add('js');
+        // Reveal font-sensitive hero text only once the web fonts are ready (no layout shift).
+        var ready = function () {
+          if (d.classList.contains('fonts-ready')) return;
+          d.classList.add('fonts-ready');
+          window.dispatchEvent(new Event('fonts-ready'));
+        };
+        // (checked after the stylesheet with the @font-face rules has been parsed)
+        document.addEventListener('DOMContentLoaded', function () {
+          try {
+            var f = document.fonts;
+            Promise.race([
+              Promise.all([f.load('350 1em "Frank Ruhl"', 'א'), f.load('400 1em "Cormorant"', 'M'), f.load('400 1em "Assistant"', 'אM')]),
+              new Promise(function (r) { setTimeout(r, 1400); }),
+            ]).then(ready, ready);
+          } catch (e) {
+            ready();
+          }
+        });
         try {
           var p = JSON.parse(localStorage.getItem('moshik-a11y') || 'null');
           if (p) {

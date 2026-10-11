@@ -20,8 +20,9 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 ---
 <header class="site-header" data-header data-variant={variant}>
   <div class="site-header__bar container container--wide">
-    <a class="site-header__logo" href={localizePath('/', lang)} aria-label={`${site.name[lang]} — ${t('nav.home')}`}>
+    <a class="site-header__logo" href={localizePath('/', lang)}>
       <Logo />
+      <span class="sr-only">{t('nav.home')}</span>
     </a>
 
     <nav class="site-nav" aria-label={t('nav.main')}>
@@ -82,8 +83,9 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
           </a>
         )
       }
-      <a class="site-header__lang" href={localizePath(path, alt)} hreflang={alt} lang={alt} aria-label={t('nav.switchLangLabel')} data-lang-switch>
-        {alt === 'en' ? 'EN' : 'עב'}
+      <a class="site-header__lang" href={localizePath(path, alt)} hreflang={alt} lang={alt} data-lang-switch>
+        <span>{alt === 'en' ? 'EN' : 'עב'}</span>
+        <span class="sr-only"> — {t('nav.switchLangLabel')}</span>
       </a>
       <a class="btn btn--sm site-header__cta" href={localizePath('/contact/', lang)}>
         {t('nav.cta')}
