@@ -1,0 +1,609 @@
+---
+/** Gallery editor screen: header, tabs (photos · details · faces · share · selections). Driven by scripts/admin/editor. */
+import Icon from '~/components/ui/Icon.astro';
+import TableCard from '~/components/admin/TableCard.astro';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = {
+  back: { he: 'כל הגלריות', en: 'All galleries' },
+  view: { he: 'צפייה כלקוח', en: 'View as client' },
+  viewLabel: { he: 'פתיחת הגלריה כמו שהאורחים רואים אותה, בלשונית חדשה', en: 'Open the gallery as guests see it, in a new tab' },
+  share: { he: 'שיתוף', en: 'Share' },
+  publish: { he: 'פרסום הגלריה', en: 'Publish' },
+  code: { he: 'קוד גישה', en: 'Access code' },
+  copyCode: { he: 'העתקת קוד הגישה', en: 'Copy the access code' },
+  tabsLabel: { he: 'חלקי הגלריה', en: 'Gallery sections' },
+  tabs: {
+    photos: { he: 'תמונות', en: 'Photos' },
+    details: { he: 'פרטים והגדרות', en: 'Details & settings' },
+    faces: { he: 'זיהוי פנים', en: 'Face search' },
+    share: { he: 'שיתוף', en: 'Share' },
+    selections: { he: 'בחירות לאלבום', en: 'Album picks' },
+  },
+  /* uploader */
+  upTitle: { he: 'הוספת תמונות', en: 'Add photos' },
+  dropTitle: { he: 'גוררים לכאן תמונות או תיקייה שלמה', en: 'Drag photos or a whole folder here' },
+  dropHint: { he: 'JPG · PNG · WebP · HEIC מאייפון (ב־Safari). התמונות מוקטנות אצלך במחשב לפני ההעלאה — מהיר וחסכוני.', en: 'JPG · PNG · WebP · iPhone HEIC (in Safari). Photos are resized on your computer before uploading — fast and light.' },
+  pickFiles: { he: 'בחירת תמונות', en: 'Choose photos' },
+  pickFolder: { he: 'בחירת תיקייה', en: 'Choose a folder' },
+  targetSet: { he: 'לאיזה פרק להעלות?', en: 'Upload into chapter' },
+  keepOriginals: { he: 'לשמור גם את הקבצים המקוריים', en: 'Also keep the original files' },
+  keepOriginalsHint: { he: 'להורדה באיכות מלאה. תופס יותר מקום ולוקח יותר זמן.', en: 'For full-quality downloads. Takes more space and time.' },
+  /* sets */
+  setsTitle: { he: 'פרקים', en: 'Chapters' },
+  setsHint: { he: 'חלוקה כמו "התארגנות", "חופה", "מסיבה". רשות.', en: 'Split into parts like “Getting ready”, “Ceremony”, “Party”. Optional.' },
+  setsAdd: { he: 'הוספה', en: 'Add' },
+  setsPh: { he: 'פרק חדש, למשל: חופה', en: 'New chapter, e.g. Ceremony' },
+  setsLabel: { he: 'שם פרק חדש', en: 'New chapter name' },
+  /* queue */
+  qTitle: { he: 'מעלה תמונות…', en: 'Uploading photos…' },
+  qBar: { he: 'התקדמות ההעלאה', en: 'Upload progress' },
+  pause: { he: 'השהיה', en: 'Pause' },
+  cancelUpload: { he: 'ביטול', en: 'Cancel' },
+  retry: { he: 'ניסיון חוזר', en: 'Retry failed' },
+  clear: { he: 'ניקוי הרשימה', en: 'Clear list' },
+  keepOpen: { he: 'אפשר להמשיך לעבוד בניהול בזמן ההעלאה — רק לא לסגור את הלשונית.', en: 'You can keep working in the admin while this uploads — just don’t close the tab.' },
+  /* photos */
+  phTitle: { he: 'התמונות בגלריה', en: 'Photos in this gallery' },
+  sortLabel: { he: 'מיון', en: 'Sort' },
+  sortOrder: { he: 'לפי סדר ההעלאה', en: 'Upload order' },
+  sortTaken: { he: 'לפי שעת הצילום', en: 'Time taken' },
+  sortName: { he: 'לפי שם קובץ', en: 'File name' },
+  selectAll: { he: 'בחירה', en: 'Select' },
+  selectAllLabel: { he: 'בחירת כל התמונות המוצגות', en: 'Select all shown photos' },
+  setFilter: { he: 'סינון לפי פרק', en: 'Filter by chapter' },
+  setCover: { he: 'תמונת שער', en: 'Set as cover' },
+  del: { he: 'מחיקה', en: 'Delete' },
+  clearSel: { he: 'ביטול הבחירה', en: 'Clear selection' },
+  showMore: { he: 'להציג עוד תמונות', en: 'Show more photos' },
+  gridLabel: { he: 'תמונות הגלריה', en: 'Gallery photos' },
+  /* preview */
+  pvClose: { he: 'סגירה', en: 'Close' },
+  pvPrev: { he: 'הקודמת', en: 'Previous' },
+  pvNext: { he: 'הבאה', en: 'Next' },
+  pvOriginal: { he: 'הורדת המקור', en: 'Download original' },
+  pvDelete: { he: 'מחיקה', en: 'Delete' },
+  /* details */
+  dGeneral: { he: 'פרטי הגלריה', en: 'Gallery details' },
+  dTitle: { he: 'שם הגלריה', en: 'Gallery name' },
+  dSubtitle: { he: 'שורת משנה', en: 'Subtitle' },
+  dSubtitlePh: { he: 'למשל: החתונה · גן אירועים בשרון', en: 'e.g. The wedding · a garden venue' },
+  dDate: { he: 'תאריך האירוע', en: 'Event date' },
+  dLang: { he: 'שפת הגלריה', en: 'Gallery language' },
+  dMessage: { he: 'הודעה אישית לזוג', en: 'Personal message to the couple' },
+  dMessageHint: { he: 'מופיעה בראש הגלריה. למשל: "היה לי כבוד לצלם את היום שלכם…"', en: 'Shown at the top of the gallery. e.g. “It was an honour to photograph your day…”' },
+  dAccess: { he: 'גישה ופרסום', en: 'Access & publishing' },
+  dCode: { he: 'קוד גישה', en: 'Access code' },
+  dCodeHint: { he: 'האורחים מקלידים אותו בכניסה לגלריה. אותיות באנגלית, ספרות ומקפים.', en: 'Guests type it to open the gallery. Letters, digits and dashes.' },
+  dSuggest: { he: 'הצעה חדשה', en: 'Suggest' },
+  dStatus: { he: 'סטטוס', en: 'Status' },
+  dStatusHint: { he: 'טיוטה = רק אתה רואה. מפורסמת = כל מי שיש לו קישור או קוד.', en: 'Draft = only you. Published = anyone with the link or code.' },
+  dExpires: { he: 'סגירה אוטומטית בתאריך', en: 'Close automatically on' },
+  dClear: { he: 'ניקוי', en: 'Clear' },
+  dExternal: { he: 'קישור לגלריה חיצונית', en: 'External gallery link' },
+  dExternalHint: { he: 'רשות: אם הגלריה נמצאת במקום אחר (Pixieset, Google Drive…), האורחים יועברו לשם.', en: 'Optional: if the gallery lives elsewhere (Pixieset, Google Drive…), guests are sent there.' },
+  dGuests: { he: 'מה האורחים יכולים לעשות', en: 'What guests can do' },
+  tDownload: { he: 'הורדת תמונות', en: 'Download photos' },
+  tDownloadHint: { he: 'כפתור הורדה לתמונה בודדת ולכל הגלריה (ZIP).', en: 'Download buttons for single photos and the whole gallery (ZIP).' },
+  tOriginals: { he: 'הורדה באיכות מקורית', en: 'Download in original quality' },
+  tOriginalsHint: { he: 'רק לתמונות שהועלו עם הקובץ המקורי.', en: 'Only for photos uploaded with their original file.' },
+  tFaces: { he: 'חיפוש לפי סלפי', en: 'Find yourself with a selfie' },
+  tFacesHint: { he: 'האורחים מצלמים סלפי ורואים רק את התמונות שבהן הם מופיעים.', en: 'Guests take a selfie and see only the photos they appear in.' },
+  tLive: { he: 'גלריה חיה (ביום האירוע)', en: 'Live gallery (on the event day)' },
+  tLiveHint: { he: 'תמונות חדשות מופיעות אצל האורחים תוך כדי ההעלאה, בלי לרענן.', en: 'New photos appear for guests while you upload, without refreshing.' },
+  statuses: {
+    draft: { he: 'טיוטה', en: 'Draft' },
+    published: { he: 'מפורסמת', en: 'Published' },
+    archived: { he: 'בארכיון', en: 'Archived' },
+  },
+  he: { he: 'עברית', en: 'Hebrew' },
+  en: { he: 'אנגלית', en: 'English' },
+  optional: { he: 'רשות', en: 'optional' },
+  unsaved: { he: 'יש שינויים שלא נשמרו', en: 'You have unsaved changes' },
+  discard: { he: 'ביטול', en: 'Discard' },
+  save: { he: 'שמירת השינויים', en: 'Save changes' },
+  dangerTitle: { he: 'מחיקת הגלריה', en: 'Delete this gallery' },
+  dangerText: { he: 'מוחק את כל התמונות, הקבצים המקוריים, נתוני הפנים והבחירות. אי אפשר לשחזר.', en: 'Removes every photo, original, face data and selection. This can’t be undone.' },
+  dangerBtn: { he: 'מחיקת הגלריה…', en: 'Delete gallery…' },
+  /* faces */
+  fxTitle: { he: 'חיפוש לפי סלפי', en: 'Find yourself with a selfie' },
+  fxIntro: {
+    he: 'סורקים פעם אחת את הפנים בכל התמונות. אחר כך כל אורח מצלם סלפי ורואה מיד רק את התמונות שבהן הוא מופיע.',
+    en: 'Scan the faces in all photos once. Then every guest takes a selfie and instantly sees only the photos they’re in.',
+  },
+  fxPrivacy: {
+    he: 'הסריקה מתבצעת כאן, בדפדפן שלך — שום תמונה לא נשלחת לשירות חיצוני, והסלפי של האורחים לא יוצא מהטלפון שלהם.',
+    en: 'The scan runs right here in your browser — no photo is sent to any outside service, and guests’ selfies never leave their phone.',
+  },
+  fxOffTitle: { he: 'חיפוש לפי סלפי כבוי בגלריה הזאת', en: 'Selfie search is off for this gallery' },
+  fxOffText: { he: 'כשמפעילים אותו, האורחים יכולים למצוא את עצמם בין מאות תמונות בשניות.', en: 'Turn it on and guests can find themselves among hundreds of photos in seconds.' },
+  fxEnable: { he: 'הפעלת חיפוש לפי סלפי', en: 'Turn on selfie search' },
+  fxRun: { he: 'סריקת פנים', en: 'Analyse faces' },
+  fxClear: { he: 'מחיקת נתוני הפנים', en: 'Delete face data' },
+  fxCancel: { he: 'עצירה', en: 'Stop' },
+  fxProgress: { he: 'התקדמות הסריקה', en: 'Analysis progress' },
+  fxKeep: { he: 'זה יכול לקחת כמה דקות. אפשר לעבור ללשונית אחרת — רק לא לסגור את זו.', en: 'This can take a few minutes. Feel free to switch tabs — just keep this one open.' },
+  fxPeople: { he: 'האנשים שנמצאו', en: 'People found' },
+  fxPeopleHint: { he: 'כל מי שמופיע ביותר מתמונה אחת. האורחים לא רואים את הרשימה הזאת.', en: 'Everyone who appears in more than one photo. Guests don’t see this list.' },
+  /* share */
+  shDraftAction: { he: 'פרסום עכשיו', en: 'Publish now' },
+  shLinks: { he: 'הקישור לגלריה', en: 'Gallery link' },
+  shLinksHint: { he: 'הקישור פותח את הגלריה ישירות, בלי להקליד קוד.', en: 'The link opens the gallery directly — no code to type.' },
+  shCopy: { he: 'העתקה', en: 'Copy' },
+  shOpen: { he: 'פתיחה', en: 'Open' },
+  shCode: { he: 'קוד גישה', en: 'Access code' },
+  shCodeHint: { he: 'למי שמגיע לאתר בלי הקישור.', en: 'For anyone who comes to the site without the link.' },
+  shSend: { he: 'שליחה לזוג', en: 'Send to the couple' },
+  shPhone: { he: 'הטלפון שלהם', en: 'Their phone' },
+  shPhoneHint: { he: 'רשות — בלי מספר, וואטסאפ יבקש לבחור איש קשר.', en: 'Optional — without a number WhatsApp lets you pick a contact.' },
+  shMsg: { he: 'ההודעה', en: 'Message' },
+  shWa: { he: 'פתיחה בוואטסאפ', en: 'Open WhatsApp' },
+  shMail: { he: 'שליחה במייל', en: 'Send by email' },
+  shCopyMsg: { he: 'העתקת ההודעה', en: 'Copy message' },
+  shReset: { he: 'חזרה לנוסח המקורי', en: 'Reset to the original text' },
+  shQr: { he: 'קוד QR', en: 'QR code' },
+  shQrHint: { he: 'לסריקה מהטלפון — מוביל ישר לגלריה.', en: 'Scan with a phone — leads straight to the gallery.' },
+  shPng: { he: 'הורדת PNG', en: 'Download PNG' },
+  shSvg: { he: 'הורדת SVG', en: 'Download SVG' },
+  shCard: { he: 'כרטיס לשולחנות', en: 'Table card' },
+  shCardHint: { he: 'מדפיסים, מניחים על השולחנות — והאורחים רואים את התמונות עוד באירוע.', en: 'Print it, place it on the tables — and guests see the photos during the event.' },
+  shCardLang: { he: 'שפת הכרטיס', en: 'Card language' },
+  shCardGallery: { he: 'כמו הגלריה', en: 'Same as gallery' },
+  shCardBoth: { he: 'דו־לשוני', en: 'Bilingual' },
+  shPrint: { he: 'הדפסת הכרטיס', en: 'Print card' },
+  /* selections */
+  selTitle: { he: 'בחירות לאלבום', en: 'Album picks' },
+  selHint: { he: 'התמונות שהזוג (או האורחים) בחרו ושלחו מהגלריה.', en: 'Photos the couple (or guests) picked and sent from the gallery.' },
+  selAll: { he: 'הורדת הכל (CSV)', en: 'Download all (CSV)' },
+  refresh: { he: 'רענון', en: 'Refresh' },
+};
+const tabs = ['photos', 'details', 'faces', 'share', 'selections'] as const;
+---
+<section class="adm-panel adm-editor" data-panel="gallery" hidden aria-labelledby="ed-title">
+  <a class="adm-back" href="#/galleries"><Icon name="arrow-left" size={16} class="flip-rtl" /> {c.back[lang]}</a>
+
+  <div class="adm-ed-loading" data-ed-loading aria-busy="true">
+    <div class="adm-skel adm-skel--title" aria-hidden="true"></div>
+    <div class="adm-skel adm-skel--line" aria-hidden="true"></div>
+    <div class="adm-skel adm-skel--block" aria-hidden="true"></div>
+  </div>
+  <div data-ed-error hidden></div>
+
+  <div class="adm-ed" data-ed-body hidden>
+    <header class="adm-ed-head">
+      <div class="adm-ed-head__cover" data-ed-cover aria-hidden="true"></div>
+      <div class="adm-ed-head__text">
+        <p class="adm-ed-head__meta">
+          <span data-ed-status></span>
+          <span class="adm-ed-head__date" data-ed-date></span>
+          <span class="adm-ed-head__count" data-ed-count></span>
+        </p>
+        <h1 id="ed-title" class="adm-ed-head__title" tabindex="-1" data-focus-title data-ed-title dir="auto"></h1>
+        <p class="adm-ed-head__code">
+          <span class="adm-muted">{c.code[lang]}</span>
+          <button type="button" class="adm-code" data-ed-code-copy aria-label={c.copyCode[lang]}>
+            <span data-ed-code dir="ltr"></span>
+            <Icon name="copy" size={14} />
+          </button>
+        </p>
+      </div>
+      <div class="adm-ed-head__actions">
+        <a class="btn btn--sm" data-ed-view href="#" target="_blank" rel="noopener" title={c.viewLabel[lang]}>
+          <Icon name="eye" size={16} />
+          <span>{c.view[lang]}</span>
+        </a>
+        <button class="btn btn--sm" type="button" data-ed-share>
+          <Icon name="share2" size={16} />
+          <span>{c.share[lang]}</span>
+        </button>
+        <button class="btn btn--sm btn--solid adm-publish" type="button" data-ed-publish>
+          <Icon name="send" size={16} class="flip-rtl" />
+          <span data-ed-publish-label>{c.publish[lang]}</span>
+        </button>
+      </div>
+    </header>
+
+    <p class="adm-sync" data-ed-sync hidden role="status"></p>
+    <div class="adm-next" data-ed-next hidden></div>
+
+    <nav class="adm-edtabs" aria-label={c.tabsLabel[lang]}>
+      {
+        tabs.map((t) => (
+          <a class="adm-edtabs__link" href="#" data-ed-tab={t}>
+            <span>{c.tabs[t][lang]}</span>
+            <span class="adm-edtabs__count" data-tab-count={t} />
+          </a>
+        ))
+      }
+    </nav>
+
+    <!-- ─────────────── Photos ─────────────── -->
+    <div class="adm-tabpanel" data-ed-panel="photos">
+      <div class="adm-ed-photos-top">
+        <section class="adm-card adm-upload" aria-labelledby="up-title">
+          <h2 id="up-title" class="adm-card__title">{c.upTitle[lang]}</h2>
+          <div class="adm-drop" data-drop>
+            <span class="adm-drop__icon"><Icon name="upload" size={30} stroke={1.3} /></span>
+            <p class="adm-drop__title" data-drop-title data-text={c.dropTitle[lang]}>{c.dropTitle[lang]}</p>
+            <p class="adm-drop__hint">{c.dropHint[lang]}</p>
+            <div class="adm-drop__btns">
+              <button class="btn btn--sm btn--solid" type="button" data-pick-files><Icon name="images" size={16} /><span>{c.pickFiles[lang]}</span></button>
+              <button class="btn btn--sm" type="button" data-pick-folder><Icon name="folder-up" size={16} /><span>{c.pickFolder[lang]}</span></button>
+            </div>
+            <input type="file" accept="image/*,.heic,.heif" multiple hidden data-file-input />
+            <input type="file" multiple hidden data-folder-input />
+          </div>
+          <div class="adm-upload__opts">
+            <label class="field adm-upload__set">
+              <span class="field__label">{c.targetSet[lang]}</span>
+              <select class="select" data-up-set></select>
+            </label>
+            <label class="adm-check">
+              <input type="checkbox" data-up-originals />
+              <span>
+                <strong>{c.keepOriginals[lang]}</strong>
+                <small>{c.keepOriginalsHint[lang]}</small>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="adm-card adm-sets" aria-labelledby="sets-title">
+          <h2 id="sets-title" class="adm-card__title">{c.setsTitle[lang]}</h2>
+          <p class="adm-card__hint">{c.setsHint[lang]}</p>
+          <ol class="adm-sets__list" role="list" data-sets-list></ol>
+          <form class="adm-sets__add" data-sets-add novalidate>
+            <input class="input" type="text" maxlength="60" placeholder={c.setsPh[lang]} aria-label={c.setsLabel[lang]} dir="auto" />
+            <button class="btn btn--sm" type="submit"><Icon name="plus" size={16} /><span>{c.setsAdd[lang]}</span></button>
+          </form>
+          <p class="field__error" data-sets-error aria-live="polite"></p>
+        </section>
+      </div>
+
+      <section class="adm-card adm-queue" data-queue hidden aria-labelledby="q-title">
+        <div class="adm-queue__head">
+          <h2 id="q-title" class="adm-card__title" data-q-title>{c.qTitle[lang]}</h2>
+          <div class="adm-queue__actions">
+            <button class="btn btn--sm" type="button" data-q-pause><Icon name="pause" size={16} />{c.pause[lang]}</button>
+            <button class="btn btn--sm" type="button" data-q-retry hidden><Icon name="refresh-cw" size={16} />{c.retry[lang]}</button>
+            <button class="btn btn--sm" type="button" data-q-clear hidden><Icon name="check" size={16} />{c.clear[lang]}</button>
+            <button class="adm-linkbtn adm-linkbtn--danger" type="button" data-q-cancel>{c.cancelUpload[lang]}</button>
+          </div>
+        </div>
+        <div class="adm-progress" data-q-bar role="progressbar" aria-label={c.qBar[lang]} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+        <p class="adm-queue__stats" data-q-stats aria-live="polite"></p>
+        <p class="adm-queue__keep" data-q-keep><Icon name="info" size={15} /> {c.keepOpen[lang]}</p>
+        <ul class="adm-queue__rows" role="list" data-q-rows></ul>
+        <p class="adm-queue__more" data-q-more hidden></p>
+      </section>
+
+      <section class="adm-photos" aria-labelledby="ph-title">
+        <div class="adm-photos__head">
+          <h2 id="ph-title" class="adm-section-title">{c.phTitle[lang]} <span class="adm-muted" data-ph-count></span></h2>
+          <div class="adm-photos__tools" data-ph-tools hidden>
+            <label class="adm-inline-select">
+              <span class="sr-only">{c.sortLabel[lang]}</span>
+              <Icon name="sliders-horizontal" size={16} />
+              <select class="select" data-ph-sort>
+                <option value="order">{c.sortOrder[lang]}</option>
+                <option value="taken">{c.sortTaken[lang]}</option>
+                <option value="name">{c.sortName[lang]}</option>
+              </select>
+            </label>
+            <button class="btn btn--sm" type="button" data-ph-select-all title={c.selectAllLabel[lang]}><Icon name="check" size={16} />{c.selectAll[lang]}</button>
+          </div>
+        </div>
+        <div class="adm-chips adm-chips--sets" role="group" aria-label={c.setFilter[lang]} data-ph-sets hidden></div>
+
+        <div class="adm-photo-grid" role="list" aria-label={c.gridLabel[lang]} data-ph-grid></div>
+        <div data-ph-empty hidden></div>
+        <div class="adm-photos__more"><button class="btn btn--sm" type="button" data-ph-more hidden>{c.showMore[lang]}</button></div>
+
+        <div class="adm-selbar" data-ph-selbar hidden>
+          <span class="adm-selbar__count" data-ph-selcount aria-live="polite"></span>
+          <button class="adm-linkbtn" type="button" data-ph-all></button>
+          <span class="adm-selbar__spacer"></span>
+          <span class="adm-selbar__status" data-ph-status aria-live="polite"></span>
+          <button class="btn btn--sm btn--light" type="button" data-ph-cover><Icon name="star" size={16} />{c.setCover[lang]}</button>
+          <button class="btn btn--sm adm-btn-danger adm-btn-danger--onDark" type="button" data-ph-delete><Icon name="trash2" size={16} />{c.del[lang]}</button>
+          <button class="adm-iconbtn adm-iconbtn--light" type="button" data-ph-clear aria-label={c.clearSel[lang]}><Icon name="x" size={18} /></button>
+        </div>
+      </section>
+
+      <dialog class="adm-dialog adm-preview" data-photo-dialog aria-label={c.tabs.photos[lang]}>
+        <div class="adm-preview__box">
+          <header class="adm-preview__head">
+            <div class="adm-preview__title">
+              <strong data-pv-name dir="ltr"></strong>
+              <span class="adm-muted" data-pv-pos></span>
+            </div>
+            <button class="adm-iconbtn adm-iconbtn--light" type="button" data-pv-close aria-label={c.pvClose[lang]}><Icon name="x" size={22} /></button>
+          </header>
+          <div class="adm-preview__stage">
+            <button class="adm-preview__nav adm-preview__nav--prev" type="button" data-pv-prev aria-label={c.pvPrev[lang]}><Icon name="chevron-left" size={28} class="flip-rtl" /></button>
+            <img data-pv-img alt="" />
+            <button class="adm-preview__nav adm-preview__nav--next" type="button" data-pv-next aria-label={c.pvNext[lang]}><Icon name="chevron-right" size={28} class="flip-rtl" /></button>
+          </div>
+          <footer class="adm-preview__foot">
+            <p class="adm-preview__meta" data-pv-meta></p>
+            <div class="adm-preview__actions">
+              <button class="btn btn--sm btn--light" type="button" data-pv-cover><Icon name="star" size={16} /><span>{c.setCover[lang]}</span></button>
+              <a class="btn btn--sm btn--light" data-pv-original href="#" download><Icon name="download" size={16} />{c.pvOriginal[lang]}</a>
+              <button class="btn btn--sm adm-btn-danger adm-btn-danger--onDark" type="button" data-pv-delete><Icon name="trash2" size={16} />{c.pvDelete[lang]}</button>
+            </div>
+          </footer>
+        </div>
+      </dialog>
+    </div>
+
+    <!-- ─────────────── Details ─────────────── -->
+    <div class="adm-tabpanel" data-ed-panel="details" hidden>
+      <form class="adm-details" data-details novalidate>
+        <section class="adm-card" aria-labelledby="d-general">
+          <h2 id="d-general" class="adm-card__title">{c.dGeneral[lang]}</h2>
+          <div class="adm-form-grid">
+            <div class="field adm-span-2">
+              <label class="field__label" for="d-title">{c.dTitle[lang]} *</label>
+              <input class="input" id="d-title" name="title" type="text" maxlength="120" required dir="auto" />
+              <p class="field__error" data-error-for="title" aria-live="polite"></p>
+            </div>
+            <div class="field adm-span-2">
+              <label class="field__label" for="d-subtitle">{c.dSubtitle[lang]} <span class="field__hint">({c.optional[lang]})</span></label>
+              <input class="input" id="d-subtitle" name="subtitle" type="text" maxlength="160" placeholder={c.dSubtitlePh[lang]} dir="auto" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="d-date">{c.dDate[lang]}</label>
+              <input class="input" id="d-date" name="date" type="date" />
+            </div>
+            <fieldset class="field adm-fieldset">
+              <legend class="field__label">{c.dLang[lang]}</legend>
+              <div class="adm-seg adm-seg--sm">
+                <label class="adm-seg__opt"><input type="radio" name="lang" value="he" /><span>{c.he[lang]}</span></label>
+                <label class="adm-seg__opt"><input type="radio" name="lang" value="en" /><span>{c.en[lang]}</span></label>
+              </div>
+            </fieldset>
+            <div class="field adm-span-2">
+              <label class="field__label" for="d-message">{c.dMessage[lang]} <span class="field__hint">({c.optional[lang]})</span></label>
+              <textarea class="textarea" id="d-message" name="message" rows="4" maxlength="1200" dir="auto" aria-describedby="d-message-hint"></textarea>
+              <p class="field__hint adm-hint-row" id="d-message-hint"><span>{c.dMessageHint[lang]}</span><span class="nums" data-message-count></span></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="adm-card" aria-labelledby="d-access">
+          <h2 id="d-access" class="adm-card__title">{c.dAccess[lang]}</h2>
+          <div class="adm-form-grid">
+            <div class="field">
+              <label class="field__label" for="d-code">{c.dCode[lang]}</label>
+              <div class="adm-input-row">
+                <input class="input adm-code-input" id="d-code" name="code" type="text" maxlength="40" autocomplete="off" spellcheck="false" dir="ltr" aria-describedby="d-code-hint" />
+                <button class="btn btn--sm" type="button" data-code-suggest><Icon name="refresh-cw" size={15} />{c.dSuggest[lang]}</button>
+              </div>
+              <p class="field__hint" id="d-code-hint">{c.dCodeHint[lang]}</p>
+              <p class="field__error" data-error-for="code" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="d-status">{c.dStatus[lang]}</label>
+              <select class="select" id="d-status" name="status" aria-describedby="d-status-hint">
+                <option value="draft">{c.statuses.draft[lang]}</option>
+                <option value="published">{c.statuses.published[lang]}</option>
+                <option value="archived">{c.statuses.archived[lang]}</option>
+              </select>
+              <p class="field__hint" id="d-status-hint">{c.dStatusHint[lang]}</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="d-expires">{c.dExpires[lang]} <span class="field__hint">({c.optional[lang]})</span></label>
+              <div class="adm-input-row">
+                <input class="input" id="d-expires" name="expiresAt" type="date" aria-describedby="d-expires-hint" />
+                <button class="adm-linkbtn" type="button" data-clear-field="expiresAt">{c.dClear[lang]}</button>
+              </div>
+              <p class="field__hint" id="d-expires-hint" data-expires-hint></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="d-external">{c.dExternal[lang]} <span class="field__hint">({c.optional[lang]})</span></label>
+              <input class="input" id="d-external" name="externalUrl" type="url" inputmode="url" placeholder="https://" dir="ltr" aria-describedby="d-external-hint" />
+              <p class="field__hint" id="d-external-hint">{c.dExternalHint[lang]}</p>
+              <p class="field__error" data-error-for="externalUrl" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="adm-card" aria-labelledby="d-guests">
+          <h2 id="d-guests" class="adm-card__title">{c.dGuests[lang]}</h2>
+          <div class="adm-switches">
+            {
+              [
+                ['allowDownload', c.tDownload, c.tDownloadHint, 'download'],
+                ['allowOriginals', c.tOriginals, c.tOriginalsHint, 'gem'],
+                ['faceSearch', c.tFaces, c.tFacesHint, 'scan-face'],
+                ['live', c.tLive, c.tLiveHint, 'zap'],
+              ].map(([name, label, hint, ic]) => (
+                <label class="adm-switch">
+                  <span class="adm-switch__icon"><Icon name={ic as 'download'} size={20} /></span>
+                  <span class="adm-switch__text">
+                    <strong>{(label as Record<Lang, string>)[lang]}</strong>
+                    <small>{(hint as Record<Lang, string>)[lang]}</small>
+                  </span>
+                  <input type="checkbox" role="switch" name={name as string} class="adm-switch__input" />
+                  <span class="adm-switch__track" aria-hidden="true"><span></span></span>
+                </label>
+              ))
+            }
+          </div>
+        </section>
+
+        <div class="adm-savebar" data-details-savebar hidden>
+          <span class="adm-savebar__text"><Icon name="pencil" size={16} /> {c.unsaved[lang]}</span>
+          <button class="btn btn--sm btn--light" type="button" data-details-discard>{c.discard[lang]}</button>
+          <button class="btn btn--sm btn--gold" type="submit" data-details-save><Icon name="check" size={16} />{c.save[lang]}</button>
+        </div>
+      </form>
+
+      <section class="adm-card adm-danger" aria-labelledby="d-danger">
+        <div>
+          <h2 id="d-danger" class="adm-card__title">{c.dangerTitle[lang]}</h2>
+          <p class="adm-card__hint">{c.dangerText[lang]}</p>
+        </div>
+        <button class="btn btn--sm adm-btn-danger" type="button" data-delete-gallery><Icon name="trash2" size={16} />{c.dangerBtn[lang]}</button>
+      </section>
+    </div>
+
+    <!-- ─────────────── Faces ─────────────── -->
+    <div class="adm-tabpanel" data-ed-panel="faces" hidden>
+      <section class="adm-card adm-faces" aria-labelledby="fx-title">
+        <div class="adm-faces__hero">
+          <span class="adm-faces__icon"><Icon name="scan-face" size={34} stroke={1.2} /></span>
+          <div>
+            <h2 id="fx-title" class="adm-card__title">{c.fxTitle[lang]}</h2>
+            <p class="adm-faces__intro">{c.fxIntro[lang]}</p>
+            <p class="adm-faces__privacy"><Icon name="shield-check" size={16} /> {c.fxPrivacy[lang]}</p>
+          </div>
+        </div>
+
+        <div class="adm-faces__off" data-fx-off hidden>
+          <p><strong>{c.fxOffTitle[lang]}</strong></p>
+          <p class="adm-muted">{c.fxOffText[lang]}</p>
+          <button class="btn btn--solid btn--sm" type="button" data-fx-enable><Icon name="scan-face" size={16} />{c.fxEnable[lang]}</button>
+        </div>
+
+        <div class="adm-faces__on" data-fx-on hidden>
+          <p class="adm-faces__summary" data-fx-summary></p>
+          <p class="adm-faces__stale" data-fx-stale hidden></p>
+          <div class="adm-faces__actions">
+            <button class="btn btn--solid" type="button" data-fx-run><Icon name="scan-face" size={18} /><span data-fx-run-label>{c.fxRun[lang]}</span></button>
+            <button class="adm-linkbtn adm-linkbtn--danger" type="button" data-fx-clear hidden>{c.fxClear[lang]}</button>
+          </div>
+          <p class="field__hint" data-fx-why hidden></p>
+
+          <div class="adm-fxprog" data-fx-progress hidden role="status" aria-live="polite">
+            <div class="adm-fxprog__head">
+              <span class="adm-fxprog__pulse" aria-hidden="true"><Icon name="scan-face" size={22} /></span>
+              <div class="adm-fxprog__text">
+                <strong data-fx-stage></strong>
+                <span class="adm-muted nums" data-fx-count></span>
+              </div>
+              <button class="btn btn--sm" type="button" data-fx-cancel><Icon name="x" size={16} />{c.fxCancel[lang]}</button>
+            </div>
+            <div class="adm-progress" data-fx-bar role="progressbar" aria-label={c.fxProgress[lang]} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+            <p class="adm-muted adm-fxprog__keep">{c.fxKeep[lang]}</p>
+          </div>
+
+          <div class="adm-alert adm-alert--error" data-fx-error hidden role="alert"></div>
+        </div>
+      </section>
+
+      <section class="adm-card adm-people" data-fx-people hidden aria-labelledby="fx-people">
+        <h2 id="fx-people" class="adm-card__title">{c.fxPeople[lang]}</h2>
+        <p class="adm-card__hint">{c.fxPeopleHint[lang]}</p>
+        <div class="adm-people__grid" data-fx-people-grid></div>
+      </section>
+    </div>
+
+    <!-- ─────────────── Share ─────────────── -->
+    <div class="adm-tabpanel" data-ed-panel="share" hidden>
+      <div class="adm-alert adm-alert--warn adm-share__draft" data-sh-draft hidden>
+        <span class="adm-alert__icon"><Icon name="circle-alert" size={20} /></span>
+        <p data-sh-draft-text></p>
+        <button class="btn btn--sm btn--solid" type="button" data-sh-publish><Icon name="send" size={16} class="flip-rtl" />{c.shDraftAction[lang]}</button>
+      </div>
+
+      <div class="adm-share">
+        <section class="adm-card adm-share__links" aria-labelledby="sh-links">
+          <h2 id="sh-links" class="adm-card__title">{c.shLinks[lang]}</h2>
+          <p class="adm-card__hint">{c.shLinksHint[lang]}</p>
+          <div class="adm-linkrow">
+            <label class="adm-linkrow__label" for="sh-link-primary" data-sh-label-primary></label>
+            <input class="adm-linkrow__input" id="sh-link-primary" type="text" readonly dir="ltr" data-sh-link-primary />
+            <button class="btn btn--sm btn--solid" type="button" data-sh-copy="primary"><Icon name="copy" size={16} />{c.shCopy[lang]}</button>
+            <a class="adm-iconbtn" data-sh-open-primary href="#" target="_blank" rel="noopener" aria-label={c.shOpen[lang]}><Icon name="external-link" size={18} /></a>
+          </div>
+          <div class="adm-linkrow">
+            <label class="adm-linkrow__label" for="sh-link-alt" data-sh-label-alt></label>
+            <input class="adm-linkrow__input" id="sh-link-alt" type="text" readonly dir="ltr" data-sh-link-alt />
+            <button class="btn btn--sm" type="button" data-sh-copy="alt"><Icon name="copy" size={16} />{c.shCopy[lang]}</button>
+          </div>
+          <div class="adm-share__code">
+            <div>
+              <p class="field__label">{c.shCode[lang]}</p>
+              <p class="adm-share__codeval" data-sh-code dir="ltr"></p>
+              <p class="field__hint">{c.shCodeHint[lang]}</p>
+            </div>
+            <button class="btn btn--sm" type="button" data-sh-copy="code"><Icon name="copy" size={16} />{c.shCopy[lang]}</button>
+          </div>
+        </section>
+
+        <section class="adm-card adm-share__send" aria-labelledby="sh-send">
+          <h2 id="sh-send" class="adm-card__title">{c.shSend[lang]}</h2>
+          <div class="field">
+            <label class="field__label" for="sh-phone">{c.shPhone[lang]} <span class="field__hint">({c.optional[lang]})</span></label>
+            <input class="input" id="sh-phone" type="tel" inputmode="tel" placeholder="050-000-0000" dir="ltr" autocomplete="off" data-sh-phone aria-describedby="sh-phone-hint" />
+            <p class="field__hint" id="sh-phone-hint">{c.shPhoneHint[lang]}</p>
+          </div>
+          <div class="field">
+            <label class="field__label" for="sh-msg">{c.shMsg[lang]}</label>
+            <textarea class="textarea adm-share__msg" id="sh-msg" rows="9" data-sh-msg></textarea>
+          </div>
+          <div class="adm-share__btns">
+            <a class="btn btn--sm btn--solid adm-wa" data-sh-wa href="#" target="_blank" rel="noopener"><Icon name="whatsapp" size={18} />{c.shWa[lang]}</a>
+            <a class="btn btn--sm" data-sh-mail href="#"><Icon name="mail" size={16} />{c.shMail[lang]}</a>
+            <button class="btn btn--sm" type="button" data-sh-copy-msg><Icon name="copy" size={16} />{c.shCopyMsg[lang]}</button>
+            <button class="adm-linkbtn" type="button" data-sh-reset-msg hidden>{c.shReset[lang]}</button>
+          </div>
+        </section>
+
+        <section class="adm-card adm-share__qr" aria-labelledby="sh-qr">
+          <h2 id="sh-qr" class="adm-card__title">{c.shQr[lang]}</h2>
+          <p class="adm-card__hint">{c.shQrHint[lang]}</p>
+          <div class="adm-qr">
+            <div class="adm-qr__code" data-sh-qr></div>
+            <div class="adm-qr__btns">
+              <button class="btn btn--sm" type="button" data-sh-png><Icon name="download" size={16} />{c.shPng[lang]}</button>
+              <button class="btn btn--sm" type="button" data-sh-svg><Icon name="download" size={16} />{c.shSvg[lang]}</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="adm-card adm-share__card" aria-labelledby="sh-card">
+          <div class="adm-share__cardhead">
+            <div>
+              <h2 id="sh-card" class="adm-card__title">{c.shCard[lang]}</h2>
+              <p class="adm-card__hint">{c.shCardHint[lang]}</p>
+            </div>
+            <button class="btn btn--sm btn--solid" type="button" data-sh-print><Icon name="printer" size={16} />{c.shPrint[lang]}</button>
+          </div>
+          <fieldset class="adm-fieldset adm-share__cardlang">
+            <legend class="field__label">{c.shCardLang[lang]}</legend>
+            <div class="adm-seg adm-seg--sm">
+              <label class="adm-seg__opt"><input type="radio" name="card-lang" value="gallery" checked /><span>{c.shCardGallery[lang]}</span></label>
+              <label class="adm-seg__opt"><input type="radio" name="card-lang" value="he" /><span>{c.he[lang]}</span></label>
+              <label class="adm-seg__opt"><input type="radio" name="card-lang" value="en" /><span>{c.en[lang]}</span></label>
+              <label class="adm-seg__opt"><input type="radio" name="card-lang" value="both" /><span>{c.shCardBoth[lang]}</span></label>
+            </div>
+          </fieldset>
+          <div class="adm-share__cardstage">
+            <TableCard />
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ─────────────── Selections ─────────────── -->
+    <div class="adm-tabpanel" data-ed-panel="selections" hidden>
+      <div class="adm-subhead">
+        <div>
+          <h2 class="adm-section-title">{c.selTitle[lang]} <span class="adm-muted" data-sel-summary></span></h2>
+          <p class="adm-card__hint">{c.selHint[lang]}</p>
+        </div>
+        <div class="adm-subhead__actions">
+          <button class="btn btn--sm" type="button" data-sel-all hidden><Icon name="download" size={16} />{c.selAll[lang]}</button>
+          <button class="adm-iconbtn" type="button" data-sel-refresh aria-label={c.refresh[lang]}><Icon name="refresh-cw" size={18} /></button>
+        </div>
+      </div>
+      <div class="adm-sel-list" data-sel-list></div>
+    </div>
+  </div>
+</section>

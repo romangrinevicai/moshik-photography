@@ -1,0 +1,105 @@
+---
+/**
+ * Admin panel (/admin/, /en/admin/): galleries, uploads, face analysis,
+ * sharing, booking inquiries and availability. A single-page app driven by
+ * src/scripts/admin/main.ts with hash routing; this view renders the static
+ * shell and every screen's markup in the page language.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import AdminNav from '~/components/admin/AdminNav.astro';
+import AdminLogin from '~/components/admin/AdminLogin.astro';
+import GalleriesPanel from '~/components/admin/GalleriesPanel.astro';
+import GalleryEditor from '~/components/admin/GalleryEditor.astro';
+import InquiriesPanel from '~/components/admin/InquiriesPanel.astro';
+import AvailabilityPanel from '~/components/admin/AvailabilityPanel.astro';
+import HelpPanel from '~/components/admin/HelpPanel.astro';
+import '~/components/admin/admin.css';
+import { services } from '~/data/services';
+import { pricing, addons } from '~/data/packages';
+import { site } from '~/config/site';
+import type { Lang, Localized } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+
+const copy = {
+  title: { he: 'ניהול האתר', en: 'Studio admin' },
+  description: { he: 'אזור הניהול של מושיק: גלריות, פניות ויומן זמינות.', en: 'Moshik’s admin area: galleries, inquiries and availability.' },
+  loading: { he: 'טוען…', en: 'Loading…' },
+};
+
+/* Labels for values stored on inquiries (mirrors BookingForm.astro). */
+const labels: Record<string, Record<string, Localized>> = {
+  event: {
+    ...Object.fromEntries(services.map((s) => [s.slug, s.title])),
+    other: { he: 'משהו אחר', en: 'Something else' },
+  },
+  package: Object.fromEntries(
+    pricing.flatMap((c) => c.tiers.map((t) => [`${c.id}:${t.id}`, { he: `${c.title.he} · ${t.name.he}`, en: `${c.title.en} · ${t.name.en}` }])),
+  ),
+  addon: Object.fromEntries(addons.map((a) => [a.id, a.name])),
+  guests: {
+    '0-50': { he: 'עד 50', en: 'Up to 50' },
+    '50-150': { he: '50–150', en: '50–150' },
+    '150-300': { he: '150–300', en: '150–300' },
+    '300-500': { he: '300–500', en: '300–500' },
+    '500+': { he: '500+', en: '500+' },
+  },
+  budget: {
+    'under-3000': { he: 'עד ₪3,000', en: 'Up to ₪3,000' },
+    '3000-6000': { he: '₪3,000–6,000', en: '₪3,000–6,000' },
+    '6000-10000': { he: '₪6,000–10,000', en: '₪6,000–10,000' },
+    '10000-15000': { he: '₪10,000–15,000', en: '₪10,000–15,000' },
+    '15000+': { he: '₪15,000+', en: '₪15,000+' },
+  },
+  source: {
+    instagram: { he: 'אינסטגרם', en: 'Instagram' },
+    facebook: { he: 'פייסבוק', en: 'Facebook' },
+    google: { he: 'גוגל', en: 'Google' },
+    friend: { he: 'המלצה מחברים', en: 'A friend’s recommendation' },
+    venue: { he: 'אולם / מפיק', en: 'Venue or planner' },
+    wedding: { he: 'ראו אותו באירוע', en: 'Saw him at an event' },
+    other: { he: 'אחר', en: 'Other' },
+  },
+  contact: {
+    whatsapp: { he: 'וואטסאפ', en: 'WhatsApp' },
+    phone: { he: 'שיחת טלפון', en: 'Phone call' },
+    email: { he: 'אימייל', en: 'Email' },
+  },
+};
+
+const config = { lang, brand: site.brand, labels };
+const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
+---
+<BaseLayout lang={lang} path="/admin/" title={copy.title[lang]} description={copy.description[lang]} chrome="minimal" noindex alternates={false} footerCta={false}>
+  <AdminNav lang={lang} slot="chrome" />
+
+  <div class="adm" data-adm data-state="boot" data-lenis-prevent>
+    <div class="adm-boot" data-boot role="status">
+      <span class="adm-boot__word" dir="ltr">{site.brand}</span>
+      <span class="adm-spinner adm-spinner--lg" aria-hidden="true"></span>
+      <span class="sr-only">{copy.loading[lang]}</span>
+    </div>
+
+    <AdminLogin lang={lang} />
+
+    <div class="adm-app" data-app hidden>
+      <GalleriesPanel lang={lang} />
+      <GalleryEditor lang={lang} />
+      <InquiriesPanel lang={lang} />
+      <AvailabilityPanel lang={lang} />
+      <HelpPanel lang={lang} />
+    </div>
+
+    <div class="adm-toasts" data-toasts aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+  <script type="application/json" id="adm-config" set:html={configJson} />
+</BaseLayout>
+
+<script>
+  import { initAdmin } from '~/scripts/admin/main';
+  initAdmin();
+</script>
