@@ -4,6 +4,7 @@ import Icon from '~/components/ui/Icon.astro';
 import SectionHead from '~/components/ui/SectionHead.astro';
 import { photosIn, photo } from '~/data/photos';
 import { home } from '~/data/home';
+import { stories } from '~/data/stories';
 import { localizePath, type Lang } from '~/i18n';
 import type { IconName } from '~/shared/icons';
 
@@ -12,7 +13,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 const g = home.gallery;
-const story = photosIn('stories/noa-and-daniel');
+const story = stories[0] ? photosIn(`stories/${stories[0].slug}`) : [];
 const grid = [...story, ...photosIn('portfolio/weddings')].slice(0, 9);
 const faces = [...photosIn('portfolio/portraits'), ...photosIn('portfolio/couples')].slice(0, 5);
 const cover = story[0] ?? photo('portfolio/weddings/01.jpg');

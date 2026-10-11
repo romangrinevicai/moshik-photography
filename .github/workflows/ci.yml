@@ -53,6 +53,9 @@ jobs:
         env:
           SITE_URL: https://moshik-photography.example
 
+      - name: Bundle the Worker (dry run, no Cloudflare account needed)
+        run: npx wrangler deploy --dry-run --outdir .wrangler-dry-run
+
       # Report only. After launch, use `npm run checklist -- --strict` here so
       # placeholders can't sneak back in.
       - name: Launch checklist (report only)

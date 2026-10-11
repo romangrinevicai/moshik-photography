@@ -69,7 +69,7 @@ const socials = [
       <nav class="site-footer__col" aria-label={t('footer.explore')}>
         <h2 class="site-footer__heading">{t('footer.explore')}</h2>
         <ul role="list">
-          {footerNav.map((item) => <li><a href={localizePath(item.href, lang)}>{t(item.key)}</a></li>)}
+          {footerNav.filter((item) => site.features.clientGalleries || item.href !== '/gallery/').map((item) => <li><a href={localizePath(item.href, lang)}>{t(item.key)}</a></li>)}
         </ul>
       </nav>
 

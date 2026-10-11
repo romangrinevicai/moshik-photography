@@ -18,6 +18,7 @@ import { faq } from '~/data/faq';
 import { photosIn } from '~/data/photos';
 import { businessSchema, websiteSchema, faqSchema } from '~/data/schema';
 import type { Lang } from '~/i18n';
+import { site } from '~/config/site';
 
 interface Props {
   lang: Lang;
@@ -43,7 +44,7 @@ const faqItems = faq.filter((f) => f.topics.includes('general') || f.topics.incl
   <StoriesRail lang={lang} />
   <Process lang={lang} />
   <Testimonials lang={lang} />
-  <GalleryFeature lang={lang} />
+  {site.features.clientGalleries && <GalleryFeature lang={lang} />}
   <PackagesTeaser lang={lang} />
   <FaqSection lang={lang} items={faqItems} />
   <DateCta lang={lang} />

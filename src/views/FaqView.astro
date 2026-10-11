@@ -26,6 +26,8 @@ const grouped = groups.map((g) => {
   items.forEach((f) => seen.add(f.id));
   return { ...g, items };
 });
+const rest = faq.filter((f) => !seen.has(f.id));
+if (rest.length) grouped.push({ topic: 'general', title: { he: 'עוד שאלות', en: 'More questions' }, items: rest });
 const copy = {
   title: { he: 'שאלות *נפוצות*', en: 'Frequently asked *questions*' },
   intro: { he: 'כל מה שרציתם לדעת על הזמנה, היום עצמו והגלריה. לא מצאתם תשובה? אני במרחק הודעה.', en: 'Everything you wanted to know about booking, the day itself and your gallery. Can’t find an answer? I’m one message away.' },

@@ -38,6 +38,9 @@ const channels: { icon: IconName; label: string; value: string; href: string; tr
   { icon: 'whatsapp', label: t('common.whatsapp'), value: site.hours.replyTime[lang], href: whatsappLink(t('wa.greeting')), track: 'whatsapp_click', external: true },
   { icon: 'phone', label: t('common.call'), value: site.contact.phoneDisplay, href: telLink, track: 'phone_click', ltr: true },
   { icon: 'mail', label: t('common.email'), value: site.contact.email, href: mailLink, track: 'email_click', ltr: true },
+  ...(site.schedulerUrl
+    ? [{ icon: 'calendar' as IconName, label: lang === 'he' ? 'קביעת שיחת היכרות' : 'Book an intro call', value: lang === 'he' ? '15 דקות, בזמן שנוח לכם' : '15 minutes, whenever suits you', href: site.schedulerUrl, track: 'scheduler_click', external: true }]
+    : []),
   ...(site.social.messenger ? [{ icon: 'messenger' as IconName, label: t('contact.messenger'), value: 'm.me', href: site.social.messenger, track: 'messenger_click', external: true }] : []),
   ...(site.social.instagram && !/instagram\.com\/?$/.test(site.social.instagram)
     ? [{ icon: 'instagram' as IconName, label: t('contact.instagram'), value: 'DM', href: site.social.instagram, track: 'instagram_click', external: true }]

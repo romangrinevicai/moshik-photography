@@ -315,20 +315,20 @@ For **asking** clients to write a review, use a different link: Google Business 
 
 ### 10f. Rate limiting
 
-The Worker limits how often one visitor can try gallery codes, admin passwords and booking submissions. Without bindings, it uses a simple in-memory fallback. For proper limits across Cloudflare's network, add this to `wrangler.jsonc` and deploy:
+The Worker limits how often one visitor can try gallery codes, admin passwords and booking submissions. This is **already configured** in `wrangler.jsonc` using Cloudflare's free rate-limiting bindings (and falls back to a simple in-memory limiter when they're missing, e.g. in tests):
 
 ```jsonc
 "ratelimits": [
-  // Gallery code attempts (POST /api/gallery/access)
+  // Gallery code attempts, face searches (per IP, per minute)
   { "name": "ACCESS_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
   // Admin login attempts
-  { "name": "LOGIN_LIMITER", "namespace_id": "1002", "simple": { "limit": 5, "period": 60 } },
-  // Booking form submissions
-  { "name": "INQUIRY_LIMITER", "namespace_id": "1003", "simple": { "limit": 5, "period": 60 } }
+  { "name": "LOGIN_LIMITER", "namespace_id": "1002", "simple": { "limit": 6, "period": 60 } },
+  // Booking form submissions and album selections
+  { "name": "INQUIRY_LIMITER", "namespace_id": "1003", "simple": { "limit": 8, "period": 60 } }
 ]
 ```
 
-- `namespace_id` is any positive whole number, written as a string, that is unique within your Cloudflare account.
+- `namespace_id` is any positive whole number, written as a string, that is unique within your Cloudflare account — change them if another Worker in the account already uses 1001–1003.
 - `period` is `10` or `60` seconds.
 - Counts are approximate (kept per Cloudflare location), which is fine for stopping abuse.
 

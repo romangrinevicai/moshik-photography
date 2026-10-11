@@ -33,3 +33,4 @@ playwright-report/
 .claude/worktrees/
 .astro-cache/
 public/models/
+.wrangler-dry-run/
