@@ -10,7 +10,7 @@ import { fmtDate, fmtNum, t, tn } from './format';
 import { Favourites, store } from './store';
 import { PhotoGrid, type GridSection } from './grid';
 import { announce, closeDialog, copyText, openDialog, scrollToY, shareOrCopy, toast } from './ui';
-import { lightboxOpen, openLightbox } from './lightbox';
+import { closeLightbox, lightboxOpen, openLightbox } from './lightbox';
 import { openDownloads } from './download';
 import { openSelection } from './selection';
 import { initFindMe } from './findme';
@@ -484,13 +484,33 @@ export function mountGallery(initial: GalleryManifest, cfg: AppConfig, options: 
   );
 
   /* ── lightbox & slideshow ── */
+  // The lightbox gets its own history entry, so the phone's back button closes it.
+  let lightboxEntry = false;
+  let poppingOurEntry = false;
+  window.addEventListener('popstate', () => {
+    if (poppingOurEntry) {
+      poppingOurEntry = false;
+      return;
+    }
+    if (lightboxEntry) {
+      lightboxEntry = false;
+      closeLightbox();
+    }
+  });
+
   function openAt(index: number, slideshow = false) {
     const items = view.slice();
-    if (!items.length) return;
+    if (!items.length || lightboxOpen()) return;
+    const start = Math.max(0, Math.min(items.length - 1, index));
+    setPhotoParam(null);
+    const url = new URL(location.href);
+    url.searchParams.set('p', items[start]!.id);
+    history.pushState({ gLightbox: true }, '', url);
+    lightboxEntry = true;
     void openLightbox({
       gid,
       items,
-      index: Math.max(0, Math.min(items.length - 1, index)),
+      index: start,
       rtl,
       allowDownload: m.allowDownload,
       allowOriginals: m.allowOriginals,
@@ -509,7 +529,13 @@ export function mountGallery(initial: GalleryManifest, cfg: AppConfig, options: 
       },
       onChange: (i) => setPhotoParam(items[i]?.id ?? null),
       onClose: (i) => {
-        setPhotoParam(null);
+        if (lightboxEntry) {
+          // Closed from the UI: drop our history entry (back to the plain gallery URL).
+          lightboxEntry = false;
+          poppingOurEntry = true;
+          history.back();
+          window.setTimeout(syncLangLink, 50);
+        } else setPhotoParam(null);
         exitFullscreen();
         if (pendingRefresh) {
           pendingRefresh = false;
@@ -632,6 +658,10 @@ export function mountGallery(initial: GalleryManifest, cfg: AppConfig, options: 
     const coverH = cover.offsetHeight;
     const hh = head.getBoundingClientRect().height || 60;
     head.toggleAttribute('data-solid', y > coverH - hh - 8);
+    // The favourites bar waits below the cover.
+    const away = y < coverH * 0.55;
+    favbar.classList.toggle('is-away', away);
+    favbar.inert = away;
     const barRect = bar.getBoundingClientRect();
     const stickTop = html.classList.contains('g-head-hidden') ? 0 : hh;
     bar.classList.toggle('is-stuck', !bar.hidden && barRect.top <= stickTop + 1 && y > 10);
@@ -701,6 +731,7 @@ export function mountGallery(initial: GalleryManifest, cfg: AppConfig, options: 
     index(m);
     renderCover();
     renderNote();
+    syncChrome();
     renderTabs();
     renderPeople();
     applyFilter(filter, { quiet: true, keep: true });
@@ -726,18 +757,26 @@ export function mountGallery(initial: GalleryManifest, cfg: AppConfig, options: 
     if (!document.hidden && m.live && Date.now() - lastPoll > LIVE_MS) void poll();
   });
 
+  /** Which parts of the chrome apply to this gallery (re-run after live updates). */
+  function syncChrome() {
+    const external = !!m.externalUrl;
+    bar.hidden = external || !photos.length;
+    photosSection.hidden = external;
+    $<HTMLElement>('[data-act="findme"]').hidden = !(m.faceSearch && m.hasFaces) || external;
+    document.querySelectorAll<HTMLElement>('[data-act="download"]').forEach((b) => (b.hidden = !m.allowDownload || !photos.length));
+    document.querySelectorAll<HTMLElement>('[data-act="slideshow"]').forEach((b) => (b.hidden = photos.length < 2));
+  }
+
   /* ── go ── */
   index(m);
   favs.prune(new Set(byId.keys()));
   html.classList.add('g-in-gallery');
+  // Our own history entries (lightbox) must not make the browser jump around.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   renderCover();
   renderNote();
   const external = !!m.externalUrl;
-  bar.hidden = external;
-  photosSection.hidden = external;
-  $<HTMLElement>('[data-act="findme"]').hidden = !(m.faceSearch && m.hasFaces) || external;
-  document.querySelectorAll<HTMLElement>('[data-act="download"]').forEach((b) => (b.hidden = !m.allowDownload));
-  document.querySelectorAll<HTMLElement>('[data-act="slideshow"]').forEach((b) => (b.hidden = photos.length < 2));
+  syncChrome();
   renderTabs();
   renderPeople();
   if (!external) applyFilter({ kind: 'all' }, { quiet: true });

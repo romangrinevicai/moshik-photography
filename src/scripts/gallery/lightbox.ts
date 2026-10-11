@@ -37,6 +37,8 @@ const ZOOM_SVG = `<svg class="icon g-lb-ic g-lb-ic--zoom" aria-hidden="true" wid
 
 let active: PhotoSwipe | null = null;
 export const lightboxOpen = () => !!active;
+/** Close the open lightbox (e.g. when the visitor presses the browser's back button). */
+export const closeLightbox = () => active?.close();
 
 export async function openLightbox(o: LightboxOptions): Promise<void> {
   if (active || !o.items.length) return;
