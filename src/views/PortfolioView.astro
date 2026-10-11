@@ -1,0 +1,126 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import JustifiedGrid from '~/components/ui/JustifiedGrid.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { services } from '~/data/services';
+import { photosIn } from '~/data/photos';
+import { breadcrumbSchema } from '~/data/schema';
+import { useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  title: { he: 'עבודות *נבחרות*', en: 'Selected *work*' },
+  intro: {
+    he: 'רגעים מחתונות, בר ובת מצווה, שמחות משפחתיות ואירועי חברה. לחצו על תמונה כדי לראות אותה במסך מלא.',
+    en: 'Moments from weddings, bar & bat mitzvahs, family celebrations and company events. Tap any photo to see it full screen.',
+  },
+  seo: {
+    title: { he: 'עבודות — גלריית צילומי חתונות ואירועים', en: 'Portfolio — Wedding & Event Photography' },
+    description: {
+      he: 'גלריית עבודות של מושיק: צילומי חתונות, בר ובת מצווה, אירועים, זוגיות, משפחה ועסקים.',
+      en: 'Moshik’s portfolio: wedding, bar & bat mitzvah, celebration, couple, family and corporate photography.',
+    },
+  },
+  filter: { he: 'סינון לפי סוג אירוע', en: 'Filter by event type' },
+};
+const items = services.flatMap((s) => photosIn(s.portfolio).map((photo) => ({ photo, category: s.slug, label: s.title[lang] })));
+// Interleave categories so "All" opens with variety rather than one event type.
+const byCat = services.map((s) => items.filter((i) => i.category === s.slug));
+const mixed: typeof items = [];
+for (let i = 0; mixed.length < items.length; i++) byCat.forEach((list) => list[i] && mixed.push(list[i]!));
+const counts = Object.fromEntries(services.map((s) => [s.slug, items.filter((i) => i.category === s.slug).length]));
+---
+<BaseLayout
+  lang={lang}
+  path="/portfolio/"
+  title={copy.seo.title[lang]}
+  description={copy.seo.description[lang]}
+  jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.portfolio'), path: '/portfolio/' }])]}
+>
+  <PageHero lang={lang} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.portfolio'), path: '/portfolio/' }]} />
+
+  <section class="portfolio section section--flush-top">
+    <div class="container container--wide">
+      <div class="filters" role="toolbar" aria-label={copy.filter[lang]} data-filters>
+        <button type="button" class="filters__btn" aria-pressed="true" data-filter="all">
+          {t('common.all')} <sup class="nums">{items.length}</sup>
+        </button>
+        {
+          services.filter((s) => counts[s.slug]).map((s) => (
+            <button type="button" class="filters__btn" aria-pressed="false" data-filter={s.slug}>
+              {s.title[lang]} <sup class="nums">{counts[s.slug]}</sup>
+            </button>
+          ))
+        }
+      </div>
+      <JustifiedGrid lang={lang} items={mixed} rowHeight={320} id="portfolio-grid" />
+    </div>
+  </section>
+
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-filters]').forEach((bar) => {
+    const grid = document.getElementById('portfolio-grid');
+    if (!grid) return;
+    const items = [...grid.querySelectorAll<HTMLElement>('[data-category]')];
+    const apply = (filter: string, push = true) => {
+      bar.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      items.forEach((el) => {
+        const show = filter === 'all' || el.dataset.category === filter;
+        el.hidden = !show;
+        // PhotoSwipe only cycles through tiles that carry data-pswp-width
+        const a = el.querySelector<HTMLAnchorElement>('a');
+        if (a && show) a.setAttribute('data-pswp-width', a.dataset.w ?? '');
+        else a?.removeAttribute('data-pswp-width');
+        el.classList.add('is-in');
+      });
+      if (push) {
+        const url = new URL(location.href);
+        if (filter === 'all') url.searchParams.delete('type');
+        else url.searchParams.set('type', filter);
+        history.replaceState(null, '', url);
+      }
+    };
+    // remember the real width so it can be restored after filtering
+    items.forEach((el) => {
+      const a = el.querySelector<HTMLAnchorElement>('a');
+      if (a) a.dataset.w = a.getAttribute('data-pswp-width') ?? '';
+    });
+    bar.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+      if (btn) apply(btn.dataset.filter!);
+    });
+    const initial = new URL(location.href).searchParams.get('type');
+    if (initial && bar.querySelector(`[data-filter="${CSS.escape(initial)}"]`)) apply(initial, false);
+  });
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block-end: 2rem;
+    padding-block-end: 1.5rem;
+    border-block-end: 1px solid var(--rule);
+  }
+  .filters__btn {
+    padding: 0.6rem 1.15rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .filters__btn sup { font-size: 0.68rem; color: var(--fg-muted); margin-inline-start: 0.15rem; }
+  .filters__btn:hover { border-color: var(--line-strong); }
+  .filters__btn[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .filters__btn[aria-pressed='true'] sup { color: var(--gold-soft); }
+</style>

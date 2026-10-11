@@ -1,0 +1,28 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import type { LegalPage } from '~/data/legal';
+import { breadcrumbSchema } from '~/data/schema';
+import { formatDate, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  page: LegalPage;
+}
+const { lang, page } = Astro.props;
+const updated = lang === 'he' ? 'עודכן לאחרונה:' : 'Last updated:';
+---
+<BaseLayout lang={lang} path={page.path} title={page.title[lang]} description={page.description[lang]} jsonLd={[breadcrumbSchema(lang, [{ name: page.title[lang], path: page.path }])]}>
+  <PageHero lang={lang} title={page.title[lang]} crumbs={[{ name: page.title[lang], path: page.path }]}>
+    <p class="small muted">{updated} {formatDate(page.updated, lang)}</p>
+  </PageHero>
+  <section class="section section--flush-top">
+    <div class="container container--narrow">
+      <div class="prose legal" set:html={page.html[lang]} />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal :global(h2) { font-family: var(--font-display); }
+</style>

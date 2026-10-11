@@ -1,0 +1,133 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import BookingForm from '~/components/booking/BookingForm.astro';
+import FaqList from '~/components/ui/FaqList.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { faq } from '~/data/faq';
+import { breadcrumbSchema, businessSchema } from '~/data/schema';
+import { site, whatsappLink, telLink, mailLink } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  eyebrow: { he: 'צור קשר', en: 'Contact' },
+  title: { he: 'בואו נדבר על *היום שלכם*', en: 'Let’s talk about *your day*' },
+  intro: {
+    he: 'מלאו את הטופס הקצר וארגיש מיד מה אתם מחפשים — או פשוט שלחו הודעה בוואטסאפ. אני עונה לכל פנייה באופן אישי.',
+    en: 'Fill in the short form so I know exactly what you’re looking for — or simply send a WhatsApp message. I reply to every inquiry personally.',
+  },
+  direct: { he: 'מעדיפים ישירות?', en: 'Prefer to reach out directly?' },
+  area: { he: 'אזור שירות', en: 'Service area' },
+  reply: { he: 'זמן תגובה', en: 'Reply time' },
+  faq: { he: 'לפני שכותבים', en: 'Before you write' },
+  seo: {
+    title: { he: 'צור קשר ובדיקת תאריך', en: 'Contact & Check Your Date' },
+    description: {
+      he: 'בדיקת זמינות לתאריך, הצעת מחיר ושיחת היכרות עם מושיק — בוואטסאפ, בטלפון או בטופס קצר.',
+      en: 'Check availability for your date, get a quote and book an intro call with Moshik — on WhatsApp, by phone or with a short form.',
+    },
+  },
+};
+const channels: { icon: IconName; label: string; value: string; href: string; track: string; external?: boolean; ltr?: boolean }[] = [
+  { icon: 'whatsapp', label: t('common.whatsapp'), value: site.hours.replyTime[lang], href: whatsappLink(t('wa.greeting')), track: 'whatsapp_click', external: true },
+  { icon: 'phone', label: t('common.call'), value: site.contact.phoneDisplay, href: telLink, track: 'phone_click', ltr: true },
+  { icon: 'mail', label: t('common.email'), value: site.contact.email, href: mailLink, track: 'email_click', ltr: true },
+  ...(site.social.messenger ? [{ icon: 'messenger' as IconName, label: t('contact.messenger'), value: 'm.me', href: site.social.messenger, track: 'messenger_click', external: true }] : []),
+  ...(site.social.instagram && !/instagram\.com\/?$/.test(site.social.instagram)
+    ? [{ icon: 'instagram' as IconName, label: t('contact.instagram'), value: 'DM', href: site.social.instagram, track: 'instagram_click', external: true }]
+    : []),
+];
+const bookingFaq = faq.filter((f) => f.topics.includes('booking')).slice(0, 4);
+---
+<BaseLayout
+  lang={lang}
+  path="/contact/"
+  title={copy.seo.title[lang]}
+  description={copy.seo.description[lang]}
+  footerCta={false}
+  jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.contact'), path: '/contact/' }]), businessSchema(lang)]}
+>
+  <PageHero lang={lang} eyebrow={copy.eyebrow[lang]} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.contact'), path: '/contact/' }]} />
+
+  <section class="section section--flush-top">
+    <div class="container contact">
+      <div class="contact__form">
+        <BookingForm lang={lang} />
+      </div>
+      <aside class="contact__aside">
+        <div class="contact__card on-noir">
+          <h2 class="contact__card-title">{copy.direct[lang]}</h2>
+          <ul role="list" class="contact__channels">
+            {channels.map((c) => (
+              <li>
+                <a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined} data-track={c.track}>
+                  <span class="contact__icon"><Icon name={c.icon} size={20} /></span>
+                  <span class="contact__text">
+                    <strong>{c.label}</strong>
+                    <span class:list={[{ ltr: c.ltr }]}>{c.value}</span>
+                  </span>
+                  <Icon name="arrow-up-right" size={16} class="contact__go" />
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a class="contact__vcard" href="/moshik.vcf" download><Icon name="user-plus" size={16} /> {t('contact.saveContact')}</a>
+        </div>
+        <dl class="contact__facts">
+          <div>
+            <dt><Icon name="map-pin" size={16} /> {copy.area[lang]}</dt>
+            <dd>{site.location.serviceArea[lang]}</dd>
+          </div>
+          <div>
+            <dt><Icon name="clock" size={16} /> {copy.reply[lang]}</dt>
+            <dd>{site.hours.replyTime[lang]}</dd>
+          </div>
+          {site.location.waze && (
+            <div>
+              <dt><Icon name="waze" size={16} /> Waze</dt>
+              <dd><a class="link" href={site.location.waze} target="_blank" rel="noopener">{t('contact.waze')}</a></dd>
+            </div>
+          )}
+        </dl>
+        <div class="contact__faq">
+          <h2 class="contact__faq-title">{copy.faq[lang]}</h2>
+          <FaqList items={bookingFaq} lang={lang} group="contact-faq" />
+          <a class="link" href={localizePath('/faq/', lang)}>{t('nav.faq')} <Icon name="arrow-right" /></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.75fr); gap: clamp(2.5rem, 1rem + 5vw, 6rem); align-items: start; }
+  .contact__aside { display: grid; gap: 2.4rem; position: sticky; inset-block-start: calc(var(--header-h) + 1.5rem); }
+  .contact__card { padding: 1.8rem; display: grid; gap: 1.2rem; }
+  .contact__card-title { font-size: 1.8rem; }
+  .contact__channels { display: grid; }
+  .contact__channels li + li { border-block-start: 1px solid var(--line-noir); }
+  .contact__channels a { display: grid; grid-template-columns: 2.8rem 1fr auto; gap: 1rem; align-items: center; padding-block: 0.9rem; }
+  .contact__icon { display: grid; place-items: center; inline-size: 2.8rem; block-size: 2.8rem; border-radius: 50%; border: 1px solid var(--line-noir); transition: background 0.3s, color 0.3s; }
+  .contact__channels a:hover .contact__icon { background: var(--on-noir); color: var(--ink); }
+  .contact__text { display: grid; line-height: 1.35; }
+  .contact__text strong { font-weight: 650; }
+  .contact__text span { color: var(--fg-muted); font-size: 0.9rem; word-break: break-all; }
+  .contact__go { opacity: 0.5; }
+  .contact__vcard { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gold-soft); }
+  .contact__facts { display: grid; gap: 1.2rem; }
+  .contact__facts dt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: var(--label-transform); color: var(--accent); }
+  .contact__facts dd { margin-block-start: 0.3rem; }
+  .contact__faq { display: grid; gap: 1rem; }
+  .contact__faq-title { font-size: 1.6rem; }
+  .contact__faq :global(.faq__q) { font-size: 1.15rem; padding-block: 1.1rem; }
+  @media (max-width: 1000px) {
+    .contact { grid-template-columns: 1fr; }
+    .contact__aside { position: static; }
+  }
+</style>

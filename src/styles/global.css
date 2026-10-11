@@ -134,6 +134,7 @@ p, h1, h2, h3, h4, h5, h6, li, dd, blockquote { overflow-wrap: break-word; }
 h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
 p { text-wrap: pretty; }
 ul[role='list'], ol[role='list'] { list-style: none; padding: 0; }
+[hidden] { display: none !important; }
 table { border-collapse: collapse; }
 ::selection { background: var(--gold-soft); color: var(--ink); }
 
@@ -464,6 +465,7 @@ h4, .h4 {
 
 /* ═══════════════════════════════════ MEDIA ════════════════════════════════════ */
 .media {
+  display: block;
   position: relative;
   overflow: hidden;
   background: var(--sand);

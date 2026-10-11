@@ -1,0 +1,272 @@
+---
+/**
+ * Interactive quote builder: event type → package → add-ons → live estimate,
+ * then send it on WhatsApp or carry it into the booking form.
+ */
+import Icon from '~/components/ui/Icon.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import { pricing, addonById } from '~/data/packages';
+import { site } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const show = site.pricing.showPrices;
+const copy = {
+  eyebrow: { he: 'מחשבון הצעת מחיר', en: 'Quote builder' },
+  title: { he: 'בנו את החבילה *שלכם*', en: 'Build *your* package' },
+  intro: {
+    he: 'שלוש בחירות קצרות — ותקבלו הערכת מחיר מיידית שאפשר לשלוח לי בלחיצה.',
+    en: 'Three quick choices — and you’ll get an instant estimate you can send me in one tap.',
+  },
+  step1: { he: 'סוג האירוע', en: 'Type of event' },
+  step2: { he: 'חבילה', en: 'Package' },
+  step3: { he: 'תוספות', en: 'Add-ons' },
+  summary: { he: 'ההצעה שלכם', en: 'Your quote' },
+  total: { he: 'הערכה', en: 'Estimate' },
+  none: { he: 'בלי תוספות', en: 'No add-ons yet' },
+  send: { he: 'שליחה בוואטסאפ', en: 'Send on WhatsApp' },
+  form: { he: 'המשך לטופס', en: 'Continue to booking' },
+  disclaimer: {
+    he: 'הערכה בלבד. המחיר הסופי תלוי בתאריך, במיקום ובפרטי האירוע.',
+    en: 'Estimate only. The final price depends on date, location and event details.',
+  },
+  waIntro: { he: 'היי מושיק! בניתי באתר הצעה:', en: 'Hi Moshik! I built a quote on your website:' },
+  waTotal: { he: 'הערכה', en: 'Estimate' },
+  waEnd: { he: 'אשמח לבדוק זמינות 🙏', en: 'Could you check availability? 🙏' },
+  qty: { he: 'כמות', en: 'Quantity' },
+};
+const strings = {
+  none: copy.none[lang],
+  waIntro: copy.waIntro[lang],
+  waTotal: copy.waTotal[lang],
+  waEnd: copy.waEnd[lang],
+  from: t('common.startingFrom'),
+};
+---
+<section class="quote section" id="quote" data-section="quote">
+  <div class="container">
+    <SectionHead eyebrow={copy.eyebrow[lang]} title={copy.title[lang]} intro={copy.intro[lang]} align="split" />
+    <form class="quote__grid" data-quote data-lang={lang} data-show-prices={String(show)} data-strings={JSON.stringify(strings)} onsubmit="return false">
+      <div class="quote__steps">
+        <fieldset class="quote__step">
+          <legend class="quote__legend"><span class="nums">01</span> {copy.step1[lang]}</legend>
+          <div class="quote__chips">
+            {
+              pricing.map((c, i) => (
+                <label class="chip">
+                  <input type="radio" name="category" value={c.id} checked={i === 0} />
+                  <span>{c.title[lang]}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="quote__step">
+          <legend class="quote__legend"><span class="nums">02</span> {copy.step2[lang]}</legend>
+          {
+            pricing.map((c, ci) => (
+              <div class="quote__tiers" data-for={c.id} hidden={ci !== 0}>
+                {c.tiers.map((tier, ti) => (
+                  <label class="tier">
+                    <input type="radio" name={`tier-${c.id}`} value={tier.id} data-price={tier.price} data-label={`${c.title[lang]} — ${tier.name[lang]}`} checked={ti === Math.max(0, c.tiers.findIndex((x) => x.popular))} />
+                    <span class="tier__body">
+                      <span class="tier__name">{tier.name[lang]}</span>
+                      {tier.unit && <span class="tier__unit">{tier.unit[lang]}</span>}
+                      {show && <span class="tier__price nums">{formatPrice(tier.price, lang)}</span>}
+                    </span>
+                    {tier.popular && <span class="tier__badge">{t('common.mostPopular')}</span>}
+                  </label>
+                ))}
+              </div>
+            ))
+          }
+        </fieldset>
+
+        <fieldset class="quote__step">
+          <legend class="quote__legend"><span class="nums">03</span> {copy.step3[lang]}</legend>
+          {
+            pricing.map((c, ci) => (
+              <div class="quote__addons" data-for={c.id} hidden={ci !== 0}>
+                {c.addons.map((id) => addonById(id)).filter(Boolean).map((a) => (
+                  <div class="addon">
+                    <label class="addon__main">
+                      <input type="checkbox" name={`addon-${c.id}`} value={a!.id} data-price={a!.price} data-label={a!.name[lang]} />
+                      <span class="addon__icon"><Icon name={a!.icon} size={20} stroke={1.3} /></span>
+                      <span class="addon__text">
+                        <span class="addon__name">{a!.name[lang]}</span>
+                        <span class="addon__desc">{a!.description[lang]}</span>
+                      </span>
+                      {show && (
+                        <span class="addon__price nums">
+                          +{formatPrice(a!.price, lang)}
+                          {a!.perUnit && <small>{a!.perUnit[lang]}</small>}
+                        </span>
+                      )}
+                    </label>
+                    {a!.maxQty && (
+                      <label class="addon__qty">
+                        <span>{copy.qty[lang]}</span>
+                        <select class="select" data-qty-for={a!.id}>
+                          {Array.from({ length: a!.maxQty }, (_, k) => <option value={k + 1}>{k + 1}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))
+          }
+        </fieldset>
+      </div>
+
+      <aside class="quote__summary on-noir" aria-live="polite">
+        <h3 class="quote__summary-title">{copy.summary[lang]}</h3>
+        <ul class="quote__lines" role="list" data-lines></ul>
+        {
+          show && (
+            <div class="quote__total">
+              <span>{copy.total[lang]}</span>
+              <strong class="nums" data-total>—</strong>
+            </div>
+          )
+        }
+        {show && site.pricing.includesVat && <p class="quote__vat small">{t('common.vatIncluded')}</p>}
+        <div class="quote__actions">
+          <a class="btn btn--gold btn--block" data-quote-wa href="#" target="_blank" rel="noopener" data-track="quote_whatsapp">
+            <Icon name="whatsapp" />
+            {copy.send[lang]}
+          </a>
+          <a class="btn btn--light btn--block" data-quote-form href={localizePath('/contact/', lang)}>
+            {copy.form[lang]}
+            <Icon name="arrow-right" />
+          </a>
+        </div>
+        <p class="quote__disclaimer small">{copy.disclaimer[lang]}</p>
+      </aside>
+    </form>
+  </div>
+</section>
+
+<script>
+  import { whatsappLinkClient } from '~/scripts/wa';
+
+  document.querySelectorAll<HTMLFormElement>('[data-quote]').forEach((form) => {
+    const lang = form.dataset.lang === 'en' ? 'en' : 'he';
+    const showPrices = form.dataset.showPrices === 'true';
+    const S = JSON.parse(form.dataset.strings!) as Record<string, string>;
+    const fmt = new Intl.NumberFormat(lang === 'he' ? 'he-IL' : 'en-US', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 });
+    const lines = form.querySelector<HTMLUListElement>('[data-lines]')!;
+    const total = form.querySelector<HTMLElement>('[data-total]');
+    const wa = form.querySelector<HTMLAnchorElement>('[data-quote-wa]')!;
+    const formLink = form.querySelector<HTMLAnchorElement>('[data-quote-form]')!;
+
+    const update = () => {
+      const cat = form.querySelector<HTMLInputElement>('input[name="category"]:checked')?.value ?? '';
+      form.querySelectorAll<HTMLElement>('[data-for]').forEach((el) => (el.hidden = el.dataset.for !== cat));
+      const tier = form.querySelector<HTMLInputElement>(`input[name="tier-${cat}"]:checked`);
+      const addons = [...form.querySelectorAll<HTMLInputElement>(`input[name="addon-${cat}"]:checked`)];
+      const items: { label: string; price: number }[] = [];
+      if (tier) items.push({ label: tier.dataset.label!, price: Number(tier.dataset.price) });
+      for (const a of addons) {
+        const qty = Number(form.querySelector<HTMLSelectElement>(`[data-qty-for="${a.value}"]`)?.value ?? 1);
+        items.push({ label: qty > 1 ? `${a.dataset.label} ×${qty}` : a.dataset.label!, price: Number(a.dataset.price) * qty });
+      }
+      const sum = items.reduce((s, i) => s + i.price, 0);
+      lines.innerHTML = '';
+      items.forEach((i) => {
+        const li = document.createElement('li');
+        const name = document.createElement('span');
+        name.textContent = i.label;
+        li.append(name);
+        if (showPrices) {
+          const price = document.createElement('span');
+          price.className = 'nums';
+          price.textContent = fmt.format(i.price);
+          li.append(price);
+        }
+        lines.append(li);
+      });
+      if (addons.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'is-empty';
+        li.textContent = S.none!;
+        lines.append(li);
+      }
+      if (total) total.textContent = fmt.format(sum);
+      const msg = [S.waIntro, ...items.map((i) => `• ${i.label}${showPrices ? ` — ${fmt.format(i.price)}` : ''}`), showPrices ? `${S.waTotal}: ${fmt.format(sum)}` : '', S.waEnd]
+        .filter(Boolean)
+        .join('\n');
+      wa.href = whatsappLinkClient(msg);
+      const url = new URL(formLink.href, location.href);
+      url.searchParams.set('package', `${cat}:${tier?.value ?? ''}`);
+      if (addons.length) url.searchParams.set('addons', addons.map((a) => a.value).join(','));
+      else url.searchParams.delete('addons');
+      formLink.href = url.pathname + url.search;
+    };
+    form.addEventListener('change', update);
+    update();
+  });
+</script>
+
+<style>
+  .quote__grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+  .quote__steps { display: grid; gap: 2.6rem; }
+  .quote__step { border: 0; padding: 0; min-inline-size: 0; }
+  .quote__legend { display: flex; align-items: baseline; gap: 0.8rem; margin-block-end: 1.2rem; font-family: var(--font-display); font-size: 1.7rem; }
+  .quote__legend .nums { font-size: 1rem; color: var(--accent); }
+  .quote__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip { position: relative; cursor: pointer; }
+  .chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .chip span { display: inline-block; padding: 0.7rem 1.2rem; border: 1px solid var(--rule); border-radius: 999px; font-weight: 600; font-size: 0.95rem; transition: all 0.25s; }
+  .chip input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chip input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .quote__tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem; }
+  .quote__tiers[hidden], .quote__addons[hidden] { display: none; }
+  .tier { position: relative; cursor: pointer; }
+  .tier input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .tier__body { display: grid; gap: 0.3rem; block-size: 100%; padding: 1.3rem; border: 1px solid var(--rule); background: var(--bg); transition: all 0.25s; }
+  .tier input:checked + .tier__body { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--paper-deep); }
+  .tier input:focus-visible + .tier__body { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .tier__name { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; }
+  .tier__unit { color: var(--fg-muted); font-size: 0.88rem; }
+  .tier__price { font-size: 1.1rem; font-weight: 600; margin-block-start: 0.3rem; }
+  .tier__badge { position: absolute; inset-block-start: 0.8rem; inset-inline-end: 0.8rem; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: var(--label-transform); color: var(--accent); }
+  .quote__addons { display: grid; gap: 0.6rem; }
+  .addon { border: 1px solid var(--rule); background: var(--bg); transition: border-color 0.25s, background 0.25s; }
+  .addon:has(input:checked) { border-color: var(--ink); background: var(--paper-deep); }
+  .addon__main { display: grid; grid-template-columns: auto 2.6rem minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: 1rem 1.2rem; cursor: pointer; }
+  .addon__main input { inline-size: 1.15rem; block-size: 1.15rem; accent-color: var(--ink); }
+  .addon__icon { display: grid; place-items: center; inline-size: 2.6rem; block-size: 2.6rem; border-radius: 50%; border: 1px solid var(--rule); color: var(--accent); }
+  .addon__name { display: block; font-weight: 650; }
+  .addon__desc { display: block; color: var(--fg-muted); font-size: 0.9rem; }
+  .addon__price { font-weight: 600; white-space: nowrap; text-align: end; }
+  .addon__price small { display: block; font-weight: 400; color: var(--fg-muted); font-size: 0.75rem; }
+  .addon__qty { display: none; align-items: center; gap: 0.8rem; padding: 0 1.2rem 1rem; padding-inline-start: 4.9rem; font-size: 0.9rem; color: var(--fg-muted); }
+  .addon:has(input:checked) .addon__qty { display: flex; }
+  .addon__qty .select { inline-size: 5rem; min-block-size: 2.4rem; padding-block: 0.3rem; }
+  .quote__summary { position: sticky; inset-block-start: calc(var(--header-h) + 1.5rem); display: grid; gap: 1.2rem; padding: 2rem; }
+  .quote__summary-title { font-family: var(--font-display); font-size: 1.8rem; }
+  .quote__lines { display: grid; gap: 0.7rem; padding-block: 1.2rem; border-block: 1px solid var(--rule); font-size: 0.95rem; }
+  .quote__lines :global(li) { display: flex; justify-content: space-between; gap: 1rem; }
+  .quote__lines :global(li.is-empty) { color: var(--fg-muted); font-style: italic; }
+  .quote__total { display: flex; justify-content: space-between; align-items: baseline; }
+  .quote__total span { color: var(--fg-muted); }
+  .quote__total strong { font-family: var(--font-display); font-size: clamp(2.4rem, 2rem + 1.5vw, 3.2rem); font-weight: 300; }
+  .quote__vat { color: var(--fg-muted); margin-block-start: -0.8rem; text-align: end; }
+  .quote__actions { display: grid; gap: 0.6rem; }
+  .quote__disclaimer { color: var(--fg-muted); }
+  @media (max-width: 960px) {
+    .quote__grid { grid-template-columns: 1fr; }
+    .quote__summary { position: static; }
+  }
+  @media (max-width: 520px) {
+    .addon__main { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .addon__icon { display: none; }
+    .addon__qty { padding-inline-start: 1.2rem; }
+  }
+</style>

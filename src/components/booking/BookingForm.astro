@@ -1,0 +1,374 @@
+---
+/**
+ * Multi-step booking inquiry. Submits to the Worker (/api/inquiry), which
+ * stores the lead and notifies Moshik by email/Telegram. If the API is
+ * unreachable, the visitor can send the same details on WhatsApp or email.
+ */
+import Icon from '~/components/ui/Icon.astro';
+import { pricing, addons } from '~/data/packages';
+import { services } from '~/data/services';
+import { fallbackAvailability } from '~/data/availability';
+import { site } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const L = <T,>(o: Record<Lang, T>) => o[lang];
+
+const steps = [
+  { he: 'האירוע', en: 'Event' },
+  { he: 'תאריך ומקום', en: 'Date & place' },
+  { he: 'החבילה', en: 'Package' },
+  { he: 'פרטים', en: 'Your details' },
+];
+const eventTypes: { id: string; icon: IconName; label: Record<Lang, string> }[] = [
+  ...services.map((s) => ({ id: s.slug, icon: s.icon, label: s.title })),
+  { id: 'other', icon: 'sparkles', label: { he: 'משהו אחר', en: 'Something else' } },
+];
+const guests = [
+  { v: '0-50', he: 'עד 50', en: 'Up to 50' },
+  { v: '50-150', he: '50–150', en: '50–150' },
+  { v: '150-300', he: '150–300', en: '150–300' },
+  { v: '300-500', he: '300–500', en: '300–500' },
+  { v: '500+', he: '500+', en: '500+' },
+];
+const budgets = [
+  { v: '', he: 'מעדיפים לא לציין', en: 'Prefer not to say' },
+  { v: 'under-3000', he: 'עד ₪3,000', en: 'Up to ₪3,000' },
+  { v: '3000-6000', he: '₪3,000–6,000', en: '₪3,000–6,000' },
+  { v: '6000-10000', he: '₪6,000–10,000', en: '₪6,000–10,000' },
+  { v: '10000-15000', he: '₪10,000–15,000', en: '₪10,000–15,000' },
+  { v: '15000+', he: '₪15,000+', en: '₪15,000+' },
+];
+const sources = [
+  { v: 'instagram', he: 'אינסטגרם', en: 'Instagram' },
+  { v: 'facebook', he: 'פייסבוק', en: 'Facebook' },
+  { v: 'google', he: 'גוגל', en: 'Google' },
+  { v: 'friend', he: 'המלצה מחברים', en: 'A friend’s recommendation' },
+  { v: 'venue', he: 'אולם / מפיק', en: 'Venue or planner' },
+  { v: 'wedding', he: 'ראיתי אותו באירוע', en: 'Saw him at an event' },
+  { v: 'other', he: 'אחר', en: 'Other' },
+];
+const copy = {
+  title: { he: 'בואו נתחיל', en: 'Let’s begin' },
+  stepOf: { he: 'שלב {n} מתוך 4', en: 'Step {n} of 4' },
+  q1: { he: 'מה חוגגים?', en: 'What are we celebrating?' },
+  q2: { he: 'מתי ואיפה?', en: 'When and where?' },
+  q3: { he: 'מה מעניין אתכם?', en: 'What are you interested in?' },
+  q4: { he: 'איך יוצרים איתכם קשר?', en: 'How can I reach you?' },
+  date: { he: 'תאריך האירוע', en: 'Event date' },
+  flexible: { he: 'עוד לא סגרנו תאריך', en: 'We haven’t set a date yet' },
+  venue: { he: 'אולם / מקום / עיר', en: 'Venue, place or city' },
+  venuePh: { he: 'למשל: גן אירועים בשרון', en: 'e.g. a garden venue in the Sharon' },
+  guests: { he: 'מספר אורחים משוער', en: 'Estimated guests' },
+  pkg: { he: 'חבילה', en: 'Package' },
+  notSure: { he: 'עוד לא בטוחים — נשמח להמלצה', en: 'Not sure yet — I’d love a recommendation' },
+  addons: { he: 'תוספות', en: 'Add-ons' },
+  budget: { he: 'תקציב משוער', en: 'Approximate budget' },
+  name: { he: 'שם מלא', en: 'Full name' },
+  namePh: { he: 'איך קוראים לכם?', en: 'Your name(s)' },
+  phone: { he: 'טלפון', en: 'Phone' },
+  email: { he: 'אימייל', en: 'Email' },
+  prefer: { he: 'איך נוח לכם שאחזור?', en: 'How should I get back to you?' },
+  source: { he: 'איך הגעתם אליי?', en: 'How did you hear about me?' },
+  message: { he: 'ספרו לי עוד', en: 'Tell me more' },
+  messagePh: { he: 'כל מה שחשוב לכם: חלומות, חששות, השראות…', en: 'Anything that matters to you: dreams, worries, inspiration…' },
+  consent: {
+    he: 'אני מאשר/ת שמירת הפרטים לצורך חזרה אליי, בהתאם ל<a href="{privacy}">מדיניות הפרטיות</a>.',
+    en: 'I agree that my details are stored so Moshik can get back to me, per the <a href="{privacy}">privacy policy</a>.',
+  },
+  next: { he: 'המשך', en: 'Continue' },
+  back: { he: 'חזרה', en: 'Back' },
+  submit: { he: 'שליחה', en: 'Send inquiry' },
+  sending: { he: 'שולח…', en: 'Sending…' },
+  pick: { he: 'נא לבחור סוג אירוע', en: 'Please choose an event type' },
+  required: { he: 'שדה חובה', en: 'This field is required' },
+  phoneErr: { he: 'נא להזין מספר טלפון תקין', en: 'Please enter a valid phone number' },
+  emailErr: { he: 'נא להזין אימייל תקין', en: 'Please enter a valid email' },
+  consentErr: { he: 'נא לאשר כדי שאוכל לחזור אליכם', en: 'Please agree so I can get back to you' },
+  dateErr: { he: 'נא לבחור תאריך, או לסמן שעוד לא נקבע', en: 'Please pick a date, or tick that it isn’t set yet' },
+  failTitle: { he: 'אופס — השליחה לא הצליחה', en: 'Oops — that didn’t go through' },
+  failText: { he: 'לא נורא! אפשר לשלוח את אותם פרטים בוואטסאפ או במייל בלחיצה:', en: 'No worries! You can send the same details on WhatsApp or by email in one tap:' },
+  sendWa: { he: 'שליחה בוואטסאפ', en: 'Send on WhatsApp' },
+  sendMail: { he: 'שליחה במייל', en: 'Send by email' },
+  avail: {
+    available: { he: 'התאריך פנוי כרגע ✓', en: 'This date is currently available ✓' },
+    limited: { he: 'נשאר מקום אחרון בתאריך הזה', en: 'One spot left on this date' },
+    booked: { he: 'התאריך תפוס — אבל שלחו בכל זאת, אולי אוכל לעזור', en: 'This date is booked — send anyway, I may still be able to help' },
+    past: { he: 'התאריך כבר עבר', en: 'That date has passed' },
+  },
+  privacyNote: { he: 'הפרטים שלכם נשמרים אצלי בלבד ולא מועברים לאף אחד.', en: 'Your details stay with me and are never shared.' },
+};
+const tierOptions = Object.fromEntries(pricing.map((c) => [c.id, c.tiers.map((tr) => ({ id: tr.id, label: `${tr.name[lang]}${site.pricing.showPrices ? ` · ${t('common.from')}${formatPrice(tr.price, lang)}` : ''}` }))]));
+const addonOptions = Object.fromEntries(pricing.map((c) => [c.id, c.addons]));
+const addonLabels = Object.fromEntries(addons.map((a) => [a.id, a.name[lang]]));
+const config = {
+  lang,
+  tiers: tierOptions,
+  addons: addonOptions,
+  addonLabels,
+  eventLabels: Object.fromEntries(eventTypes.map((e) => [e.id, e.label[lang]])),
+  strings: {
+    stepOf: L(copy.stepOf),
+    required: L(copy.required),
+    phoneErr: L(copy.phoneErr),
+    emailErr: L(copy.emailErr),
+    consentErr: L(copy.consentErr),
+    pick: L(copy.pick),
+    dateErr: L(copy.dateErr),
+    sending: L(copy.sending),
+    submit: L(copy.submit),
+    notSure: L(copy.notSure),
+    avail: Object.fromEntries(Object.entries(copy.avail).map(([k, v]) => [k, v[lang]])),
+  },
+  fallback: fallbackAvailability,
+  thankYou: localizePath('/thank-you/', lang),
+  turnstile: site.integrations.turnstileSiteKey,
+};
+---
+<div class="booking" data-booking data-config={JSON.stringify(config)}>
+  <div class="booking__progress" aria-hidden="true">
+    {steps.map((s, i) => (
+      <span class:list={['booking__dot', { 'is-active': i === 0 }]} data-dot={i}>
+        <span class="nums">{String(i + 1).padStart(2, '0')}</span>
+        <span class="booking__dot-label">{s[lang]}</span>
+      </span>
+    ))}
+    <span class="booking__bar"><span data-bar></span></span>
+  </div>
+  <p class="sr-only" aria-live="polite" data-step-announce></p>
+
+  <form class="booking__form" novalidate data-form>
+    <!-- honeypot: real visitors never see or fill this -->
+    <div class="booking__hp" aria-hidden="true">
+      <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+    </div>
+    <input type="hidden" name="startedAt" value="" />
+
+    <fieldset class="booking__step is-active" data-step="0">
+      <legend class="booking__q">{L(copy.q1)}</legend>
+      <div class="booking__types">
+        {eventTypes.map((e) => (
+          <label class="etype">
+            <input type="radio" name="eventType" value={e.id} required />
+            <span class="etype__card">
+              <Icon name={e.icon} size={26} stroke={1.2} />
+              <span>{e.label[lang]}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      <p class="field__error" data-error-for="eventType"></p>
+    </fieldset>
+
+    <fieldset class="booking__step" data-step="1" hidden>
+      <legend class="booking__q">{L(copy.q2)}</legend>
+      <div class="booking__grid">
+        <div class="field">
+          <label class="field__label" for="bk-date">{L(copy.date)}</label>
+          <input class="input" type="date" id="bk-date" name="date" />
+          <p class="booking__avail" data-avail aria-live="polite"></p>
+          <label class="check">
+            <input type="checkbox" name="dateFlexible" value="1" />
+            <span>{L(copy.flexible)}</span>
+          </label>
+          <p class="field__error" data-error-for="date"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-venue">{L(copy.venue)} <span class="field__hint">({t('form.optional')})</span></label>
+          <input class="input" type="text" id="bk-venue" name="venue" placeholder={L(copy.venuePh)} autocomplete="off" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-guests">{L(copy.guests)}</label>
+          <select class="select" id="bk-guests" name="guests">
+            <option value="">—</option>
+            {guests.map((g) => <option value={g.v}>{g[lang]}</option>)}
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="booking__step" data-step="2" hidden>
+      <legend class="booking__q">{L(copy.q3)}</legend>
+      <div class="booking__grid">
+        <div class="field">
+          <label class="field__label" for="bk-package">{L(copy.pkg)}</label>
+          <select class="select" id="bk-package" name="package" data-package-select>
+            <option value="">{L(copy.notSure)}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-budget">{L(copy.budget)} <span class="field__hint">({t('form.optional')})</span></label>
+          <select class="select" id="bk-budget" name="budget">
+            {budgets.map((b) => <option value={b.v}>{b[lang]}</option>)}
+          </select>
+        </div>
+        <div class="field booking__full">
+          <span class="field__label">{L(copy.addons)}</span>
+          <div class="booking__addons" data-addons></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="booking__step" data-step="3" hidden>
+      <legend class="booking__q">{L(copy.q4)}</legend>
+      <div class="booking__grid">
+        <div class="field">
+          <label class="field__label" for="bk-name">{L(copy.name)} *</label>
+          <input class="input" type="text" id="bk-name" name="name" required autocomplete="name" placeholder={L(copy.namePh)} />
+          <p class="field__error" data-error-for="name"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-phone">{L(copy.phone)} *</label>
+          <input class="input ltr" type="tel" id="bk-phone" name="phone" required autocomplete="tel" inputmode="tel" placeholder="050-000-0000" dir="ltr" />
+          <p class="field__error" data-error-for="phone"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-email">{L(copy.email)} <span class="field__hint">({t('form.optional')})</span></label>
+          <input class="input ltr" type="email" id="bk-email" name="email" autocomplete="email" dir="ltr" />
+          <p class="field__error" data-error-for="email"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="bk-source">{L(copy.source)}</label>
+          <select class="select" id="bk-source" name="source">
+            <option value="">—</option>
+            {sources.map((s) => <option value={s.v}>{s[lang]}</option>)}
+          </select>
+        </div>
+        <div class="field booking__full">
+          <span class="field__label">{L(copy.prefer)}</span>
+          <div class="booking__prefer">
+            {[
+              { v: 'whatsapp', icon: 'whatsapp', label: t('common.whatsapp') },
+              { v: 'phone', icon: 'phone', label: t('common.call') },
+              { v: 'email', icon: 'mail', label: t('common.email') },
+            ].map((o, i) => (
+              <label class="chip-opt">
+                <input type="radio" name="contactPref" value={o.v} checked={i === 0} />
+                <span><Icon name={o.icon as IconName} size={16} /> {o.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div class="field booking__full">
+          <label class="field__label" for="bk-message">{L(copy.message)} <span class="field__hint">({t('form.optional')})</span></label>
+          <textarea class="textarea" id="bk-message" name="message" rows="4" placeholder={L(copy.messagePh)}></textarea>
+        </div>
+        <div class="field booking__full">
+          <label class="check">
+            <input type="checkbox" name="consent" value="1" required />
+            <span set:html={L(copy.consent).replace('{privacy}', localizePath('/privacy/', lang))} />
+          </label>
+          <p class="field__error" data-error-for="consent"></p>
+        </div>
+        {site.integrations.turnstileSiteKey && <div class="booking__full cf-turnstile" data-sitekey={site.integrations.turnstileSiteKey} data-language={lang} />}
+      </div>
+      <p class="booking__privacy small muted"><Icon name="lock" size={14} /> {L(copy.privacyNote)}</p>
+    </fieldset>
+
+    <div class="booking__nav">
+      <button type="button" class="btn booking__back" data-back hidden>
+        <Icon name="arrow-left" class="flip-rtl" />
+        {L(copy.back)}
+      </button>
+      <button type="button" class="btn btn--solid booking__next" data-next>
+        {L(copy.next)}
+        <Icon name="arrow-right" />
+      </button>
+      <button type="submit" class="btn btn--gold booking__submit" data-submit hidden>
+        <span data-submit-label>{L(copy.submit)}</span>
+        <Icon name="send" class="flip-rtl" />
+      </button>
+    </div>
+  </form>
+
+  <div class="booking__fail" data-fail hidden role="alert">
+    <h3>{L(copy.failTitle)}</h3>
+    <p>{L(copy.failText)}</p>
+    <div class="cluster">
+      <a class="btn btn--solid" data-fail-wa href="#" target="_blank" rel="noopener"><Icon name="whatsapp" /> {L(copy.sendWa)}</a>
+      <a class="btn" data-fail-mail href="#"><Icon name="mail" /> {L(copy.sendMail)}</a>
+    </div>
+  </div>
+</div>
+
+{site.integrations.turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  import { initBookingForm } from './booking';
+  initBookingForm();
+</script>
+
+<style>
+  .booking { display: grid; gap: 2rem; }
+  .booking__progress { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; padding-block-end: 1.2rem; }
+  .booking__dot { display: grid; gap: 0.2rem; font-size: 0.82rem; color: var(--fg-muted); transition: color 0.4s; }
+  .booking__dot .nums { font-family: var(--font-display); font-size: 1.1rem; }
+  .booking__dot.is-active, .booking__dot.is-done { color: var(--fg); }
+  .booking__dot.is-active .nums { color: var(--accent); }
+  .booking__bar { position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 2px; background: var(--rule); }
+  .booking__bar span { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 25%; background: var(--ink); transition: inline-size 0.6s var(--ease-out); }
+  .booking__hp { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .booking__step { border: 0; padding: 0; margin: 0; min-inline-size: 0; animation: step-in 0.6s var(--ease-out); }
+  .booking__step[hidden] { display: none; }
+  @keyframes step-in { from { opacity: 0; transform: translateY(12px); } }
+  .booking__q { font-family: var(--font-display); font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.6rem); font-weight: var(--display-weight); line-height: 1.1; margin-block-end: 1.8rem; }
+  .booking__types { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+  .etype { position: relative; cursor: pointer; display: grid; }
+  .etype input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .etype__card {
+    display: grid;
+    justify-items: center;
+    gap: 0.8rem;
+    block-size: 100%;
+    align-content: center;
+    padding: 1.5rem 0.8rem;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.97rem;
+    transition: border-color 0.25s, background 0.25s, transform 0.4s var(--ease-out);
+  }
+  .etype__card :global(.icon) { color: var(--accent); }
+  .etype:hover .etype__card { border-color: var(--line-strong); transform: translateY(-2px); }
+  .etype input:checked + .etype__card { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .etype input:checked + .etype__card :global(.icon) { color: var(--gold-soft); }
+  .etype input:focus-visible + .etype__card { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .booking__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem 2rem; }
+  .booking__full { grid-column: 1 / -1; }
+  .booking__avail { font-size: 0.88rem; min-block-size: 1.3em; }
+  .booking__avail[data-state='available'] { color: var(--success); }
+  .booking__avail[data-state='booked'] { color: var(--danger); }
+  .booking__avail[data-state='limited'] { color: var(--gold-text); }
+  .check { display: flex; align-items: flex-start; gap: 0.7rem; font-size: 0.95rem; cursor: pointer; }
+  .check input { inline-size: 1.1rem; block-size: 1.1rem; margin-block-start: 0.25rem; accent-color: var(--ink); flex: none; }
+  .check :global(a) { text-decoration: underline; text-underline-offset: 0.2em; }
+  .booking__addons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .booking__addons :global(label) { position: relative; cursor: pointer; }
+  .booking__addons :global(input) { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .booking__addons :global(span) { display: inline-flex; padding: 0.55rem 1rem; border: 1px solid var(--rule); border-radius: 999px; font-size: 0.92rem; transition: all 0.2s; }
+  .booking__addons :global(input:checked + span) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .booking__addons :global(input:focus-visible + span) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .booking__prefer { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip-opt { position: relative; cursor: pointer; }
+  .chip-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .chip-opt span { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.1rem; border: 1px solid var(--rule); border-radius: 999px; font-weight: 600; font-size: 0.92rem; transition: all 0.2s; }
+  .chip-opt input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .chip-opt input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .booking__privacy { display: flex; align-items: center; gap: 0.5rem; margin-block-start: 1.4rem; }
+  .booking__nav { display: flex; justify-content: space-between; gap: 1rem; padding-block-start: 1.6rem; border-block-start: 1px solid var(--rule); }
+  .booking__next, .booking__submit { margin-inline-start: auto; }
+  .booking__submit[disabled] { opacity: 0.6; pointer-events: none; }
+  .booking__fail { padding: 1.6rem; border: 1px solid var(--danger); display: grid; gap: 0.8rem; }
+  .booking__fail h3 { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; }
+  @media (max-width: 640px) {
+    .booking__grid { grid-template-columns: 1fr; }
+    .booking__dot-label { display: none; }
+    .booking__types { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { whatsappLink } from '~/config/site';
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  title: { he: 'תודה! הפנייה התקבלה', en: 'Thank you! Your inquiry is in' },
+  hello: { he: 'תודה, {name}!', en: 'Thank you, {name}!' },
+  text: {
+    he: 'קיבלתי את כל הפרטים ואחזור אליכם בהקדם — בדרך כלל באותו היום. רוצים תשובה עוד יותר מהר? שלחו לי את הפרטים בוואטסאפ.',
+    en: 'I’ve got all the details and will get back to you soon — usually the same day. Want an even faster answer? Send me the details on WhatsApp.',
+  },
+  wa: { he: 'שליחת הפרטים בוואטסאפ', en: 'Send details on WhatsApp' },
+  next: { he: 'בינתיים, אולי תאהבו', en: 'In the meantime, you might enjoy' },
+  stories: { he: 'סיפורים מאירועים', en: 'Stories from real events' },
+  portfolio: { he: 'גלריית העבודות', en: 'The portfolio' },
+};
+---
+<BaseLayout lang={lang} path="/thank-you/" title={copy.title[lang]} description={copy.text[lang]} noindex footerCta={false}>
+  <section class="ty">
+    <div class="container container--narrow ty__inner" data-thanks data-hello={copy.hello[lang]}>
+      <span class="ty__check" aria-hidden="true"><Icon name="check" size={34} stroke={1.4} /></span>
+      <h1 class="display ty__title" data-ty-title>{copy.title[lang]}</h1>
+      <p class="lead">{copy.text[lang]}</p>
+      <a class="btn btn--solid btn--lg" href={whatsappLink(t('wa.greeting'))} data-ty-wa target="_blank" rel="noopener" data-track="whatsapp_click">
+        <Icon name="whatsapp" /> {copy.wa[lang]}
+      </a>
+      <div class="ty__next">
+        <p class="eyebrow eyebrow--plain">{copy.next[lang]}</p>
+        <div class="cluster">
+          <a class="link" href={localizePath('/stories/', lang)}>{copy.stories[lang]} <Icon name="arrow-right" /></a>
+          <a class="link" href={localizePath('/portfolio/', lang)}>{copy.portfolio[lang]} <Icon name="arrow-right" /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { whatsappLinkClient } from '~/scripts/wa';
+  const root = document.querySelector<HTMLElement>('[data-thanks]');
+  try {
+    const data = JSON.parse(sessionStorage.getItem('moshik-inquiry') ?? 'null') as { name?: string; summary?: string } | null;
+    if (root && data?.name) {
+      root.querySelector('[data-ty-title]')!.textContent = root.dataset.hello!.replace('{name}', data.name.split(' ')[0] ?? data.name);
+    }
+    if (root && data?.summary) root.querySelector<HTMLAnchorElement>('[data-ty-wa]')!.href = whatsappLinkClient(data.summary);
+  } catch {
+    /* ignore */
+  }
+</script>
+
+<style>
+  .ty { min-block-size: 80svh; display: grid; align-items: center; padding-block: calc(var(--header-h) + 4rem) 5rem; }
+  .ty__inner { display: grid; justify-items: center; text-align: center; gap: 1.6rem; }
+  .ty__check { display: grid; place-items: center; inline-size: 5rem; block-size: 5rem; border-radius: 50%; background: var(--ink); color: var(--gold-soft); animation: pop 0.8s var(--ease-out); }
+  @keyframes pop { from { transform: scale(0.6); opacity: 0; } }
+  .ty__title { font-size: clamp(2.4rem, 1.6rem + 3vw, 4.4rem); }
+  .ty__next { margin-block-start: 2rem; display: grid; justify-items: center; gap: 1rem; }
+  .ty__next .cluster { --cluster: 2rem; justify-content: center; }
+</style>

@@ -1,0 +1,30 @@
+---
+import { localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  items: { name: string; path: string }[];
+}
+const { lang, items } = Astro.props;
+const t = useTranslations(lang);
+const all = [{ name: t('common.home'), path: '/' }, ...items];
+---
+<nav class="crumbs" aria-label={t('common.breadcrumbs')}>
+  <ol role="list">
+    {
+      all.map((c, i) => (
+        <li>
+          {i < all.length - 1 ? <a href={localizePath(c.path, lang)}>{c.name}</a> : <span aria-current="page">{c.name}</span>}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .crumbs ol { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.82rem; color: var(--fg-muted); }
+  .crumbs li { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .crumbs li + li::before { content: '/'; opacity: 0.5; }
+  .crumbs a:hover { color: var(--fg); }
+  .crumbs [aria-current] { color: var(--fg-soft); }
+</style>

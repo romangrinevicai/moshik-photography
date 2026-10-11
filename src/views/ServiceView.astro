@@ -1,0 +1,223 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import JustifiedGrid from '~/components/ui/JustifiedGrid.astro';
+import PackageCard from '~/components/ui/PackageCard.astro';
+import FaqList from '~/components/ui/FaqList.astro';
+import Icon from '~/components/ui/Icon.astro';
+import Img from '~/components/ui/Img.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { services, type Service } from '~/data/services';
+import { pricingById, addonById, startingPrice } from '~/data/packages';
+import { testimonials } from '~/data/testimonials';
+import { faq } from '~/data/faq';
+import { photo, photosIn, altFor } from '~/data/photos';
+import { breadcrumbSchema, serviceSchema, faqSchema } from '~/data/schema';
+import { site, whatsappLink } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  service: Service;
+}
+const { lang, service } = Astro.props;
+const t = useTranslations(lang);
+const path = `/services/${service.slug}/`;
+const cover = photo(service.cover);
+const gallery = photosIn(service.portfolio).map((p) => ({ photo: p, label: service.title[lang] }));
+const cat = pricingById(service.pricing);
+const price = startingPrice(service.pricing);
+const review = testimonials.find((x) => x.service === service.slug) ?? testimonials[0];
+const faqs = faq.filter((f) => f.topics.some((tp) => ['booking', 'delivery', 'gallery', 'day'].includes(tp))).slice(0, 5);
+const others = services.filter((s) => s.slug !== service.slug);
+const waMessage =
+  lang === 'he'
+    ? `היי מושיק! הגעתי מהאתר ואשמח לשמוע פרטים על ${service.title.he} 🙂`
+    : `Hi Moshik! I found you on your website and I'd love to hear about ${service.title.en.toLowerCase()} photography 🙂`;
+const copy = {
+  included: { he: 'מה כלול', en: 'What’s included' },
+  gallery: { he: 'מתוך העבודות', en: 'From the portfolio' },
+  galleryTitle: { he: `${service.title.he} — *רגעים נבחרים*`, en: `${service.title.en} — *selected moments*` },
+  packages: { he: 'חבילות', en: 'Packages' },
+  packagesTitle: { he: 'בחרו *נקודת פתיחה*', en: 'Choose a *starting point*' },
+  addons: { he: 'תוספות אפשריות', en: 'Popular add-ons' },
+  others: { he: 'שירותים נוספים', en: 'More services' },
+  faq: { he: 'שאלות נפוצות', en: 'Questions' },
+};
+---
+<BaseLayout
+  lang={lang}
+  path={path}
+  title={service.seo.title[lang]}
+  description={service.seo.description[lang]}
+  image={cover.src}
+  header="overlay"
+  waMessage={waMessage}
+  jsonLd={[
+    breadcrumbSchema(lang, [
+      { name: t('nav.services'), path: '/services/' },
+      { name: service.title[lang], path },
+    ]),
+    serviceSchema(lang, { name: service.title[lang], description: service.seo.description[lang], path, price }),
+    faqSchema(lang, faqs),
+  ]}
+>
+  <PageHero
+    lang={lang}
+    eyebrow={service.title[lang]}
+    title={service.headline[lang]}
+    photo={cover}
+    photoAlt={altFor(cover, lang, service.title[lang])}
+    crumbs={[{ name: t('nav.services'), path: '/services/' }, { name: service.title[lang], path }]}
+  />
+
+  <section class="section">
+    <div class="container svc">
+      <div class="svc__text stack" style="--stack:1.4rem">
+        <p class="svc__intro" data-reveal>{service.intro[lang]}</p>
+        {service.body[lang].map((p, i) => <p class="muted" data-reveal style={`--reveal-delay:${80 + i * 60}`}>{p}</p>)}
+      </div>
+      <aside class="svc__card" data-reveal style="--reveal-delay:150">
+        <h2 class="svc__card-title">{copy.included[lang]}</h2>
+        <ul role="list" class="svc__list">
+          {service.highlights[lang].map((h) => <li><Icon name="check" size={16} stroke={1.8} /> <span>{h}</span></li>)}
+        </ul>
+        {
+          site.pricing.showPrices && price && (
+            <p class="svc__price">
+              <span>{t('common.startingFrom')}</span>
+              <strong class="nums">{formatPrice(price, lang)}</strong>
+            </p>
+          )
+        }
+        <div class="svc__actions">
+          <a class="btn btn--solid btn--block" href={`${localizePath('/contact/', lang)}?type=${service.slug}`}>{t('common.book')} <Icon name="arrow-right" /></a>
+          <a class="btn btn--block" href={whatsappLink(waMessage)} target="_blank" rel="noopener" data-track="whatsapp_click"><Icon name="whatsapp" /> {t('wa.chat')}</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {
+    gallery.length > 0 && (
+      <section class="section section--flush-top">
+        <div class="container container--wide">
+          <SectionHead eyebrow={copy.gallery[lang]} title={copy.galleryTitle[lang]} align="split">
+            <a class="link" href={`${localizePath('/portfolio/', lang)}?type=${service.slug}`}>{t('common.viewAll')} <Icon name="arrow-right" /></a>
+          </SectionHead>
+          <JustifiedGrid lang={lang} items={gallery} rowHeight={300} />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    cat && (
+      <section class="section section--deep">
+        <div class="container">
+          <SectionHead eyebrow={copy.packages[lang]} title={copy.packagesTitle[lang]} intro={cat.intro[lang]} align="split" />
+          <div class:list={['svc-pkgs', `svc-pkgs--${Math.min(cat.tiers.length, 3)}`]}>
+            {cat.tiers.map((tier, i) => <PackageCard tier={tier} category={cat.id} lang={lang} index={i} />)}
+          </div>
+          <div class="svc-addons" data-reveal>
+            <h3 class="svc-addons__title">{copy.addons[lang]}</h3>
+            <ul role="list" class="svc-addons__list">
+              {cat.addons.map((id) => addonById(id)).filter(Boolean).map((a) => (
+                <li>
+                  <Icon name={a!.icon} size={16} />
+                  <span>{a!.name[lang]}</span>
+                  {site.pricing.showPrices && <span class="nums svc-addons__price">+{formatPrice(a!.price, lang)}</span>}
+                </li>
+              ))}
+            </ul>
+            <a class="link" href={`${localizePath('/pricing/', lang)}#quote`}>{lang === 'he' ? 'לבניית הצעת מחיר' : 'Build your quote'} <Icon name="arrow-right" /></a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    review && (
+      <section class="section on-noir svc-review">
+        <div class="container container--narrow text-center">
+          <p class="svc-review__mark" aria-hidden="true">“</p>
+          <blockquote class="svc-review__quote" data-reveal>{review.quote[lang]}</blockquote>
+          <p class="svc-review__who" data-reveal style="--reveal-delay:120">
+            <strong>{review.name[lang]}</strong> · {review.event[lang]}
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section">
+    <div class="container svc-faq">
+      <SectionHead eyebrow={copy.faq[lang]} title={lang === 'he' ? 'טוב *לדעת*' : 'Good to *know*'}>
+        <a class="link" href={localizePath('/faq/', lang)}>{lang === 'he' ? 'לכל השאלות' : 'All questions'} <Icon name="arrow-right" /></a>
+      </SectionHead>
+      <FaqList items={faqs} lang={lang} />
+    </div>
+  </section>
+
+  <section class="section section--flush-top">
+    <div class="container">
+      <h2 class="svc-others__title" data-reveal>{copy.others[lang]}</h2>
+      <div class="svc-others">
+        {others.map((s, i) => (
+          <a class="svc-other" href={localizePath(`/services/${s.slug}/`, lang)} data-reveal style={`--reveal-delay:${i * 60}`}>
+            <span class="media media--zoom ratio-3x2"><Img photo={photo(s.cover)} alt="" preset="card" sizes="(min-width: 900px) 260px, 45vw" /></span>
+            <span class="svc-other__title">{s.title[lang]}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<style>
+  .svc { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr); gap: clamp(2.5rem, 1rem + 6vw, 7rem); align-items: start; }
+  .svc__intro { font-family: var(--font-display); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); line-height: 1.35; font-weight: 350; }
+  .svc__card {
+    position: sticky;
+    inset-block-start: calc(var(--header-h) + 1.5rem);
+    display: grid;
+    gap: 1.4rem;
+    padding: 2rem;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+  }
+  .svc__card-title { font-family: var(--font-body); font-size: var(--fs-eyebrow); font-weight: 700; letter-spacing: var(--eyebrow-tracking); text-transform: var(--label-transform); color: var(--accent); }
+  .svc__list { display: grid; gap: 0.75rem; }
+  .svc__list li { display: grid; grid-template-columns: 1.2rem 1fr; gap: 0.7rem; }
+  .svc__list :global(.icon) { color: var(--accent); margin-block-start: 0.35rem; }
+  .svc__price { display: flex; align-items: baseline; justify-content: space-between; padding-block-start: 1.2rem; border-block-start: 1px solid var(--rule); color: var(--fg-muted); font-size: 0.9rem; }
+  .svc__price strong { font-family: var(--font-display); font-size: 2.2rem; font-weight: 300; color: var(--fg); }
+  .svc__actions { display: grid; gap: 0.6rem; }
+  .svc-pkgs { display: grid; gap: 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .svc-pkgs--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-inline-size: 900px; }
+  .svc-pkgs--1 { grid-template-columns: minmax(0, 480px); }
+  .svc-addons { margin-block-start: 3rem; display: grid; gap: 1.2rem; justify-items: start; }
+  .svc-addons__title { font-family: var(--font-body); font-size: 1.05rem; font-weight: 650; }
+  .svc-addons__list { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .svc-addons__list li { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1rem; border: 1px solid var(--rule); border-radius: 999px; font-size: 0.92rem; background: var(--paper); }
+  .svc-addons__price { color: var(--fg-muted); font-size: 0.85rem; }
+  .svc-review__mark { font-family: 'Cormorant', serif; font-size: 7rem; line-height: 0.5; color: var(--gold-soft); block-size: 3rem; }
+  .svc-review__quote { font-family: var(--font-display); font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.4rem); font-weight: 300; line-height: 1.35; }
+  .svc-review__who { margin-block-start: 1.6rem; color: var(--fg-muted); }
+  .svc-review__who strong { color: var(--fg); }
+  .svc-faq { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 5vw, 7rem); align-items: start; }
+  .svc-others__title { font-size: var(--fs-h3); margin-block-end: 2rem; }
+  .svc-others { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
+  .svc-other { display: grid; gap: 0.7rem; }
+  .svc-other__title { font-family: var(--font-display); font-size: 1.3rem; }
+  @media (max-width: 960px) {
+    .svc, .svc-faq { grid-template-columns: 1fr; }
+    .svc__card { position: static; }
+    .svc-pkgs, .svc-pkgs--2 { grid-template-columns: 1fr; max-inline-size: 520px; }
+    .svc-others { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

@@ -1,0 +1,80 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import Process from '~/components/sections/Process.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { services } from '~/data/services';
+import { startingPrice } from '~/data/packages';
+import { photo, altFor } from '~/data/photos';
+import { breadcrumbSchema } from '~/data/schema';
+import { site } from '~/config/site';
+import { formatPrice, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  title: { he: 'מה אני *מצלם*', en: 'What I *photograph*' },
+  intro: {
+    he: 'מחתונות של 400 איש ועד ברית אינטימית בסלון — לכל אירוע אני מגיע עם אותה התרגשות, אותה הכנה ואותה עין לרגעים הקטנים.',
+    en: 'From 400-guest weddings to an intimate brit in the living room — I bring the same excitement, preparation and eye for small moments to every event.',
+  },
+  seo: {
+    title: { he: 'שירותי צילום — חתונות, בר מצווה, אירועים ועסקים', en: 'Photography Services — Weddings, Bar Mitzvahs, Events & Corporate' },
+    description: {
+      he: 'כל שירותי הצילום של מושיק: חתונות, בר ובת מצווה, אירועים ושמחות, זוגיות ופרה־וודינג, משפחה ופורטרטים, ועסקים.',
+      en: 'All of Moshik’s photography services: weddings, bar & bat mitzvahs, celebrations, couples & pre-wedding, family & portraits, and corporate.',
+    },
+  },
+};
+---
+<BaseLayout lang={lang} path="/services/" title={copy.seo.title[lang]} description={copy.seo.description[lang]} jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.services'), path: '/services/' }])]}>
+  <PageHero lang={lang} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.services'), path: '/services/' }]} />
+  <section class="section section--flush-top">
+    <div class="container">
+      <div class="svc-grid">
+        {
+          services.map((s, i) => {
+            const cover = photo(s.cover);
+            const price = startingPrice(s.pricing);
+            return (
+              <a class="svc-card" href={localizePath(`/services/${s.slug}/`, lang)} data-reveal style={`--reveal-delay:${(i % 3) * 90}`}>
+                <span class="media media--zoom ratio-4x5">
+                  <Img photo={cover} alt={altFor(cover, lang, s.title[lang])} preset="third" />
+                </span>
+                <span class="svc-card__body">
+                  <span class="svc-card__top">
+                    <span class="svc-card__num nums">0{i + 1}</span>
+                    {site.pricing.showPrices && price && <span class="svc-card__price">{t('common.from')}{formatPrice(price, lang)}</span>}
+                  </span>
+                  <span class="svc-card__title">{s.title[lang]}</span>
+                  <span class="svc-card__summary">{s.summary[lang]}</span>
+                  <span class="link svc-card__more">{t('common.learnMore')} <Icon name="arrow-right" /></span>
+                </span>
+              </a>
+            );
+          })
+        }
+      </div>
+    </div>
+  </section>
+  <Process lang={lang} />
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<style>
+  .svc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.5rem, 1rem + 2vw, 3rem) clamp(1rem, 0.5rem + 1.5vw, 2rem); }
+  .svc-card { display: grid; gap: 1.2rem; align-content: start; }
+  .svc-card__body { display: grid; gap: 0.6rem; }
+  .svc-card__top { display: flex; justify-content: space-between; font-size: 0.86rem; color: var(--fg-muted); }
+  .svc-card__num { font-family: var(--font-display); color: var(--accent); font-size: 1rem; }
+  .svc-card__title { font-family: var(--font-display); font-size: clamp(1.8rem, 1.4rem + 1.2vw, 2.5rem); font-weight: var(--display-weight); line-height: 1.05; }
+  .svc-card__summary { color: var(--fg-muted); }
+  .svc-card__more { justify-self: start; margin-block-start: 0.4rem; }
+  @media (max-width: 960px) { .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .svc-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,75 @@
+---
+import Img from '~/components/ui/Img.astro';
+import Breadcrumbs from '~/components/ui/Breadcrumbs.astro';
+import type { Photo } from '~/data/photos';
+import type { Lang } from '~/i18n';
+import { splitWords, accent } from '~/shared/text';
+
+interface Props {
+  lang: Lang;
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+  photo?: Photo;
+  photoAlt?: string;
+  crumbs?: { name: string; path: string }[];
+  align?: 'start' | 'center';
+}
+const { lang, eyebrow, title, intro, photo, photoAlt = '', crumbs, align = 'start' } = Astro.props;
+---
+{
+  photo ? (
+    <section class="phero phero--image on-noir">
+      <div class="phero__bg" aria-hidden={photoAlt ? undefined : 'true'}>
+        <div class="phero__bg-inner" data-parallax="0.18">
+          <Img photo={photo} alt={photoAlt} preset="full" priority />
+        </div>
+      </div>
+      <div class:list={['container container--wide phero__inner', { 'phero__inner--center': align === 'center' }]}>
+        {crumbs && <Breadcrumbs lang={lang} items={crumbs} />}
+        {eyebrow && <p class="eyebrow phero__eyebrow" data-reveal="fade">{eyebrow}</p>}
+        <h1 class="display phero__title" data-split set:html={splitWords(title.replace(/\|/g, ' '), 100, 60)} />
+        {intro && <p class="lead phero__intro" data-reveal style="--reveal-delay:400">{intro}</p>}
+        <slot />
+      </div>
+    </section>
+  ) : (
+    <section class="phero phero--plain">
+      <div class:list={['container phero__inner', { 'phero__inner--center': align === 'center' }]}>
+        {crumbs && <Breadcrumbs lang={lang} items={crumbs} />}
+        {eyebrow && <p class="eyebrow" data-reveal="fade">{eyebrow}</p>}
+        <h1 class="display phero__title" data-reveal set:html={accent(title.replace(/\|/g, ' '))} />
+        {intro && <p class="lead phero__intro" data-reveal style="--reveal-delay:150">{intro}</p>}
+        <slot />
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .phero { position: relative; isolation: isolate; }
+  .phero--image {
+    min-block-size: clamp(520px, 78svh, 860px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .phero__bg { position: absolute; inset: 0; z-index: -1; }
+  .phero__bg-inner { position: absolute; inset: -10% 0; }
+  .phero__bg :global(picture), .phero__bg :global(img) { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .phero__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(10 8 6 / 0.85), rgb(10 8 6 / 0.25) 55%, rgb(10 8 6 / 0.4));
+  }
+  .phero__inner { display: grid; justify-items: start; gap: 1.3rem; }
+  .phero--image .phero__inner { padding-block: calc(var(--header-h) + 3rem) clamp(2.5rem, 2rem + 3vw, 5rem); }
+  .phero--plain .phero__inner { padding-block: calc(var(--header-h) + clamp(3rem, 2rem + 5vw, 7rem)) clamp(2.5rem, 2rem + 3vw, 4.5rem); }
+  .phero__inner--center { justify-items: center; text-align: center; }
+  .phero__title { font-size: var(--fs-h1); max-inline-size: 16ch; }
+  .phero__title :global(em) { color: var(--accent); }
+  .phero--image .phero__title { color: var(--on-noir); }
+  .phero__intro { max-inline-size: 54ch; }
+  .phero__eyebrow { color: var(--gold-soft); }
+</style>

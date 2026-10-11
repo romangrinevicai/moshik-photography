@@ -1,0 +1,113 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import Breadcrumbs from '~/components/ui/Breadcrumbs.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import Stats from '~/components/sections/Stats.astro';
+import Testimonials from '~/components/sections/Testimonials.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { about } from '~/data/about';
+import { photo, photosIn, altFor } from '~/data/photos';
+import { breadcrumbSchema } from '~/data/schema';
+import { useTranslations, type Lang } from '~/i18n';
+import { accent } from '~/shared/text';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const portrait = photo('about/moshik.jpg');
+const bts = photosIn('about').filter((p) => p.id !== portrait.id);
+---
+<BaseLayout
+  lang={lang}
+  path="/about/"
+  title={about.seo.title[lang]}
+  description={about.seo.description[lang]}
+  image={portrait.src}
+  type="profile"
+  jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.about'), path: '/about/' }])]}
+>
+  <section class="ahero">
+    <div class="container ahero__grid">
+      <div class="ahero__text stack" style="--stack:1.4rem">
+        <Breadcrumbs lang={lang} items={[{ name: t('nav.about'), path: '/about/' }]} />
+        <p class="eyebrow" data-reveal="fade">{about.eyebrow[lang]}</p>
+        <h1 class="display ahero__title" data-reveal set:html={accent(about.title[lang])} />
+        <p class="lead" data-reveal style="--reveal-delay:150">{about.intro[lang]}</p>
+      </div>
+      <div class="media ratio-4x5 ahero__photo" data-reveal="image">
+        <Img photo={portrait} alt={altFor(portrait, lang)} preset="half" priority />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container--narrow astory stack" style="--stack:1.5rem">
+      {about.story[lang].map((p, i) => <p class:list={['astory__p', { 'astory__p--first': i === 0 }]} data-reveal>{p}</p>)}
+      <blockquote class="astory__quote" data-reveal>{about.quote[lang]}</blockquote>
+    </div>
+  </section>
+
+  <Stats lang={lang} />
+
+  <section class="section">
+    <div class="container">
+      <SectionHead title={about.valuesTitle[lang]} align="center" />
+      <ul role="list" class="values">
+        {about.values.map((v, i) => (
+          <li data-reveal style={`--reveal-delay:${i * 90}`}>
+            <span class="values__icon"><Icon name={v.icon} size={24} stroke={1.2} /></span>
+            <h3 class="values__title">{v.title[lang]}</h3>
+            <p class="muted">{v.text[lang]}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {
+    bts.length > 0 && (
+      <section class="section section--deep">
+        <div class="container abts">
+          <div class="abts__text stack" style="--stack:1.2rem">
+            <p class="eyebrow">{about.bts[lang]}</p>
+            <p class="lead" data-reveal>{about.btsText[lang]}</p>
+          </div>
+          <div class="abts__photos">
+            {bts.slice(0, 2).map((p, i) => (
+              <div class:list={['media', i === 0 ? 'ratio-3x2' : 'ratio-4x5']} data-reveal="image" style={`--reveal-delay:${i * 150}`}>
+                <Img photo={p} alt={altFor(p, lang)} preset="third" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <Testimonials lang={lang} />
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<style>
+  .ahero__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: clamp(2.5rem, 1rem + 6vw, 7rem); align-items: end; padding-block: calc(var(--header-h) + clamp(2rem, 1rem + 4vw, 5rem)) 0; }
+  .ahero__title { font-size: var(--fs-h1); max-inline-size: 12ch; }
+  .ahero__title :global(em) { color: var(--accent); }
+  .astory__p { font-size: 1.12rem; line-height: 1.85; color: var(--fg-soft); }
+  .astory__p--first { font-family: var(--font-display); font-size: clamp(1.45rem, 1.2rem + 1vw, 2rem); line-height: 1.45; color: var(--fg); font-weight: 350; }
+  .astory__quote { margin-block-start: 2.5rem; padding: 2rem 0; border-block: 1px solid var(--rule); text-align: center; font-family: var(--font-display); font-size: clamp(1.8rem, 1.3rem + 2vw, 3rem); font-weight: 300; line-height: 1.25; color: var(--accent); }
+  .values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.4rem; }
+  .values li { display: grid; gap: 0.7rem; justify-items: start; padding-block-start: 1.4rem; border-block-start: 1px solid var(--rule); }
+  .values__icon { color: var(--accent); }
+  .values__title { font-size: 1.5rem; }
+  .abts { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2rem, 1rem + 5vw, 6rem); align-items: center; }
+  .abts__photos { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; align-items: end; }
+  @media (max-width: 960px) {
+    .ahero__grid, .abts { grid-template-columns: 1fr; }
+    .values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) { .values { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,89 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import Img from '~/components/ui/Img.astro';
+import Icon from '~/components/ui/Icon.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { stories } from '~/data/stories';
+import { serviceBySlug } from '~/data/services';
+import { photosIn, altFor } from '~/data/photos';
+import { breadcrumbSchema } from '~/data/schema';
+import { formatDate, localizePath, useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  title: { he: 'סיפורים *מהשטח*', en: 'Stories *from the field*' },
+  intro: {
+    he: 'מאחורי כל גלריה יש סיפור: אנשים, מקום, אור ורגעים שלא חוזרים. הנה כמה מהאהובים עליי.',
+    en: 'Behind every gallery there’s a story: people, a place, light and moments that never repeat. Here are a few of my favourites.',
+  },
+  seo: {
+    title: { he: 'סיפורים — חתונות ואירועים שצילמתי', en: 'Stories — Weddings & Celebrations I’ve Photographed' },
+    description: {
+      he: 'סיפורים מלאים מחתונות, בר ובת מצווה וצילומי זוגיות — תמונות, לוקיישנים ומה שהלקוחות אמרו.',
+      en: 'Full stories from weddings, bar & bat mitzvahs and couple sessions — photos, locations and what the clients said.',
+    },
+  },
+};
+---
+<BaseLayout lang={lang} path="/stories/" title={copy.seo.title[lang]} description={copy.seo.description[lang]} jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.stories'), path: '/stories/' }])]}>
+  <PageHero lang={lang} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.stories'), path: '/stories/' }]} />
+  <section class="section section--flush-top">
+    <div class="container container--wide">
+      <ol role="list" class="slist">
+        {
+          stories.map((s, i) => {
+            const photos = photosIn(`stories/${s.slug}`);
+            const [a, b] = photos;
+            return (
+              <li class:list={['slist__item', { 'slist__item--flip': i % 2 === 1 }]}>
+                <a class="slist__media" href={localizePath(`/stories/${s.slug}/`, lang)} data-cursor={t('common.readStory')}>
+                  {a && <span class="media media--zoom ratio-3x2 slist__main" data-reveal="image"><Img photo={a} alt={altFor(a, lang, s.title[lang])} preset="half" /></span>}
+                  {b && <span class="media ratio-4x5 slist__sub" data-reveal="image" style="--reveal-delay:200"><Img photo={b} alt="" preset="card" /></span>}
+                </a>
+                <div class="slist__text stack" style="--stack:1.1rem">
+                  <p class="slist__meta">
+                    <span class="label">{serviceBySlug(s.service)?.title[lang]}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{s.location[lang]}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{formatDate(`${s.date}-01`, lang, { month: 'long', year: 'numeric' })}</span>
+                  </p>
+                  <h2 class="slist__title" data-reveal><a href={localizePath(`/stories/${s.slug}/`, lang)}>{s.title[lang]}</a></h2>
+                  <p class="slist__subtitle" data-reveal>{s.subtitle[lang]}</p>
+                  <p class="muted" data-reveal>{s.excerpt[lang]}</p>
+                  <a class="link" href={localizePath(`/stories/${s.slug}/`, lang)}>{t('common.readStory')} <Icon name="arrow-right" /></a>
+                </div>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </div>
+  </section>
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<style>
+  .slist { display: grid; gap: clamp(5rem, 3rem + 6vw, 10rem); }
+  .slist__item { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: clamp(2rem, 1rem + 5vw, 7rem); align-items: center; }
+  .slist__item--flip .slist__media { order: 2; }
+  .slist__media { position: relative; display: block; padding-block-end: 12%; }
+  .slist__sub { position: absolute; inline-size: 34%; inset-block-end: 0; inset-inline-end: -4%; outline: 10px solid var(--bg); }
+  .slist__item--flip .slist__sub { inset-inline-end: auto; inset-inline-start: -4%; }
+  .slist__meta { display: flex; flex-wrap: wrap; gap: 0.5rem; color: var(--fg-muted); font-size: 0.9rem; }
+  .slist__meta .label { color: var(--accent); }
+  .slist__title { font-size: clamp(2.4rem, 1.6rem + 3vw, 4.4rem); }
+  .slist__subtitle { font-family: var(--font-display); font-size: 1.4rem; font-style: italic; color: var(--fg-soft); }
+  :global(:lang(he)) .slist__subtitle { font-style: normal; }
+  @media (max-width: 900px) {
+    .slist__item { grid-template-columns: 1fr; }
+    .slist__item--flip .slist__media { order: 0; }
+    .slist__sub { inset-inline-end: 0; }
+    .slist__item--flip .slist__sub { inset-inline-start: 0; }
+  }
+</style>

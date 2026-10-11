@@ -1,0 +1,64 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import FaqList from '~/components/ui/FaqList.astro';
+import Icon from '~/components/ui/Icon.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { faq, type FaqItem } from '~/data/faq';
+import { breadcrumbSchema, faqSchema } from '~/data/schema';
+import { whatsappLink } from '~/config/site';
+import { useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const groups: { topic: FaqItem['topics'][number]; title: Record<Lang, string> }[] = [
+  { topic: 'booking', title: { he: 'הזמנה ותאריכים', en: 'Booking & dates' } },
+  { topic: 'day', title: { he: 'ביום האירוע', en: 'On the day' } },
+  { topic: 'delivery', title: { he: 'מסירת התמונות', en: 'Delivery' } },
+  { topic: 'gallery', title: { he: 'הגלריה וזיהוי הפנים', en: 'Gallery & face search' } },
+];
+const seen = new Set<string>();
+const grouped = groups.map((g) => {
+  const items = faq.filter((f) => f.topics.includes(g.topic) && !seen.has(f.id));
+  items.forEach((f) => seen.add(f.id));
+  return { ...g, items };
+});
+const copy = {
+  title: { he: 'שאלות *נפוצות*', en: 'Frequently asked *questions*' },
+  intro: { he: 'כל מה שרציתם לדעת על הזמנה, היום עצמו והגלריה. לא מצאתם תשובה? אני במרחק הודעה.', en: 'Everything you wanted to know about booking, the day itself and your gallery. Can’t find an answer? I’m one message away.' },
+  ask: { he: 'שאלו אותי בוואטסאפ', en: 'Ask me on WhatsApp' },
+  seo: {
+    title: { he: 'שאלות נפוצות — צילום חתונות ואירועים', en: 'FAQ — Wedding & Event Photography' },
+    description: { he: 'תשובות לשאלות נפוצות: כמה זמן מראש להזמין, איך שומרים תאריך, מתי מקבלים תמונות, גלריה וזיהוי פנים ועוד.', en: 'Answers to common questions: how far ahead to book, reserving a date, delivery times, the gallery and face search, and more.' },
+  },
+};
+---
+<BaseLayout lang={lang} path="/faq/" title={copy.seo.title[lang]} description={copy.seo.description[lang]} jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.faq'), path: '/faq/' }]), faqSchema(lang, faq)]}>
+  <PageHero lang={lang} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.faq'), path: '/faq/' }]}>
+    <a class="btn" href={whatsappLink(t('wa.greeting'))} target="_blank" rel="noopener" data-track="whatsapp_click"><Icon name="whatsapp" /> {copy.ask[lang]}</a>
+  </PageHero>
+  <section class="section section--flush-top">
+    <div class="container faqp">
+      {grouped.filter((g) => g.items.length).map((g) => (
+        <div class="faqp__group">
+          <h2 class="faqp__title" data-reveal>{g.title[lang]}</h2>
+          <FaqList items={g.items} lang={lang} group={`faq-${g.topic}`} />
+        </div>
+      ))}
+    </div>
+  </section>
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<style>
+  .faqp { display: grid; gap: clamp(3rem, 2rem + 3vw, 5rem); }
+  .faqp__group { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: clamp(1.5rem, 1rem + 4vw, 6rem); align-items: start; }
+  .faqp__title { font-size: var(--fs-h3); position: sticky; inset-block-start: calc(var(--header-h) + 1.5rem); }
+  @media (max-width: 860px) {
+    .faqp__group { grid-template-columns: 1fr; }
+    .faqp__title { position: static; }
+  }
+</style>

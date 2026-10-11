@@ -1,0 +1,10 @@
+---
+import StoryView from '~/views/StoryView.astro';
+import { stories, type Story } from '~/data/stories';
+
+export function getStaticPaths() {
+  return stories.map((story) => ({ params: { slug: story.slug }, props: { story } }));
+}
+const { story } = Astro.props as { story: Story };
+---
+<StoryView lang="en" story={story} />

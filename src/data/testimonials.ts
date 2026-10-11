@@ -7,6 +7,8 @@ import type { Localized } from '~/i18n';
 
 export interface Testimonial {
   sample?: boolean;
+  /** Service slug this review relates to (shown on that service page). */
+  service?: string;
   name: Localized;
   event: Localized;
   quote: Localized;
@@ -17,6 +19,7 @@ export interface Testimonial {
 export const testimonials: Testimonial[] = [
   {
     sample: true,
+    service: 'weddings',
     name: { he: 'נועה ודניאל', en: 'Noa & Daniel' },
     event: { he: 'חתונה בקיסריה', en: 'Wedding in Caesarea' },
     quote: {
@@ -27,6 +30,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     sample: true,
+    service: 'bar-bat-mitzvah',
     name: { he: 'משפחת לוי', en: 'The Levi family' },
     event: { he: 'בת מצווה בירושלים', en: 'Bat mitzvah in Jerusalem' },
     quote: {
@@ -37,6 +41,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     sample: true,
+    service: 'couples',
     name: { he: 'שירה ועמית', en: 'Shira & Amit' },
     event: { he: 'פרה־וודינג וחתונה', en: 'Pre-wedding & wedding' },
     quote: {
@@ -47,6 +52,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     sample: true,
+    service: 'events',
     name: { he: 'רונית ואבי', en: 'Ronit & Avi' },
     event: { he: 'ברית לנכד', en: 'Our grandson’s brit' },
     quote: {
@@ -57,6 +63,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     sample: true,
+    service: 'corporate',
     name: { he: 'צוות הייטק תל אביבי', en: 'A Tel Aviv tech team' },
     event: { he: 'כנס חברה שנתי', en: 'Annual company conference' },
     quote: {

@@ -1,0 +1,33 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import Icon from '~/components/ui/Icon.astro';
+---
+<BaseLayout lang="he" path="/404/" title="העמוד לא נמצא · Page not found" description="העמוד שחיפשתם לא נמצא." noindex footerCta={false} alternates={false}>
+  <section class="nf">
+    <div class="container nf__inner">
+      <p class="nf__code" aria-hidden="true">404</p>
+      <div class="nf__cols">
+        <div class="nf__col" lang="he" dir="rtl">
+          <h1 class="display nf__title">הרגע הזה <em>לא צולם</em></h1>
+          <p class="lead">העמוד שחיפשתם לא קיים או שהועבר. בואו נחזור לרגעים היפים.</p>
+          <a class="btn btn--solid" href="/">לדף הבית <Icon name="arrow-right" /></a>
+        </div>
+        <div class="nf__col" lang="en" dir="ltr">
+          <h2 class="display nf__title">This moment <em>wasn’t captured</em></h2>
+          <p class="lead">The page you’re looking for doesn’t exist or has moved. Let’s get you back to the good part.</p>
+          <a class="btn" href="/en/">Back home <Icon name="arrow-right" /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf { min-block-size: 90svh; display: grid; align-items: center; padding-block: calc(var(--header-h) + 3rem) 4rem; }
+  .nf__inner { display: grid; gap: 2rem; }
+  .nf__code { font-family: 'Cormorant', serif; font-weight: 300; font-size: clamp(7rem, 4rem + 14vw, 18rem); line-height: 0.8; color: transparent; -webkit-text-stroke: 1px var(--line-strong); text-align: center; }
+  .nf__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .nf__col { display: grid; gap: 1.2rem; justify-items: start; }
+  .nf__title { font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem); }
+  @media (max-width: 760px) { .nf__cols { grid-template-columns: 1fr; } }
+</style>

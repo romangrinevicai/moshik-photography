@@ -1,0 +1,189 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageHero from '~/components/ui/PageHero.astro';
+import SectionHead from '~/components/ui/SectionHead.astro';
+import PackageCard from '~/components/ui/PackageCard.astro';
+import FaqList from '~/components/ui/FaqList.astro';
+import Icon from '~/components/ui/Icon.astro';
+import QuoteBuilder from '~/components/sections/QuoteBuilder.astro';
+import DateCta from '~/components/sections/DateCta.astro';
+import { pricing } from '~/data/packages';
+import { faq } from '~/data/faq';
+import { breadcrumbSchema, faqSchema } from '~/data/schema';
+import { site } from '~/config/site';
+import { useTranslations, type Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const copy = {
+  eyebrow: { he: 'השקעה', en: 'Investment' },
+  title: { he: 'חבילות *ומחירים*', en: 'Packages & *pricing*' },
+  intro: {
+    he: 'מחירים שקופים כנקודת פתיחה. כל אירוע שונה — ולכן כל חבילה ניתנת להתאמה מלאה. בחרו קטגוריה, או בנו הצעה במחשבון למטה.',
+    en: 'Transparent starting prices. Every event is different — so every package can be fully tailored. Pick a category, or build a quote with the calculator below.',
+  },
+  tabs: { he: 'קטגוריות', en: 'Categories' },
+  always: { he: 'תמיד כלול', en: 'Always included' },
+  alwaysTitle: { he: 'בלי הפתעות, *עם הרבה תוספת ערך*', en: 'No surprises, *plenty of extras*' },
+  terms: { he: 'הזמנה ותשלום', en: 'Booking & payment' },
+  seo: {
+    title: { he: 'מחירים — חבילות צילום חתונה, בר מצווה ואירועים', en: 'Pricing — Wedding, Bar Mitzvah & Event Photography Packages' },
+    description: {
+      he: 'מחירי צילום חתונות, בר ובת מצווה, אירועים, זוגיות ומשפחה. חבילות שקופות, תוספות ומחשבון הצעת מחיר מיידי.',
+      en: 'Prices for wedding, bar & bat mitzvah, event, couple and family photography. Transparent packages, add-ons and an instant quote builder.',
+    },
+  },
+};
+const included: { icon: IconName; title: Record<Lang, string>; text: Record<Lang, string> }[] = [
+  { icon: 'coffee', title: { he: 'פגישת תכנון', en: 'Planning meeting' }, text: { he: 'לו״ז, לוקיישנים ורשימת צילומים — יחד.', en: 'Timeline, locations and shot list — together.' } },
+  { icon: 'wand2', title: { he: 'עריכה תמונה־תמונה', en: 'Individual editing' }, text: { he: 'כל תמונה נערכת ידנית בסגנון שלי.', en: 'Every image hand-edited in my signature style.' } },
+  { icon: 'scan-face', title: { he: 'גלריה עם זיהוי פנים', en: 'Gallery with face search' }, text: { he: 'כל אורח מוצא את עצמו בסלפי.', en: 'Every guest finds themselves with a selfie.' } },
+  { icon: 'shield-check', title: { he: 'גיבוי כפול', en: 'Double backup' }, text: { he: 'מצלמה עם שני כרטיסים וגיבוי בענן.', en: 'Dual-card cameras and cloud backup.' } },
+  { icon: 'download', title: { he: 'רזולוציה מלאה', en: 'Full resolution' }, text: { he: 'הורדה ללא סימני מים, להדפסה ולשיתוף.', en: 'Watermark-free downloads for print and sharing.' } },
+  { icon: 'heart-handshake', title: { he: 'זמינות אישית', en: 'Personal availability' }, text: { he: 'אני זמין לכל שאלה, עד היום הגדול ואחריו.', en: 'Available for every question, before and after the day.' } },
+];
+const terms = {
+  he: [
+    'שריון התאריך במקדמה של 20% והסכם דיגיטלי פשוט.',
+    'יתרת התשלום עד יום האירוע — בהעברה בנקאית, ביט או כרטיס אשראי.',
+    'צילום בכל הארץ; ייתכן תוספת נסיעה סמלית לצפון ולדרום הרחוקים.',
+    'שינוי תאריך? נעשה כל מאמץ להעביר את ההזמנה לתאריך פנוי אחר.',
+  ],
+  en: [
+    'Reserve your date with a 20% deposit and a simple digital agreement.',
+    'The balance is due by the event day — bank transfer, Bit or credit card.',
+    'Available all over Israel; a small travel fee may apply for the far north and south.',
+    'Need to change the date? I’ll do my best to move your booking to another free date.',
+  ],
+};
+const pricingFaq = faq.filter((f) => f.topics.includes('pricing'));
+---
+<BaseLayout
+  lang={lang}
+  path="/pricing/"
+  title={copy.seo.title[lang]}
+  description={copy.seo.description[lang]}
+  jsonLd={[breadcrumbSchema(lang, [{ name: t('nav.pricing'), path: '/pricing/' }]), faqSchema(lang, pricingFaq)]}
+>
+  <PageHero lang={lang} eyebrow={copy.eyebrow[lang]} title={copy.title[lang]} intro={copy.intro[lang]} crumbs={[{ name: t('nav.pricing'), path: '/pricing/' }]} />
+
+  <section class="section section--flush-top" data-tabs>
+    <div class="container">
+      <div class="tabs" role="tablist" aria-label={copy.tabs[lang]}>
+        {
+          pricing.map((c, i) => (
+            <button type="button" role="tab" class="tabs__tab" id={`tab-${c.id}`} aria-controls={`panel-${c.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+              {c.title[lang]}
+            </button>
+          ))
+        }
+      </div>
+      {
+        pricing.map((c, i) => (
+          <div class="tabs__panel" role="tabpanel" id={`panel-${c.id}`} aria-labelledby={`tab-${c.id}`} hidden={i !== 0}>
+            <p class="tabs__intro lead">{c.intro[lang]}</p>
+            <div class:list={['pkgs', `pkgs--${Math.min(c.tiers.length, 3)}`]}>
+              {c.tiers.map((tier, k) => <PackageCard tier={tier} category={c.id} lang={lang} index={k} />)}
+            </div>
+          </div>
+        ))
+      }
+      {site.pricing.showPrices && site.pricing.includesVat && <p class="small muted pkgs-note">{t('common.vatIncluded')}</p>}
+    </div>
+  </section>
+
+  <section class="section section--deep">
+    <div class="container">
+      <SectionHead eyebrow={copy.always[lang]} title={copy.alwaysTitle[lang]} align="center" />
+      <ul role="list" class="always">
+        {included.map((it, i) => (
+          <li data-reveal style={`--reveal-delay:${i * 70}`}>
+            <span class="always__icon"><Icon name={it.icon} size={22} stroke={1.3} /></span>
+            <h3 class="always__title">{it.title[lang]}</h3>
+            <p class="muted">{it.text[lang]}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <QuoteBuilder lang={lang} />
+
+  <section class="section section--flush-top">
+    <div class="container terms-grid">
+      <div>
+        <h2 class="h3" data-reveal>{copy.terms[lang]}</h2>
+        <ul role="list" class="terms">
+          {terms[lang].map((term) => <li data-reveal><Icon name="check" size={16} stroke={1.8} /> <span>{term}</span></li>)}
+        </ul>
+      </div>
+      <FaqList items={pricingFaq} lang={lang} />
+    </div>
+  </section>
+
+  <DateCta lang={lang} />
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      tabs.forEach((tb) => {
+        const on = tb === tab;
+        tb.setAttribute('aria-selected', String(on));
+        tb.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(tb.getAttribute('aria-controls')!);
+        if (panel) {
+          panel.hidden = !on;
+          if (on) panel.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-in'));
+        }
+      });
+      if (focus) tab.focus();
+      history.replaceState(null, '', `#${tab.id.replace('tab-', '')}`);
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const rtl = document.documentElement.dir === 'rtl';
+        const fwd = rtl ? 'ArrowLeft' : 'ArrowRight';
+        const back = rtl ? 'ArrowRight' : 'ArrowLeft';
+        if (e.key === fwd) select(tabs[(i + 1) % tabs.length]!, true);
+        if (e.key === back) select(tabs[(i - 1 + tabs.length) % tabs.length]!, true);
+        if (e.key === 'Home') select(tabs[0]!, true);
+        if (e.key === 'End') select(tabs[tabs.length - 1]!, true);
+      });
+    });
+    const fromHash = tabs.find((tb) => tb.id === `tab-${location.hash.slice(1)}`);
+    if (fromHash) select(fromHash);
+  });
+</script>
+
+<style>
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-block-end: 1.4rem; margin-block-end: 2.4rem; border-block-end: 1px solid var(--rule); }
+  .tabs__tab { padding: 0.75rem 1.3rem; border-radius: 999px; font-weight: 600; font-size: 0.98rem; border: 1px solid transparent; transition: all 0.25s; }
+  .tabs__tab:hover { border-color: var(--rule); }
+  .tabs__tab[aria-selected='true'] { background: var(--ink); color: var(--paper); }
+  .tabs__intro { max-inline-size: 60ch; margin-block-end: 2.4rem; }
+  .pkgs { display: grid; gap: 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pkgs--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-inline-size: 920px; }
+  .pkgs--1 { grid-template-columns: minmax(0, 480px); }
+  .pkgs-note { margin-block-start: 1.6rem; }
+  .always { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4rem 2rem; }
+  .always li { display: grid; gap: 0.6rem; justify-items: start; }
+  .always__icon { display: grid; place-items: center; inline-size: 3.4rem; block-size: 3.4rem; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--accent); margin-block-end: 0.4rem; }
+  .always__title { font-family: var(--font-body); font-size: 1.12rem; font-weight: 650; }
+  .terms-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(2rem, 1rem + 5vw, 6rem); align-items: start; }
+  .terms { display: grid; gap: 1rem; margin-block-start: 1.6rem; }
+  .terms li { display: grid; grid-template-columns: 1.2rem 1fr; gap: 0.8rem; }
+  .terms :global(.icon) { color: var(--accent); margin-block-start: 0.35rem; }
+  @media (max-width: 960px) {
+    .pkgs, .pkgs--2 { grid-template-columns: 1fr; max-inline-size: 520px; }
+    .always { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .terms-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) { .always { grid-template-columns: 1fr; } }
+</style>

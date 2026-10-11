@@ -1,0 +1,69 @@
+---
+/**
+ * Justified photo grid (Flickr/Google Photos style) done in pure CSS:
+ * each tile grows in proportion to its aspect ratio, so rows fill the
+ * width exactly without cropping. Opens a PhotoSwipe lightbox.
+ */
+import Img from '~/components/ui/Img.astro';
+import LightboxLink from '~/components/ui/LightboxLink.astro';
+import { altFor, type Photo } from '~/data/photos';
+import { useTranslations, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+  items: { photo: Photo; category?: string; label?: string }[];
+  rowHeight?: number;
+  id?: string;
+}
+const { lang, items, rowHeight = 300, id } = Astro.props;
+const t = useTranslations(lang);
+---
+<div class="jgrid" data-lightbox style={`--row-h:${rowHeight}px`} id={id} data-jgrid>
+  {
+    items.map((item, i) => {
+      const ratio = item.photo.width / item.photo.height;
+      return (
+        <figure class="jgrid__item" data-category={item.category} data-reveal="fade" style={`--r:${ratio.toFixed(4)}; --reveal-delay:${(i % 8) * 40}`}>
+          <LightboxLink photo={item.photo} caption={item.label} cursorLabel={t('lb.view')} index={i}>
+            <span class="jgrid__media">
+              <Img photo={item.photo} alt={altFor(item.photo, lang)} preset="third" sizes={`(min-width: 900px) ${Math.round(rowHeight * ratio * 1.3)}px, 50vw`} />
+            </span>
+          </LightboxLink>
+        </figure>
+      );
+    })
+  }
+  <span class="jgrid__filler" aria-hidden="true"></span>
+</div>
+
+<script>
+  import '~/scripts/lightbox';
+</script>
+
+<style>
+  .jgrid { display: flex; flex-wrap: wrap; gap: clamp(0.4rem, 0.2rem + 0.6vw, 0.9rem); }
+  .jgrid__item {
+    flex-grow: var(--r);
+    flex-basis: calc(var(--r) * var(--row-h));
+    aspect-ratio: var(--r);
+    position: relative;
+    overflow: hidden;
+    background: var(--sand);
+  }
+  .jgrid__item[hidden] { display: none; }
+  .jgrid__item :global(a) { display: block; block-size: 100%; }
+  .jgrid__media { display: block; block-size: 100%; }
+  .jgrid__media :global(picture), .jgrid__media :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    transition: transform 1.4s var(--ease-out), filter 0.6s;
+  }
+  @media (hover: hover) {
+    .jgrid__item:hover :global(img) { transform: scale(1.04); }
+  }
+  .jgrid__filler { flex-grow: 999999; flex-basis: calc(var(--row-h) * 1.2); block-size: 0; }
+  @media (max-width: 700px) {
+    .jgrid { --row-h: 170px !important; }
+  }
+</style>

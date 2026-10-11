@@ -354,7 +354,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     clip-path: inset(0 0 100% 0);
     transition: clip-path 0.8s var(--ease-in-out);
   }
-  .mobile-menu[hidden] { display: block; visibility: hidden; }
+  .mobile-menu[hidden] { display: block !important; visibility: hidden; }
   :global(html.menu-open) .mobile-menu { clip-path: inset(0 0 0 0); visibility: visible; }
   .mobile-menu__inner { display: flex; flex-direction: column; min-block-size: 100%; gap: 3rem; }
   .mobile-menu__list > li {

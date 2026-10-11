@@ -60,7 +60,7 @@ export function initA11yMenu() {
     if (state) panel.querySelector<HTMLElement>('button')?.focus();
   };
 
-  toggle.addEventListener('click', () => open(panel.hidden));
+  toggle.addEventListener('click', () => open(Boolean(panel.hidden)));
   root.querySelector('[data-a11y-close]')?.addEventListener('click', () => {
     open(false);
     toggle.focus();
