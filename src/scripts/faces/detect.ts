@@ -8,6 +8,7 @@
  * texture pool stays bounded across hundreds of photos. All tensors are
  * disposed before returning.
  */
+import type { tf as TF } from '@vladmandic/face-api/dist/face-api.esm.js';
 import {
   DESCRIPTOR_SIZE,
   DETECTOR_SIZE,
@@ -25,6 +26,7 @@ import {
 import {
   alignFromLandmarks,
   decodeDetections,
+  dedupeByAlignment,
   landmarkChip,
   mergeCandidates,
   tileGrid,
@@ -34,7 +36,6 @@ import {
   type Region,
   type Tile,
 } from './geometry';
-import type { tf as TF } from '@vladmandic/face-api/dist/face-api.esm.js';
 import { sourceSize } from './image';
 import { activeBackend, type FaceApi } from './runtime';
 import type { Box, DetectedFace, FaceSource } from './types';
@@ -53,6 +54,11 @@ export interface DetectOptions {
 export const tuning = {
   /** Rotate aligned chips so the eyes are level before computing descriptors. */
   rotateChips: true,
+  /**
+   * Experimental: second landmark pass on the face turned upright. Helps strongly tilted heads
+   * but was slightly worse overall on the harness data, so it is off.
+   */
+  refineLandmarks: false,
   tileTarget: TILE_TARGET,
   /** When set, accumulates milliseconds per pipeline stage. */
   timings: null as Record<string, number> | null,
@@ -93,6 +99,22 @@ function drawDetectorView(ctx: CanvasRenderingContext2D, source: FaceSource, vie
   const k = DETECTOR_SIZE / Math.max(view.w, view.h);
   ctx.fillRect(0, 0, DETECTOR_SIZE, DETECTOR_SIZE);
   ctx.drawImage(source as CanvasImageSource, view.x, view.y, view.w, view.h, 0, 0, view.w * k, view.h * k);
+}
+
+/**
+ * Draws a detection box turned upright (rotated by -angle), framed like the
+ * first landmark pass: the box centred in the chip with black bars.
+ */
+function drawUprightBox(ctx: CanvasRenderingContext2D, source: FaceSource, r: Region, angle: number, top: number, size: number) {
+  const side = Math.max(r.w, r.h);
+  ctx.translate(size / 2, top + size / 2);
+  ctx.scale(size / side, size / side);
+  ctx.beginPath();
+  ctx.rect(-r.w / 2, -r.h / 2, r.w, r.h);
+  ctx.clip();
+  ctx.rotate(-angle);
+  ctx.translate(-(r.x + r.w / 2), -(r.y + r.h / 2));
+  ctx.drawImage(source as CanvasImageSource, 0, 0);
 }
 
 /** Draws the aligned face chip: reference point at (0.5, 0.43) of the chip, eyes level when rotating. */
@@ -210,7 +232,7 @@ export async function runDetection(api: FaceApi, source: FaceSource, opts: Detec
 
   let t = performance.now();
   const candidates = (await detectorPasses(api, source, views, minScore)).filter((c) => Math.min(c.rect.w, c.rect.h) >= minFace);
-  const faces = mergeCandidates(candidates, MERGE_IOU, MERGE_OVERLAP);
+  let faces = mergeCandidates(candidates, MERGE_IOU, MERGE_OVERLAP);
   t = lap('detector', t);
   if (!faces.length) return [];
 
@@ -222,7 +244,7 @@ export async function runDetection(api: FaceApi, source: FaceSource, opts: Detec
     chips.map((c) => (ctx, top) => ctx.drawImage(source as CanvasImageSource, c.sx, c.sy, c.sw, c.sh, c.dx, top + c.dy, c.sw * c.k, c.sh * c.k)),
     LANDMARK_SIZE,
   );
-  const alignments = landmarkRows.map((rel, i) => {
+  let alignments = landmarkRows.map((rel, i) => {
     const c = chips[i]!;
     const pts = new Float32Array(136);
     for (let j = 0; j < 68; j++) {
@@ -231,7 +253,41 @@ export async function runDetection(api: FaceApi, source: FaceSource, opts: Detec
     }
     return alignFromLandmarks(pts);
   });
+
+  if (tuning.refineLandmarks && tuning.rotateChips) {
+    // Landmarks again, on the face turned upright by the first estimate of its roll.
+    const rows = await faceNet(
+      api,
+      'landmarks',
+      faces.map((f, i) => (ctx, top) => drawUprightBox(ctx, source, f.rect, alignments[i]!.angle, top, LANDMARK_SIZE)),
+      LANDMARK_SIZE,
+    );
+    alignments = rows.map((rel, i) => {
+      const { rect } = faces[i]!;
+      const { angle } = alignments[i]!;
+      const k = Math.max(rect.w, rect.h) / LANDMARK_SIZE;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const cx = rect.x + rect.w / 2;
+      const cy = rect.y + rect.h / 2;
+      const pts = new Float32Array(136);
+      for (let j = 0; j < 68; j++) {
+        const qx = (rel[j * 2]! - 0.5) * LANDMARK_SIZE * k;
+        const qy = (rel[j * 2 + 1]! - 0.5) * LANDMARK_SIZE * k;
+        pts[j * 2] = cx + qx * cos - qy * sin;
+        pts[j * 2 + 1] = cy + qx * sin + qy * cos;
+      }
+      return alignFromLandmarks(pts);
+    });
+  }
   t = lap('landmarks', t);
+
+  // Same face found twice (e.g. a half-face box from a tile next to the full one)?
+  const keep = dedupeByAlignment(alignments, faces.map((f) => f.score));
+  if (keep.length < faces.length) {
+    faces = keep.map((i) => faces[i]!);
+    alignments = keep.map((i) => alignments[i]!);
+  }
 
   const descriptors = await faceNet(
     api,

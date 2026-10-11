@@ -154,7 +154,7 @@ export async function analyzeGalleryImpl(opts: AnalyzeOptions, deps: AnalyzeDeps
       } else {
         missing++;
       }
-      report({ stage: 'detect', done: ++done, total });
+      report({ stage: 'detect', done: ++done, total, message: image ? undefined : `missing ${photo.id}` });
       await yieldToUI();
     }
   } finally {

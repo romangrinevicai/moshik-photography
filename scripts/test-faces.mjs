@@ -61,7 +61,7 @@ window.harnessReady = true;
   );
   await writeFile(
     path.join(site, 'index.html'),
-    `<!doctype html><html><head><meta charset="utf-8"><title>faces harness</title></head><body><script type="module" src="./entry.js"></script></body></html>`,
+    `<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>faces harness</title></head><body><script type="module" src="./entry.js"></script></body></html>`,
   );
   const { build } = await import(require.resolve('vite'));
   const t0 = Date.now();
@@ -574,7 +574,10 @@ const TESTS = {
       // (checked visually): count that pair as one identity when their originals do match.
       const [a, b] = ['sample1.jpg:2', 'sample3.jpg:1'].map((id) => labeled.find((l) => l.id === id && l.kind === 'orig'));
       const aliased = !!(a && b && dist(a.face.descriptor, b.face.descriptor) < 0.5);
-      if (aliased) for (const l of labeled) if (l.id === b.id) [l.id, l.originalId] = [a.id, b.id];
+      if (aliased) {
+        const [from, to] = [b.id, a.id];
+        for (const l of labeled) if (l.id === from) [l.id, l.originalId] = [to, from];
+      }
       return { labeled, recall, falsePositives, aliased };
     };
     const summarise = (labeled) => {
@@ -594,12 +597,14 @@ const TESTS = {
       worst.sort((x, y) => y.d - x.d);
       const diff = [];
       const diffOrig = [];
+      const closeAll = [];
       let closest = { d: Infinity };
       for (let i = 0; i < labeled.length; i++) {
         for (let j = i + 1; j < labeled.length; j++) {
           if (labeled[i].id === labeled[j].id) continue;
           const d = dist(labeled[i].face.descriptor, labeled[j].face.descriptor);
           diff.push(d);
+          if (d < 0.5) closeAll.push({ d: +d.toFixed(3), a: `${labeled[i].originalId ?? labeled[i].id}@${labeled[i].kind}`, b: `${labeled[j].originalId ?? labeled[j].id}@${labeled[j].kind}` });
           if (labeled[i].kind === 'orig' && labeled[j].kind === 'orig') {
             diffOrig.push(d);
             if (d < closest.d) closest = { d: +d.toFixed(3), a: labeled[i].id, b: labeled[j].id };
@@ -615,28 +620,46 @@ const TESTS = {
         sameAll: stats(same),
         samePerKind: Object.fromEntries(Object.entries(perKind).map(([k, v]) => [k, stats(v)])),
         worstSamePerson: worst.slice(0, 6),
+        closestDifferentAll: closeAll.sort((x, y) => x.d - y.d).slice(0, 8),
+        differentBelow05: closeAll.length,
         diffAll: stats(diff),
         diffOriginalsOnly: stats(diffOrig),
         closestDifferentOriginals: closest,
         rates,
       };
     };
+    const subset = ['rot12', 'rotm20', 'flip'];
+    const configured = T.refineLandmarks;
     T.rotateChips = true;
     const withRot = await labelAll(kinds);
     window.store.labeled = withRot.labeled;
+    T.refineLandmarks = !configured;
+    const alternative = await labelAll(kinds);
     T.rotateChips = false;
-    const noRot = await labelAll(['rot12', 'rotm20', 'flip']);
+    const noRot = await labelAll(subset);
     T.rotateChips = true;
+    T.refineLandmarks = configured;
+    const pick = (v) => (v ? { p50: v.p50, p95: v.p95, max: v.max } : null);
     const sub = (labeled) => {
       const s = summarise(labeled);
-      return { rot12: s.samePerKind.rot12, rotm20: s.samePerKind.rotm20, flip: s.samePerKind.flip, diffOriginalsOnly: s.diffOriginalsOnly };
+      return { rot12: pick(s.samePerKind.rot12), rotm20: pick(s.samePerKind.rotm20), flip: pick(s.samePerKind.flip), different: pick(s.diffOriginalsOnly) };
+    };
+    const brief = (labeled) => {
+      const s = summarise(labeled);
+      return { same: pick(s.sameAll), different: pick(s.diffAll), rates: s.rates, worst: s.worstSamePerson.slice(0, 3).map((w) => `${w.id}@${w.kind}=${w.d}`) };
     };
     return {
+      refineLandmarks: configured,
       recall: withRot.recall,
       falsePositives: withRot.falsePositives,
       samePersonPairMerged: withRot.aliased,
       ...summarise(withRot.labeled),
-      rotationCorrection: { on: sub(withRot.labeled.filter((l) => ['orig', 'rot12', 'rotm20', 'flip'].includes(l.kind))), off: sub(noRot.labeled) },
+      [`withRefineLandmarks_${!configured}`]: brief(alternative.labeled),
+      rotationCorrection: {
+        roll: sub(withRot.labeled.filter((l) => ['orig', ...subset].includes(l.kind))),
+        [`roll_refine_${!configured}`]: sub(alternative.labeled.filter((l) => ['orig', ...subset].includes(l.kind))),
+        none: sub(noRot.labeled),
+      },
     };
   },
 

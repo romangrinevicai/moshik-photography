@@ -4,6 +4,7 @@ import { clusterFacesSync, type ClusterItem } from './cluster';
 import {
   alignFromLandmarks,
   decodeDetections,
+  dedupeByAlignment,
   iou,
   mergeCandidates,
   overlapOfSmaller,
@@ -61,6 +62,13 @@ describe('geometry', () => {
     const c = (x: number, y: number, s: number, w = 50): Candidate => ({ rect: { x, y, w, h: w }, score: s });
     const merged = mergeCandidates([c(100, 100, 0.8), c(104, 102, 0.95), c(300, 100, 0.9), c(110, 110, 0.7, 20)], 0.35, 0.6);
     expect(merged.map((m) => m.score)).toEqual([0.95, 0.9]);
+  });
+
+  it('drops a second detection of the same face but keeps faces cheek to cheek', () => {
+    const al = (cx: number, size = 100) => ({ cx, cy: 100, size, angle: 0, frontal: 1 });
+    // 0 and 1: same face (centres 30 px apart, size 100); 2: the neighbour one face-width away
+    expect(dedupeByAlignment([al(100), al(130), al(210)], [0.7, 0.95, 0.9])).toEqual([1, 2]);
+    expect(dedupeByAlignment([al(100), al(195)], [0.9, 0.9])).toEqual([0, 1]);
   });
 
   it('keeps square crops inside the image', () => {

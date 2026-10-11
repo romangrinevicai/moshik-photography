@@ -194,6 +194,27 @@ export function alignFromLandmarks(pts: ArrayLike<number>): Alignment {
   };
 }
 
+/**
+ * Indices of the faces to keep after a landmark-based dedupe: two detections
+ * whose reference points (eyes + mouth centroid) are closer than `radius` ×
+ * the smaller face are the same face (e.g. a half-face box next to the full
+ * one); the higher score wins. Distinct faces — even cheek to cheek — are
+ * about one face width apart.
+ */
+export function dedupeByAlignment(aligns: Alignment[], scores: number[], radius = 0.5): number[] {
+  const order = scores.map((_, i) => i).sort((a, b) => scores[b]! - scores[a]!);
+  const kept: number[] = [];
+  for (const i of order) {
+    const a = aligns[i]!;
+    const clash = kept.some((j) => {
+      const b = aligns[j]!;
+      return Math.hypot(a.cx - b.cx, a.cy - b.cy) < radius * Math.min(a.size, b.size);
+    });
+    if (!clash) kept.push(i);
+  }
+  return kept.sort((a, b) => a - b);
+}
+
 /** Square crop with `margin` (fraction of the face size added on every side), kept inside the image. */
 export function squareCrop(box: Region, width: number, height: number, margin: number, lift = 0.08): Region {
   const face = Math.max(box.w, box.h);
