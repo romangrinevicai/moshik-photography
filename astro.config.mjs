@@ -11,6 +11,8 @@ const SITE_URL = process.env.SITE_URL || 'https://moshik-photography.example';
 
 export default defineConfig({
   site: SITE_URL,
+  // Lets parallel builds (e.g. separate git worktrees) keep separate caches.
+  cacheDir: process.env.ASTRO_CACHE_DIR || './node_modules/.astro',
   trailingSlash: 'ignore',
   build: {
     format: 'directory',
