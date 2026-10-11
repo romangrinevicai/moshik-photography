@@ -85,6 +85,7 @@ const pricingFaq = faq.filter((f) => f.topics.includes('pricing'));
       {
         pricing.map((c, i) => (
           <div class="tabs__panel" role="tabpanel" id={`panel-${c.id}`} aria-labelledby={`tab-${c.id}`} hidden={i !== 0}>
+            <h2 class="sr-only">{c.title[lang]}</h2>
             <p class="tabs__intro lead">{c.intro[lang]}</p>
             <div class:list={['pkgs', `pkgs--${Math.min(c.tiers.length, 3)}`]}>
               {c.tiers.map((tier, k) => <PackageCard tier={tier} category={c.id} lang={lang} index={k} />)}
