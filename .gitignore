@@ -1,10 +1,15 @@
-# dependencies
+# dependencies (no trailing slash: also matches a symlinked node_modules)
 node_modules
 
 # build output
 dist/
 .astro/
+.astro-cache/
 .wrangler/
+.wrangler-dry-run/
+
+# face recognition models, copied from node_modules by scripts/copy-face-models.mjs
+public/models/
 
 # environment / secrets
 .env
@@ -31,6 +36,3 @@ playwright-report/
 
 # local agent worktrees
 .claude/worktrees/
-.astro-cache/
-public/models/
-.wrangler-dry-run/

@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Moshik \u2014 wedding & event photography. Bilingual (Hebrew/English) website with private client galleries and AI face search.",
   "scripts": {
+    "predev": "node scripts/copy-face-models.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/copy-face-models.mjs",
     "build": "astro build",
     "preview": "astro build && wrangler dev",
     "deploy": "astro build && wrangler deploy",
