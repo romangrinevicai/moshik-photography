@@ -40,6 +40,8 @@ const S = {
   prev: { he: 'התמונה הקודמת', en: 'Previous photo' },
   next: { he: 'התמונה הבאה', en: 'Next photo' },
   position: { he: '{i} מתוך {n}', en: '{i} of {n}' },
+  moveTo: { he: 'העברה לפרק…', en: 'Move to chapter…' },
+  moved: { he: ['התמונה הועברה', '{n} תמונות הועברו'], en: ['Photo moved', '{n} photos moved'] } as { he: [string, string]; en: [string, string] },
 };
 
 const CHUNK = 160;
@@ -152,6 +154,15 @@ function renderSelbar() {
   if (!n) return;
   $('[data-ph-selcount]').textContent = n === 1 ? T(S.selectedOne) : T(S.selected, { n: fmtNumber(n) });
   $<HTMLButtonElement>('[data-ph-cover]').hidden = n !== 1;
+  const move = $<HTMLSelectElement>('[data-ph-move]');
+  const sets = ed.state?.gallery.sets ?? [];
+  move.hidden = sets.length === 0;
+  move.replaceChildren(
+    h('option', { value: '__' }, T(S.moveTo)),
+    ...sets.map((set) => h('option', { value: set.id }, set.name)),
+    h('option', { value: '' }, T(S.noSet)),
+  );
+  move.value = '__';
   const all = visible();
   const allSelected = all.length > 0 && all.every((p) => selected.has(p.id));
   $('[data-ph-all]').textContent = T(allSelected ? S.clear : S.selectAll);
@@ -218,6 +229,26 @@ async function setCover(id: string) {
     render();
   } catch (e) {
     toastError(errorText(e));
+  }
+}
+
+async function movePhotos(ids: string[], set: string) {
+  const st = ed.state;
+  if (!st || !ids.length || set === '__') return;
+  const move = $<HTMLSelectElement>('[data-ph-move]');
+  move.disabled = true;
+  try {
+    await api(galleryApi(st.gid, '/photos'), { method: 'PATCH', body: { ids, set } });
+    const moved = new Set(ids);
+    for (const p of st.photos) if (moved.has(p.id)) p.set = set || undefined;
+    emit('photos');
+    scheduleSync();
+    toast(plural(ids.length, S.moved));
+  } catch (e) {
+    toastError(errorText(e));
+  } finally {
+    move.disabled = false;
+    move.value = '__';
   }
 }
 
@@ -388,6 +419,8 @@ export const photos = {
       if (id) void setCover(id).then(() => (selected.clear(), render()));
     });
     $('[data-ph-delete]').addEventListener('click', () => void removePhotos([...selected]));
+    const move = $<HTMLSelectElement>('[data-ph-move]');
+    move.addEventListener('change', () => void movePhotos([...selected], move.value));
     const more = $<HTMLButtonElement>('[data-ph-more]');
     more.addEventListener('click', () => {
       limit += CHUNK * 2;

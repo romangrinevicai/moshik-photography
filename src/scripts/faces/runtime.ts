@@ -32,12 +32,11 @@ export interface FaceSettings {
   backend: Backend | null;
 }
 
-/** TF.js version bundled in the engine (the WASM binaries must match it exactly). */
-const TFJS_VERSION = '4.22.0';
-
 export const settings: FaceSettings = {
   modelUrl: '/models/face-api',
-  wasmPath: `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${TFJS_VERSION}/dist/`,
+  // Self-hosted by scripts/copy-face-models.mjs. The binaries must match the TF.js
+  // version bundled in the engine exactly (4.22.0, pinned in package.json).
+  wasmPath: '/models/tfjs-wasm/',
   backend: null,
 };
 

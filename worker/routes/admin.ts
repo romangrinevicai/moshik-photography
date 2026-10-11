@@ -285,6 +285,32 @@ export async function uploadPhoto(request: Request, env: Env, gid: string, pid: 
   return json({ ok: true, size: stored?.size ?? length });
 }
 
+/** PATCH /photos { ids, set } — move photos to another chapter (set: '' = no chapter). */
+export async function movePhotos(request: Request, env: Env, gid: string): Promise<Response> {
+  const bucket = bucketOf(env);
+  assertId(gid);
+  const record = await getRecord(bucket, gid, true);
+  if (!record) throw new HttpError(404, 'Gallery not found', 'not_found');
+  const body = await readJson<{ ids?: unknown; set?: unknown }>(request);
+  const ids = Array.isArray(body.ids) ? [...new Set(body.ids.filter((x): x is string => typeof x === 'string' && ID_RE.test(x)))].slice(0, 500) : [];
+  const set = clip(body.set, 24).replace(/[^a-z0-9-]/gi, '');
+  if (!ids.length) return errorResponse(400, 'No photos selected', 'invalid');
+  if (set && !record.sets.some((s) => s.id === set)) return errorResponse(400, 'Unknown chapter', 'invalid');
+  let moved = 0;
+  for (const pid of ids) {
+    const key = keys.photo(gid, pid, 'web');
+    const obj = await bucket.get(key);
+    if (!obj) continue;
+    const customMetadata = { ...(obj.customMetadata ?? {}) };
+    if (set) customMetadata.set = set;
+    else delete customMetadata.set;
+    // R2 has no metadata-only update, so the object is rewritten in place.
+    await bucket.put(key, await obj.arrayBuffer(), { httpMetadata: obj.httpMetadata, customMetadata });
+    moved++;
+  }
+  return json({ ok: true, moved });
+}
+
 export async function deletePhoto(env: Env, gid: string, pid: string): Promise<Response> {
   const bucket = bucketOf(env);
   assertId(gid);
@@ -337,7 +363,12 @@ export async function putPeople(request: Request, env: Env, gid: string): Promis
     return { id: p.id, photoIds, count: photoIds.length, hasCrop: p.hasCrop === true };
   });
   await putJson(bucket, keys.people(gid), { people: clean });
-  return json({ ok: true, people: clean.length });
+  // Remove face crops left over from earlier analyses.
+  const keep = new Set(clean.map((p) => keys.personCrop(gid, p.id)));
+  const { objects } = await listAll(bucket, `galleries/${gid}/people/`);
+  const stale = objects.map((o) => o.key).filter((k) => !keep.has(k));
+  for (let i = 0; i < stale.length; i += 1000) await bucket.delete(stale.slice(i, i + 1000));
+  return json({ ok: true, people: clean.length, pruned: stale.length });
 }
 
 export async function putPersonCrop(request: Request, env: Env, gid: string, personId: string): Promise<Response> {
@@ -457,6 +488,7 @@ export async function handleAdmin(request: Request, env: Env, url: URL): Promise
   if ((m = path.match(/^\/galleries\/([^/]+)\/selections$/)) && method === 'GET') return listSelections(env, m[1]!);
   if ((m = path.match(/^\/galleries\/([^/]+)\/photos\/([^/]+)\/(thumb|web|original)$/)) && method === 'PUT') return uploadPhoto(request, env, m[1]!, m[2]!, m[3]!);
   if ((m = path.match(/^\/galleries\/([^/]+)\/photos\/([^/]+)$/)) && method === 'DELETE') return deletePhoto(env, m[1]!, m[2]!);
+  if ((m = path.match(/^\/galleries\/([^/]+)\/photos$/)) && method === 'PATCH') return movePhotos(request, env, m[1]!);
   if ((m = path.match(/^\/galleries\/([^/]+)\/faces\/index$/)) && method === 'PUT') return putFaceIndex(request, env, m[1]!);
   if ((m = path.match(/^\/galleries\/([^/]+)\/faces\/descriptors$/)) && method === 'PUT') return putFaceDescriptors(request, env, m[1]!);
   if ((m = path.match(/^\/galleries\/([^/]+)\/faces\/people$/)) && method === 'PUT') return putPeople(request, env, m[1]!);

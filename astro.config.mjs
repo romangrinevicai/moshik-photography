@@ -39,6 +39,8 @@ export default defineConfig({
   vite: {
     build: {
       assetsInlineLimit: 2048,
+      // The face-recognition engine (~1.3 MB) is a lazily loaded chunk.
+      chunkSizeWarningLimit: 1400,
     },
   },
 });

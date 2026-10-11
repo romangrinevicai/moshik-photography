@@ -1889,3 +1889,18 @@ button.adm-code:hover { background: var(--sand); border-color: var(--line-strong
   html.adm-print-card .adm-tc__cta { font-size: 10pt; }
   html.adm-print-card .grain::after { display: none !important; }
 }
+
+/* Move selected photos to another chapter */
+.adm-selbar__move {
+  inline-size: auto;
+  min-block-size: 2.5rem;
+  padding-block: 0.3rem;
+  padding-inline: 0.8rem 1.9rem;
+  color: var(--on-noir);
+  background-color: transparent;
+  border: 1px solid rgb(243 237 229 / 0.35);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23f3ede5' stroke-width='1.4'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E");
+}
+.adm-selbar__move option { color: var(--ink); background: var(--paper); }

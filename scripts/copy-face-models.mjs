@@ -2,7 +2,9 @@
 /**
  * Copies the face recognition model weights used by src/scripts/faces from
  * node_modules into public/models/face-api/, so they are served (and shipped
- * in dist/) at /models/face-api/. Runs automatically before `npm run dev` and
+ * in dist/) at /models/face-api/. Also self-hosts the TF.js WebAssembly
+ * binaries (fallback for devices without WebGL) at /models/tfjs-wasm/, so no
+ * third-party CDN is ever contacted. Runs automatically before `npm run dev` and
  * `npm run build` (predev / prebuild).
  *
  * Idempotent: files whose content is already up to date are skipped.
@@ -18,6 +20,8 @@ const MODELS = ['ssd_mobilenetv1_model', 'face_landmark_68_model', 'face_recogni
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEST = path.join(ROOT, 'public', 'models', 'face-api');
+const WASM_DEST = path.join(ROOT, 'public', 'models', 'tfjs-wasm');
+const WASM_FILES = ['tfjs-backend-wasm.wasm', 'tfjs-backend-wasm-simd.wasm', 'tfjs-backend-wasm-threaded-simd.wasm'];
 const quiet = process.argv.includes('--quiet');
 
 function packageModelDir() {
@@ -48,11 +52,19 @@ async function main() {
     for (const group of groups) for (const shard of group.paths) files.push(shard);
   }
 
+  const jobs = files.map((file) => ({ src: path.join(srcDir, file), dest: path.join(DEST, file) }));
+  try {
+    const require = createRequire(path.join(ROOT, 'package.json'));
+    const wasmDir = path.join(path.dirname(require.resolve('@tensorflow/tfjs-backend-wasm/package.json')), 'dist');
+    await mkdir(WASM_DEST, { recursive: true });
+    for (const file of WASM_FILES) jobs.push({ src: path.join(wasmDir, file), dest: path.join(WASM_DEST, file) });
+  } catch {
+    if (!quiet) console.warn('[face models] @tensorflow/tfjs-backend-wasm not installed — devices without WebGL will use the slower CPU fallback.');
+  }
+
   let copied = 0;
   let bytes = 0;
-  for (const file of files) {
-    const src = path.join(srcDir, file);
-    const dest = path.join(DEST, file);
+  for (const { src, dest } of jobs) {
     if (await sameContent(src, dest)) continue;
     // Copy to a temp name first so an interrupted run never leaves a truncated model behind.
     const tmp = `${dest}.tmp-${process.pid}`;

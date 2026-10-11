@@ -9,11 +9,12 @@
     "dev": "astro dev",
     "prebuild": "node scripts/copy-face-models.mjs",
     "build": "astro build",
-    "preview": "astro build && wrangler dev",
-    "deploy": "astro build && wrangler deploy",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "check": "astro check && tsc -p worker/tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
-    "checklist": "node scripts/launch-checklist.mjs"
+    "checklist": "node scripts/launch-checklist.mjs",
+    "photos:import": "node scripts/import-photos.mjs"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@cloudflare/workers-types": "^5.20261011.1",
+    "@tensorflow/tfjs-backend-wasm": "4.22.0",
     "lucide-static": "^1.55.0",
     "playwright-core": "^1.64.0",
     "sharp": "^0.35.5",

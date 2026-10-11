@@ -57,6 +57,7 @@ const c = {
   selectAllLabel: { he: 'בחירת כל התמונות המוצגות', en: 'Select all shown photos' },
   setFilter: { he: 'סינון לפי פרק', en: 'Filter by chapter' },
   setCover: { he: 'תמונת שער', en: 'Set as cover' },
+  moveTo: { he: 'העברה לפרק…', en: 'Move to chapter…' },
   del: { he: 'מחיקה', en: 'Delete' },
   clearSel: { he: 'ביטול הבחירה', en: 'Clear selection' },
   showMore: { he: 'להציג עוד תמונות', en: 'Show more photos' },
@@ -309,6 +310,7 @@ const tabs = ['photos', 'details', 'faces', 'share', 'selections'] as const;
           <span class="adm-selbar__spacer"></span>
           <span class="adm-selbar__status" data-ph-status aria-live="polite"></span>
           <button class="btn btn--sm btn--light" type="button" data-ph-cover><Icon name="star" size={16} />{c.setCover[lang]}</button>
+          <select class="select adm-selbar__move" data-ph-move aria-label={c.moveTo[lang]} hidden><option value="__">{c.moveTo[lang]}</option></select>
           <button class="btn btn--sm adm-btn-danger adm-btn-danger--onDark" type="button" data-ph-delete><Icon name="trash2" size={16} />{c.del[lang]}</button>
           <button class="adm-iconbtn adm-iconbtn--light" type="button" data-ph-clear aria-label={c.clearSel[lang]}><Icon name="x" size={18} /></button>
         </div>

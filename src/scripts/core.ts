@@ -16,8 +16,11 @@ let lenis: Lenis | null = null;
 export const getLenis = () => lenis;
 
 /* ─────────────────────────── smooth scroll ─────────────────────────── */
+/** App-like pages (client gallery, admin) keep native scrolling and cursor. */
+const isAppPage = () => document.body.hasAttribute('data-app-page');
+
 function initSmoothScroll() {
-  if (lenis || motionOff()) return;
+  if (lenis || motionOff() || isAppPage()) return;
   lenis = new Lenis({
     autoRaf: true,
     duration: 1.15,
@@ -185,12 +188,12 @@ function initReveals() {
 
 /* ─────────────────────────── counters ──────────────────────────────── */
 function initCounters() {
-  const els = document.querySelectorAll<HTMLElement>('[data-count]');
+  const els = document.querySelectorAll<HTMLElement>('[data-countup]');
   if (!els.length) return;
   const locale = html.lang === 'he' ? 'he-IL' : 'en-US';
   const run = (el: HTMLElement) => {
-    const target = Number(el.dataset.count);
-    const decimals = (el.dataset.count?.split('.')[1] ?? '').length;
+    const target = Number(el.dataset.countup);
+    const decimals = (el.dataset.countup?.split('.')[1] ?? '').length;
     const fmt = new Intl.NumberFormat(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     if (motionOff()) {
       el.textContent = fmt.format(target);
@@ -256,7 +259,7 @@ function initParallax() {
 
 /* ─────────────────────────── cursor ────────────────────────────────── */
 function initCursor() {
-  if (!finePointer.matches) return;
+  if (!finePointer.matches || isAppPage()) return;
   const cursor = document.createElement('div');
   cursor.className = 'cursor';
   cursor.setAttribute('aria-hidden', 'true');

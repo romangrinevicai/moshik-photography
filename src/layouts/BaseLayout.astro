@@ -104,7 +104,7 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
     <slot name="head" />
     <Analytics lang={lang} />
   </head>
-  <body class="grain" id="top">
+  <body class="grain" id="top" data-app-page={chrome === 'minimal' ? '' : undefined}>
     <a class="skip-link" href="#main">{t('common.skip')}</a>
     {chrome === 'full' && <Header lang={lang} path={path} variant={header} />}
     <slot name="chrome" />

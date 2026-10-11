@@ -115,6 +115,7 @@ Use `fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'mo
 | `DELETE /api/admin/galleries/{gid}` | – | `{ ok: true, deleted: number }` |
 | `PUT /api/admin/galleries/{gid}/photos/{pid}/{thumb\|web\|original}` | raw image bytes; `Content-Type`; for `web` also header `X-Photo-Meta: encodeURIComponent(JSON.stringify(meta))` (PhotoMeta without id; must include `w`,`h`; optional on other variants) | `{ ok: true, size }` · max 100 MB |
 | `DELETE /api/admin/galleries/{gid}/photos/{pid}` | – | `{ ok: true }` |
+| `PATCH /api/admin/galleries/{gid}/photos` | `{ ids: string[], set: string }` (`''` = no chapter) | `{ ok: true, moved }` — then publish |
 | `POST /api/admin/galleries/{gid}/publish` | `{ status?: 'published' \| 'draft' }` | `{ ok: true, manifest: GalleryManifest }` (rebuilds the public manifest from stored photos + faces/people) |
 | `PUT /api/admin/galleries/{gid}/faces/index` | `FaceIndex` JSON (≤ 8 MB) | `{ ok: true }` |
 | `PUT /api/admin/galleries/{gid}/faces/descriptors` | `application/octet-stream` (see face codec) | `{ ok: true }` |
