@@ -1,7 +1,7 @@
 ---
 import Img from '~/components/ui/Img.astro';
 import Icon from '~/components/ui/Icon.astro';
-import { photo, altFor } from '~/data/photos';
+import { photo, photosIn, altFor } from '~/data/photos';
 import { home } from '~/data/home';
 import { localizePath, type Lang } from '~/i18n';
 import { accent } from '~/shared/text';
@@ -11,7 +11,8 @@ interface Props {
 }
 const { lang } = Astro.props;
 const portrait = photo('about/moshik.jpg');
-const detail = photo('about/behind-the-scenes-01.jpg');
+// A behind-the-scenes shot if there is one, otherwise a wedding photo.
+const detail = photosIn('about').find((p) => p.id !== portrait.id) ?? photosIn('portfolio/weddings')[1] ?? portrait;
 ---
 <section class="intro section" data-section="intro">
   <div class="container intro__grid">
