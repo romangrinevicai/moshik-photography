@@ -19,6 +19,12 @@
       "bucket_name": "moshik-photography"
     }
   ],
+  // Free, built-in rate limiting (requests per IP per minute).
+  "ratelimits": [
+    { "name": "ACCESS_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
+    { "name": "LOGIN_LIMITER", "namespace_id": "1002", "simple": { "limit": 6, "period": 60 } },
+    { "name": "INQUIRY_LIMITER", "namespace_id": "1003", "simple": { "limit": 8, "period": 60 } }
+  ],
   "vars": {
     // Where new booking inquiries are emailed (requires RESEND_API_KEY secret).
     "NOTIFY_EMAIL": "",

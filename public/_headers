@@ -1,0 +1,26 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(), browsing-topics=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/models/*
+  Cache-Control: public, max-age=2592000
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/en/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/gallery/*
+  X-Robots-Tag: noindex, nofollow
+
+/en/gallery/*
+  X-Robots-Tag: noindex, nofollow

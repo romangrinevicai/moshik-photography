@@ -113,7 +113,7 @@ Use `fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'mo
 | `GET /api/admin/galleries/{gid}` | – | `{ ok: true, gallery: GalleryRecord, photos: PhotoMeta[], manifestVersion: number \| null, faces: { faces: number, people: number } \| null }` |
 | `PATCH /api/admin/galleries/{gid}` | partial `GalleryRecord` (title, subtitle, date, lang, code, status, coverPhotoId, allowDownload, allowOriginals, faceSearch, live, expiresAt, message, externalUrl, sets) | `{ ok: true, gallery }` · 409 `code_taken` |
 | `DELETE /api/admin/galleries/{gid}` | – | `{ ok: true, deleted: number }` |
-| `PUT /api/admin/galleries/{gid}/photos/{pid}/{thumb\|web\|original}` | raw image bytes; `Content-Type`; for `web` also header `X-Photo-Meta: <JSON PhotoMeta without id>` (must include `w`,`h`) | `{ ok: true }` · max 100 MB |
+| `PUT /api/admin/galleries/{gid}/photos/{pid}/{thumb\|web\|original}` | raw image bytes; `Content-Type`; for `web` also header `X-Photo-Meta: encodeURIComponent(JSON.stringify(meta))` (PhotoMeta without id; must include `w`,`h`; optional on other variants) | `{ ok: true, size }` · max 100 MB |
 | `DELETE /api/admin/galleries/{gid}/photos/{pid}` | – | `{ ok: true }` |
 | `POST /api/admin/galleries/{gid}/publish` | `{ status?: 'published' \| 'draft' }` | `{ ok: true, manifest: GalleryManifest }` (rebuilds the public manifest from stored photos + faces/people) |
 | `PUT /api/admin/galleries/{gid}/faces/index` | `FaceIndex` JSON (≤ 8 MB) | `{ ok: true }` |
