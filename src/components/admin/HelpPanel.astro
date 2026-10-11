@@ -1,0 +1,229 @@
+---
+/** Help screen: a short, friendly guide (static). */
+import Icon from '~/components/ui/Icon.astro';
+import type { Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+
+const copy = {
+  title: { he: 'עזרה', en: 'Help' },
+  lead: { he: 'כל מה שצריך כדי למסור גלריה מושלמת — בכמה דקות.', en: 'Everything you need to deliver a beautiful gallery — in a few minutes.' },
+  quick: { he: 'בקצרה', en: 'In short' },
+  toc: { he: 'בעמוד הזה', en: 'On this page' },
+  steps: [
+    { icon: 'plus', he: 'יוצרים גלריה', en: 'Create a gallery' },
+    { icon: 'upload', he: 'מעלים תמונות', en: 'Upload photos' },
+    { icon: 'scan-face', he: 'סורקים פנים', en: 'Analyse faces' },
+    { icon: 'send', he: 'מפרסמים', en: 'Publish' },
+    { icon: 'whatsapp', he: 'שולחים לזוג', en: 'Send to the couple' },
+  ] as { icon: IconName; he: string; en: string }[],
+};
+
+const topics: { id: string; icon: IconName; title: Record<Lang, string>; items: Record<Lang, string[]> }[] = [
+  {
+    id: 'help-create',
+    icon: 'plus',
+    title: { he: 'יצירת גלריה', en: 'Create a gallery' },
+    items: {
+      he: [
+        'בעמוד "גלריות" לוחצים על <strong>גלריה חדשה</strong>, כותבים את שם הזוג או האירוע — וזהו.',
+        'קוד הגישה נוצר אוטומטית. אפשר לשנות אותו בלשונית <strong>פרטים והגדרות</strong> (למשל NOA-DANIEL).',
+        'הגלריה נשמרת כ<strong>טיוטה</strong>: רק אתה רואה אותה עד שתפרסם.',
+      ],
+      en: [
+        'On “Galleries” tap <strong>New gallery</strong>, type the couple’s or event’s name — that’s it.',
+        'An access code is created for you. You can change it under <strong>Details &amp; settings</strong> (e.g. NOA-DANIEL).',
+        'The gallery starts as a <strong>draft</strong>: only you can see it until you publish.',
+      ],
+    },
+  },
+  {
+    id: 'help-upload',
+    icon: 'upload',
+    title: { he: 'העלאת תמונות', en: 'Upload photos' },
+    items: {
+      he: [
+        'גוררים תמונות או <strong>תיקייה שלמה</strong> לאזור ההעלאה, או לוחצים "בחירת תמונות".',
+        'רוצים חלוקה? יוצרים קודם <strong>פרקים</strong> (חופה, מסיבה…) ובוחרים לאיזה פרק להעלות.',
+        'התמונות מוקטנות אצלך במחשב לפני ההעלאה, אז זה מהיר. "לשמור גם את המקוריים" מאפשר לאורחים להוריד באיכות מלאה.',
+        'אפשר להמשיך לעבוד בזמן ההעלאה — רק <strong>לא לסגור את הלשונית</strong>. תמונה שכבר קיימת בגלריה לא תעלה פעמיים.',
+      ],
+      en: [
+        'Drag photos or a <strong>whole folder</strong> into the upload area, or tap “Choose photos”.',
+        'Want chapters? Create <strong>chapters</strong> first (Ceremony, Party…) and pick one before uploading.',
+        'Photos are resized on your computer first, so it’s quick. “Also keep the original files” lets guests download full quality.',
+        'You can keep working while it uploads — just <strong>don’t close the tab</strong>. A photo that’s already in the gallery is never uploaded twice.',
+      ],
+    },
+  },
+  {
+    id: 'help-faces',
+    icon: 'scan-face',
+    title: { he: 'זיהוי פנים (חיפוש לפי סלפי)', en: 'Face search (find yourself with a selfie)' },
+    items: {
+      he: [
+        'בלשונית <strong>זיהוי פנים</strong> לוחצים "סריקת פנים". הסריקה רצה בדפדפן ויכולה לקחת כמה דקות בגלריה גדולה.',
+        'העלית עוד תמונות? סורקים שוב — מה שכבר נסרק נזכר, אז זה מהיר יותר.',
+        'בסיום הגלריה מתעדכנת לבד, והאורחים יכולים לצלם סלפי ולראות רק את התמונות שלהם.',
+      ],
+      en: [
+        'In the <strong>Face search</strong> tab tap “Analyse faces”. It runs in your browser and can take a few minutes for a big gallery.',
+        'Added more photos? Analyse again — finished photos are remembered, so it’s faster.',
+        'When it’s done the gallery updates itself, and guests can take a selfie to see only their photos.',
+      ],
+    },
+  },
+  {
+    id: 'help-publish',
+    icon: 'send',
+    title: { he: 'פרסום', en: 'Publish' },
+    items: {
+      he: [
+        'לוחצים <strong>פרסום הגלריה</strong> למעלה. מעכשיו כל מי שיש לו את הקישור או הקוד יכול להיכנס.',
+        'שינויים אחרי הפרסום (תמונות חדשות, מחיקות, הודעה לזוג) מתעדכנים בגלריה החיה אוטומטית.',
+        'רוצים להסתיר שוב? משנים את הסטטוס ל"טיוטה" בפרטים. אפשר גם לקבוע תאריך סגירה אוטומטי.',
+      ],
+      en: [
+        'Tap <strong>Publish</strong> at the top. From now on anyone with the link or code can open it.',
+        'Changes after publishing (new photos, deletions, your message) reach the live gallery automatically.',
+        'Want to hide it again? Set the status back to “Draft” in Details. You can also set an automatic closing date.',
+      ],
+    },
+  },
+  {
+    id: 'help-share',
+    icon: 'share2',
+    title: { he: 'שיתוף בוואטסאפ ו־QR', en: 'Share via WhatsApp & QR' },
+    items: {
+      he: [
+        'בלשונית <strong>שיתוף</strong> יש הודעה מוכנה עם הקישור והקוד. אפשר לערוך אותה ולשלוח בלחיצה בוואטסאפ או במייל.',
+        'קוד ה־QR מוביל ישר לגלריה. "כרטיס לשולחנות" מוכן להדפסה — מושלם לגלריה חיה ביום האירוע.',
+        'בחלון ההדפסה אפשר גם "לשמור כ־PDF" ולשלוח לבית דפוס.',
+      ],
+      en: [
+        'The <strong>Share</strong> tab has a ready message with the link and code. Edit it and send it on WhatsApp or by email in one tap.',
+        'The QR code leads straight to the gallery. The “Table card” is print-ready — perfect for a live gallery on the event day.',
+        'In the print dialog you can also “Save as PDF” for a print shop.',
+      ],
+    },
+  },
+  {
+    id: 'help-guests',
+    icon: 'users',
+    title: { he: 'מה האורחים רואים', en: 'What guests see' },
+    items: {
+      he: [
+        'גלריה מעוצבת בשם האירוע עם ההודעה האישית שלך, מחולקת לפרקים — אפשר ללחוץ "צפייה כלקוח" כדי לראות בדיוק אותו דבר.',
+        'אם הפעלת: הורדת תמונות (גם כקובץ ZIP), איכות מקורית, וחיפוש לפי סלפי.',
+        'הזוג יכול לבחור תמונות אהובות לאלבום ולשלוח — הבחירות מגיעות ללשונית <strong>בחירות לאלבום</strong>, עם רשימת קבצים להעתקה ל־Lightroom.',
+      ],
+      en: [
+        'A beautiful gallery with the event’s name and your personal message, split into chapters — tap “View as client” to see exactly the same.',
+        'If you turned them on: photo downloads (also as a ZIP), original quality, and selfie search.',
+        'The couple can pick favourites for the album and send them — they arrive in <strong>Album picks</strong>, with a file list to paste into Lightroom.',
+      ],
+    },
+  },
+  {
+    id: 'help-privacy',
+    icon: 'shield-check',
+    title: { he: 'פרטיות', en: 'Privacy' },
+    items: {
+      he: [
+        'הגלריות פרטיות: אין להן קישור מהאתר והן לא מופיעות בגוגל. נכנסים רק עם הקישור או הקוד.',
+        'זיהוי הפנים נעשה בדפדפן — שום תמונה לא נשלחת לשירות בינה מלאכותית חיצוני. הסלפי של האורחים לא יוצא מהטלפון שלהם; נשמרים רק מספרים שאי אפשר לשחזר מהם תמונה.',
+        'אפשר למחוק את נתוני הפנים או את כל הגלריה בכל רגע.',
+      ],
+      en: [
+        'Galleries are private: they aren’t linked from the website or listed on Google. Only the link or code opens them.',
+        'Face analysis happens in the browser — no photo is sent to an outside AI service. Guests’ selfies never leave their phone; only numbers that can’t be turned back into a picture are kept.',
+        'You can delete the face data, or the whole gallery, at any time.',
+      ],
+    },
+  },
+  {
+    id: 'help-leads',
+    icon: 'inbox',
+    title: { he: 'פניות ויומן זמינות', en: 'Inquiries & availability' },
+    items: {
+      he: [
+        'כל טופס שנשלח מהאתר מגיע ל<strong>פניות</strong>, עם כפתור לתשובה מוכנה בוואטסאפ בשפה של הפונים.',
+        'מסמנים סטטוס (נוצר קשר, נסגרה…) ומוסיפים הערות שרק אתה רואה.',
+        'ב<strong>יומן זמינות</strong> מסמנים תאריכים תפוסים או עם מקום אחרון, ולוחצים "שמירה" — האתר מתעדכן מיד.',
+      ],
+      en: [
+        'Every form sent from the website lands in <strong>Inquiries</strong>, with a ready WhatsApp reply in the sender’s language.',
+        'Set a status (contacted, booked…) and add notes only you can see.',
+        'In <strong>Availability</strong> mark booked or one-spot-left dates and tap “Save” — the website updates right away.',
+      ],
+    },
+  },
+  {
+    id: 'help-tips',
+    icon: 'sparkles',
+    title: { he: 'טיפים ופתרון בעיות', en: 'Tips & troubleshooting' },
+    items: {
+      he: [
+        '<strong>תמונות HEIC מאייפון</strong>: Chrome לא פותח אותן. אפשר להעלות מ־Safari, או לייצא כ־JPG.',
+        '<strong>קובצי RAW</strong> לא נתמכים — מייצאים JPG מ־Lightroom לפני ההעלאה.',
+        'העלאה גדולה? עדיף מחשב על Wi‑Fi יציב. אם משהו נכשל, יש כפתור "ניסיון חוזר".',
+        'משהו לא מסתדר? אפשר תמיד לרענן את הדף — שום דבר שנשמר לא הולך לאיבוד.',
+      ],
+      en: [
+        '<strong>iPhone HEIC photos</strong>: Chrome can’t open them. Upload from Safari, or export them as JPG.',
+        '<strong>RAW files</strong> aren’t supported — export JPGs from Lightroom before uploading.',
+        'Big upload? A computer on steady Wi‑Fi is best. If something fails, there’s a “Retry” button.',
+        'Something feels off? You can always refresh the page — nothing that was saved is lost.',
+      ],
+    },
+  },
+];
+---
+<section class="adm-panel adm-help" data-panel="help" hidden aria-labelledby="help-title">
+  <header class="adm-head">
+    <div class="adm-head__text">
+      <h1 id="help-title" class="adm-head__title" tabindex="-1" data-focus-title>{copy.title[lang]}</h1>
+      <p class="adm-head__sub"><span class="adm-head__lead">{copy.lead[lang]}</span></p>
+    </div>
+  </header>
+
+  <ol class="adm-help__steps" role="list" aria-label={copy.quick[lang]}>
+    {
+      copy.steps.map((s, i) => (
+        <li class="adm-help__step">
+          <span class="adm-help__stepnum nums">{String(i + 1).padStart(2, '0')}</span>
+          <span class="adm-help__stepicon"><Icon name={s.icon} size={22} /></span>
+          <span class="adm-help__steptext">{s[lang]}</span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="adm-help__layout">
+    <nav class="adm-help__toc" aria-label={copy.toc[lang]}>
+      <p class="adm-help__toctitle">{copy.toc[lang]}</p>
+      <ul role="list">
+        {topics.map((t) => <li><a href={`#${t.id}`} data-help-jump={t.id}>{t.title[lang]}</a></li>)}
+      </ul>
+    </nav>
+    <div class="adm-help__topics">
+      {
+        topics.map((t) => (
+          <article class="adm-card adm-help__topic" id={t.id} tabindex="-1" aria-labelledby={`${t.id}-h`}>
+            <h2 class="adm-help__h" id={`${t.id}-h`}>
+              <span class="adm-help__icon"><Icon name={t.icon} size={22} /></span>
+              {t.title[lang]}
+            </h2>
+            <ul class="adm-help__list">
+              {t.items[lang].map((item) => <li set:html={item} />)}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

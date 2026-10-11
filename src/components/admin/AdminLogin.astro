@@ -1,0 +1,91 @@
+---
+/** Admin sign-in: a single password field, friendly server hints. */
+import Icon from '~/components/ui/Icon.astro';
+import Img from '~/components/ui/Img.astro';
+import { photo } from '~/data/photos';
+import { site } from '~/config/site';
+import { localizePath, otherLang, type Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const alt = otherLang(lang);
+const copy = {
+  eyebrow: { he: 'אזור הניהול', en: 'Studio admin' },
+  title: { he: 'ברוך הבא, מושיק', en: 'Welcome back, Moshik' },
+  lead: { he: 'גלריות, העלאת תמונות, פניות מהאתר ויומן הזמינות — הכל במקום אחד.', en: 'Galleries, uploads, website inquiries and your availability — all in one place.' },
+  password: { he: 'סיסמה', en: 'Password' },
+  show: { he: 'הצגת הסיסמה', en: 'Show password' },
+  submit: { he: 'כניסה', en: 'Sign in' },
+  offline: {
+    he: 'לא הצלחתי להגיע לשרת של האתר. אם זו בדיקה מקומית, צריך להריץ את ה־Worker (npm run preview). אחרת — כדאי לבדוק את החיבור ולרענן.',
+    en: 'I couldn’t reach the website’s server. For a local test, run the Worker (npm run preview). Otherwise check your connection and refresh.',
+  },
+  notConfiguredTitle: { he: 'עוד לא הוגדרה סיסמה לניהול', en: 'No admin password has been set yet' },
+  notConfiguredText: {
+    he: 'כדי להפעיל את אזור הניהול צריך להגדיר פעם אחת סוד בשם ADMIN_PASSWORD ב־Cloudflare (ומומלץ גם SESSION_SECRET ארוך ואקראי). מהטרמינל בתיקיית הפרויקט:',
+    en: 'To switch on the admin area, set a secret called ADMIN_PASSWORD in Cloudflare once (ideally also a long random SESSION_SECRET). From a terminal in the project folder:',
+  },
+  notConfiguredAfter: { he: 'אחרי זה מרעננים את הדף ומתחברים עם הסיסמה שבחרת.', en: 'Then refresh this page and sign in with the password you chose.' },
+  back: { he: 'חזרה לאתר', en: 'Back to the website' },
+  photoCaption: { he: 'כל רגע — במקום שלו.', en: 'Every moment, in its place.' },
+};
+---
+<section class="adm-login" data-login hidden aria-labelledby="adm-login-title">
+  <div class="adm-login__visual" aria-hidden="true">
+    <Img photo={photo('hero/01-golden-hour.jpg')} alt="" preset="half" loading="eager" />
+    <div class="adm-login__veil">
+      <span class="adm-login__word" dir="ltr">{site.brand}</span>
+      <span class="adm-login__caption">{copy.photoCaption[lang]}</span>
+    </div>
+  </div>
+
+  <div class="adm-login__panel">
+    <div class="adm-login__inner">
+      <span class="adm-login__brand" dir="ltr">{site.brand}</span>
+      <p class="eyebrow">{copy.eyebrow[lang]}</p>
+      <h1 id="adm-login-title" class="adm-login__title">{copy.title[lang]}</h1>
+      <p class="adm-login__lead">{copy.lead[lang]}</p>
+
+      <form class="adm-login__form" data-login-form novalidate>
+        <input type="text" name="username" value="moshik" autocomplete="username" class="sr-only" tabindex="-1" aria-hidden="true" readonly />
+        <div class="field">
+          <label class="field__label" for="adm-pw">{copy.password[lang]}</label>
+          <div class="adm-pw">
+            <input class="input adm-pw__input" id="adm-pw" name="password" type="password" autocomplete="current-password" required dir="ltr" aria-describedby="adm-login-error" />
+            <button type="button" class="adm-pw__toggle" data-pw-toggle aria-label={copy.show[lang]} aria-pressed="false">
+              <Icon name="eye" size={18} />
+            </button>
+          </div>
+          <p class="field__error" id="adm-login-error" data-login-error aria-live="polite"></p>
+        </div>
+        <button class="btn btn--solid btn--block adm-login__submit" type="submit" data-login-submit>
+          <span>{copy.submit[lang]}</span>
+          <Icon name="arrow-right" />
+        </button>
+      </form>
+
+      <div class="adm-alert adm-alert--info" data-login-offline hidden role="status">
+        <span class="adm-alert__icon"><Icon name="info" size={20} /></span>
+        <p>{copy.offline[lang]}</p>
+      </div>
+
+      <div class="adm-alert adm-alert--warn" data-login-notice hidden role="alert">
+        <span class="adm-alert__icon"><Icon name="key-round" size={20} /></span>
+        <div class="adm-alert__body">
+          <strong>{copy.notConfiguredTitle[lang]}</strong>
+          <p>{copy.notConfiguredText[lang]}</p>
+          <pre class="adm-pre" dir="ltr"><code>npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put SESSION_SECRET</code></pre>
+          <p>{copy.notConfiguredAfter[lang]}</p>
+        </div>
+      </div>
+
+      <p class="adm-login__foot">
+        <a class="link" href={localizePath('/', lang)}><Icon name="arrow-left" class="flip-rtl" /> {copy.back[lang]}</a>
+        <a class="adm-login__lang" href={localizePath('/admin/', alt)} hreflang={alt} lang={alt}>{alt === 'en' ? 'English' : 'עברית'}</a>
+      </p>
+    </div>
+  </div>
+</section>

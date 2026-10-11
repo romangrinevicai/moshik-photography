@@ -1,0 +1,76 @@
+---
+/** Availability screen: month calendar, legend, selected-day panel and upcoming list. */
+import Icon from '~/components/ui/Icon.astro';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const copy = {
+  title: { he: 'יומן זמינות', en: 'Availability' },
+  lead: {
+    he: 'מה שמסומן כאן מופיע באתר — בבודק התאריכים ובטופס ההזמנה.',
+    en: 'What you mark here shows on the website — in the date checker and the booking form.',
+  },
+  today: { he: 'היום', en: 'Today' },
+  calLabel: { he: 'לוח שנה', en: 'Calendar' },
+  legend: { he: 'מקרא', en: 'Legend' },
+  available: { he: 'פנוי', en: 'Available' },
+  booked: { he: 'תפוס', en: 'Booked' },
+  limited: { he: 'מקום אחרון', en: 'One spot left' },
+  past: { he: 'עבר', en: 'Past' },
+  hint: {
+    he: 'לחיצה על תאריך מחליפה: פנוי ← תפוס ← מקום אחרון ← פנוי. אפשר גם עם המקלדת (חיצים ו־Enter).',
+    en: 'Click a date to cycle: available → booked → one spot left → available. Keyboard works too (arrows + Enter).',
+  },
+  upcoming: { he: 'תאריכים קרובים שסומנו', en: 'Upcoming marked dates' },
+  save: { he: 'שמירה', en: 'Save' },
+  discard: { he: 'ביטול', en: 'Discard' },
+};
+---
+<section class="adm-panel" data-panel="availability" hidden aria-labelledby="av-title">
+  <header class="adm-head">
+    <div class="adm-head__text">
+      <h1 id="av-title" class="adm-head__title" tabindex="-1" data-focus-title>{copy.title[lang]}</h1>
+      <p class="adm-head__sub"><span class="adm-head__lead">{copy.lead[lang]}</span></p>
+    </div>
+  </header>
+
+  <div data-av-error hidden></div>
+  <div class="adm-av" data-av-body aria-busy="true">
+    <section class="adm-card adm-cal" aria-labelledby="cal-title">
+      <div class="adm-cal__nav">
+        <button class="adm-iconbtn" type="button" data-cal-prev></button>
+        <h2 id="cal-title" class="adm-cal__title" data-cal-title aria-live="polite"></h2>
+        <button class="adm-iconbtn" type="button" data-cal-next></button>
+        <button class="btn btn--sm adm-cal__today" type="button" data-cal-today>{copy.today[lang]}</button>
+      </div>
+      <div class="adm-cal__grid" role="grid" aria-labelledby="cal-title" data-cal-grid></div>
+      <div class="adm-cal__foot">
+        <ul class="adm-cal__legend" role="list" aria-label={copy.legend[lang]}>
+          <li><span class="adm-cal__swatch is-available" aria-hidden="true"></span>{copy.available[lang]}</li>
+          <li><span class="adm-cal__swatch is-booked" aria-hidden="true"></span>{copy.booked[lang]}</li>
+          <li><span class="adm-cal__swatch is-limited" aria-hidden="true"></span>{copy.limited[lang]}</li>
+          <li><span class="adm-cal__swatch is-past" aria-hidden="true"></span>{copy.past[lang]}</li>
+        </ul>
+        <p class="adm-cal__stats nums" data-cal-stats></p>
+      </div>
+      <p class="adm-cal__hint"><Icon name="mouse-pointer-click" size={15} /> {copy.hint[lang]}</p>
+    </section>
+
+    <aside class="adm-av__side">
+      <section class="adm-card adm-day" data-day aria-live="polite"></section>
+      <section class="adm-card adm-upcoming" aria-labelledby="up-dates">
+        <h2 id="up-dates" class="adm-card__title adm-card__title--sm">{copy.upcoming[lang]}</h2>
+        <ul class="adm-upcoming__list" role="list" data-upcoming></ul>
+      </section>
+    </aside>
+  </div>
+
+  <div class="adm-savebar adm-savebar--fixed" data-av-savebar hidden>
+    <span class="adm-savebar__text"><Icon name="pencil" size={16} /> <span data-av-changes></span></span>
+    <button class="btn btn--sm btn--light" type="button" data-av-discard>{copy.discard[lang]}</button>
+    <button class="btn btn--sm btn--gold" type="button" data-av-save><Icon name="check" size={16} />{copy.save[lang]}</button>
+  </div>
+</section>

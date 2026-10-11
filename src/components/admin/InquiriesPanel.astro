@@ -1,0 +1,62 @@
+---
+/** Inquiries screen: list + filters; the detail drawer is filled by views/inquiries.ts. */
+import Icon from '~/components/ui/Icon.astro';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const copy = {
+  title: { he: 'פניות', en: 'Inquiries' },
+  lead: { he: 'בקשות מטופס בדיקת התאריך באתר.', en: 'Requests from the website’s booking form.' },
+  refresh: { he: 'רענון', en: 'Refresh' },
+  search: { he: 'חיפוש לפי שם, טלפון, מקום…', en: 'Search by name, phone, venue…' },
+  searchLabel: { he: 'חיפוש פניות', en: 'Search inquiries' },
+  filterLabel: { he: 'סינון לפי סטטוס', en: 'Filter by status' },
+  more: { he: 'טעינת פניות נוספות', en: 'Load more inquiries' },
+  filters: {
+    all: { he: 'הכל', en: 'All' },
+    new: { he: 'חדשות', en: 'New' },
+    contacted: { he: 'נוצר קשר', en: 'Contacted' },
+    booked: { he: 'נסגרו', en: 'Booked' },
+    lost: { he: 'לא נסגרו', en: 'Lost' },
+  },
+};
+const filters = ['all', 'new', 'contacted', 'booked', 'lost'] as const;
+---
+<section class="adm-panel" data-panel="inquiries" hidden aria-labelledby="inq-title">
+  <header class="adm-head">
+    <div class="adm-head__text">
+      <h1 id="inq-title" class="adm-head__title" tabindex="-1" data-focus-title>{copy.title[lang]}</h1>
+      <p class="adm-head__sub"><span data-leads-summary></span><span class="adm-head__lead">{copy.lead[lang]}</span></p>
+    </div>
+    <div class="adm-head__actions">
+      <button class="btn btn--sm" type="button" data-leads-refresh><Icon name="refresh-cw" size={16} /><span>{copy.refresh[lang]}</span></button>
+    </div>
+  </header>
+
+  <div class="adm-toolbar" data-leads-toolbar hidden>
+    <label class="adm-search">
+      <Icon name="search" size={18} />
+      <span class="sr-only">{copy.searchLabel[lang]}</span>
+      <input class="adm-search__input" type="search" data-lead-search placeholder={copy.search[lang]} autocomplete="off" />
+    </label>
+    <div class="adm-chips" role="group" aria-label={copy.filterLabel[lang]} data-lead-filter>
+      {
+        filters.map((f) => (
+          <button type="button" class={`adm-chip adm-chip--${f}`} data-filter={f} aria-pressed={f === 'all' ? 'true' : 'false'}>
+            {f !== 'all' && <span class={`adm-lstatus__dot adm-lstatus__dot--${f}`} aria-hidden="true" />}
+            <span>{copy.filters[f][lang]}</span>
+            <span class="adm-chip__count" data-chip-count />
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="adm-leads-wrap" data-leads-list aria-busy="true"></div>
+  <div class="adm-more"><button class="btn btn--sm" type="button" data-leads-more hidden>{copy.more[lang]}</button></div>
+
+  <dialog class="adm-drawer" data-lead-drawer aria-label={copy.title[lang]}></dialog>
+</section>

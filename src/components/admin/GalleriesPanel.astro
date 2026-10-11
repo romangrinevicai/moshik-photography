@@ -1,0 +1,114 @@
+---
+/** Galleries list screen + "New gallery" dialog. Cards are rendered by views/galleries.ts. */
+import Icon from '~/components/ui/Icon.astro';
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const copy = {
+  title: { he: 'גלריות', en: 'Galleries' },
+  lead: { he: 'הגלריות הפרטיות של הלקוחות שלך.', en: 'Your clients’ private galleries.' },
+  newGallery: { he: 'גלריה חדשה', en: 'New gallery' },
+  search: { he: 'חיפוש לפי שם, תאריך או קוד…', en: 'Search by name, date or code…' },
+  searchLabel: { he: 'חיפוש גלריות', en: 'Search galleries' },
+  filterLabel: { he: 'סינון לפי סטטוס', en: 'Filter by status' },
+  all: { he: 'הכל', en: 'All' },
+  draft: { he: 'טיוטות', en: 'Drafts' },
+  published: { he: 'מפורסמות', en: 'Published' },
+  archived: { he: 'בארכיון', en: 'Archived' },
+  dialogTitle: { he: 'גלריה חדשה', en: 'New gallery' },
+  dialogLead: { he: 'שם הזוג או האירוע — כל השאר אפשר לשנות אחר כך.', en: 'The couple’s or event’s name — everything else can be changed later.' },
+  name: { he: 'שם הגלריה', en: 'Gallery name' },
+  namePh: { he: 'למשל: נועה ודניאל', en: 'e.g. Noa & Daniel' },
+  subtitle: { he: 'שורת משנה', en: 'Subtitle' },
+  subtitlePh: { he: 'למשל: החתונה · גן אירועים בשרון', en: 'e.g. The wedding · a garden venue in the Sharon' },
+  date: { he: 'תאריך האירוע', en: 'Event date' },
+  language: { he: 'שפת הגלריה', en: 'Gallery language' },
+  languageHint: { he: 'מה שהאורחים יראו כברירת מחדל', en: 'What guests see by default' },
+  he: { he: 'עברית', en: 'Hebrew' },
+  en: { he: 'אנגלית', en: 'English' },
+  optional: { he: 'רשות', en: 'optional' },
+  cancel: { he: 'ביטול', en: 'Cancel' },
+  create: { he: 'יצירת הגלריה', en: 'Create gallery' },
+  close: { he: 'סגירה', en: 'Close' },
+};
+const filters = ['all', 'draft', 'published', 'archived'] as const;
+---
+<section class="adm-panel" data-panel="galleries" hidden aria-labelledby="gal-title">
+  <header class="adm-head">
+    <div class="adm-head__text">
+      <h1 id="gal-title" class="adm-head__title" tabindex="-1" data-focus-title>{copy.title[lang]}</h1>
+      <p class="adm-head__sub"><span data-gal-summary></span><span class="adm-head__lead">{copy.lead[lang]}</span></p>
+    </div>
+    <div class="adm-head__actions">
+      <button class="btn btn--solid" type="button" data-new-gallery>
+        <Icon name="plus" size={18} />
+        <span>{copy.newGallery[lang]}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="adm-toolbar" data-gal-toolbar hidden>
+    <label class="adm-search">
+      <Icon name="search" size={18} />
+      <span class="sr-only">{copy.searchLabel[lang]}</span>
+      <input class="adm-search__input" type="search" data-gal-search placeholder={copy.search[lang]} autocomplete="off" />
+    </label>
+    <div class="adm-chips" role="group" aria-label={copy.filterLabel[lang]} data-gal-filter>
+      {
+        filters.map((f) => (
+          <button type="button" class="adm-chip" data-filter={f} aria-pressed={f === 'all' ? 'true' : 'false'}>
+            <span>{copy[f][lang]}</span>
+            <span class="adm-chip__count" data-chip-count />
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="adm-gal-grid" data-gal-list aria-busy="true"></div>
+
+  <dialog class="adm-dialog" data-new-dialog aria-labelledby="new-gal-title">
+    <form class="adm-dialog__box" data-new-form novalidate>
+      <header class="adm-dialog__head">
+        <div>
+          <h2 id="new-gal-title" class="adm-dialog__title">{copy.dialogTitle[lang]}</h2>
+          <p class="adm-dialog__lead">{copy.dialogLead[lang]}</p>
+        </div>
+        <button type="button" class="adm-iconbtn" data-dialog-close aria-label={copy.close[lang]}><Icon name="x" size={20} /></button>
+      </header>
+      <div class="adm-form-grid">
+        <div class="field adm-span-2">
+          <label class="field__label" for="new-title">{copy.name[lang]} *</label>
+          <input class="input" id="new-title" name="title" type="text" required maxlength="120" placeholder={copy.namePh[lang]} autocomplete="off" dir="auto" />
+          <p class="field__error" data-new-error aria-live="polite"></p>
+        </div>
+        <div class="field adm-span-2">
+          <label class="field__label" for="new-subtitle">{copy.subtitle[lang]} <span class="field__hint">({copy.optional[lang]})</span></label>
+          <input class="input" id="new-subtitle" name="subtitle" type="text" maxlength="160" placeholder={copy.subtitlePh[lang]} autocomplete="off" dir="auto" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="new-date">{copy.date[lang]}</label>
+          <input class="input" id="new-date" name="date" type="date" />
+        </div>
+        <fieldset class="field adm-fieldset">
+          <legend class="field__label">{copy.language[lang]}</legend>
+          <div class="adm-seg adm-seg--sm">
+            <label class="adm-seg__opt"><input type="radio" name="lang" value="he" checked={lang === 'he'} /><span>{copy.he[lang]}</span></label>
+            <label class="adm-seg__opt"><input type="radio" name="lang" value="en" checked={lang === 'en'} /><span>{copy.en[lang]}</span></label>
+          </div>
+          <p class="field__hint">{copy.languageHint[lang]}</p>
+        </fieldset>
+      </div>
+      <div class="adm-dialog__actions">
+        <button type="button" class="btn btn--sm" data-dialog-close>{copy.cancel[lang]}</button>
+        <button type="submit" class="btn btn--sm btn--solid">
+          <Icon name="plus" size={16} />
+          <span>{copy.create[lang]}</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+</section>

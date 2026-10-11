@@ -1,0 +1,112 @@
+---
+/** Admin shell navigation: sidebar on desktop, top bar + bottom tabs on phones. */
+import Icon from '~/components/ui/Icon.astro';
+import { site } from '~/config/site';
+import { localizePath, otherLang, type Lang } from '~/i18n';
+import type { IconName } from '~/shared/icons';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const alt = otherLang(lang);
+const altAdmin = localizePath('/admin/', alt);
+const copy = {
+  nav: { he: 'ניווט בניהול', en: 'Admin navigation' },
+  studio: { he: 'ניהול', en: 'Studio' },
+  site: { he: 'לאתר', en: 'View site' },
+  siteLabel: { he: 'פתיחת האתר בלשונית חדשה', en: 'Open the website in a new tab' },
+  logout: { he: 'יציאה', en: 'Sign out' },
+  switchLang: { he: 'Switch to English', en: 'מעבר לעברית' },
+  uploading: { he: 'מעלה תמונות…', en: 'Uploading…' },
+};
+const items: { id: string; icon: IconName; label: Record<Lang, string>; badge?: boolean }[] = [
+  { id: 'galleries', icon: 'images', label: { he: 'גלריות', en: 'Galleries' } },
+  { id: 'inquiries', icon: 'inbox', label: { he: 'פניות', en: 'Inquiries' }, badge: true },
+  { id: 'availability', icon: 'calendar', label: { he: 'יומן זמינות', en: 'Availability' } },
+  { id: 'help', icon: 'info', label: { he: 'עזרה', en: 'Help' } },
+];
+---
+<div class="adm-nav" data-nav hidden>
+  <aside class="adm-side">
+    <a class="adm-brand" href="#/galleries" aria-label={`${site.name[lang]} — ${copy.studio[lang]}`}>
+      <span class="adm-brand__word" dir="ltr">{site.brand}</span>
+      <span class="adm-brand__sub">{copy.studio[lang]}</span>
+    </a>
+    <nav class="adm-side__nav" aria-label={copy.nav[lang]}>
+      <ul role="list">
+        {
+          items.map((i) => (
+            <li>
+              <a class="adm-side__link" href={`#/${i.id}`} data-nav-link={i.id}>
+                <Icon name={i.icon} size={20} />
+                <span>{i.label[lang]}</span>
+                {i.badge && <span class="adm-badge" data-leads-badge hidden />}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="adm-upind" data-upload-indicator hidden>
+      <a class="adm-upind__link" href="#/galleries">
+        <span class="adm-spinner" aria-hidden="true"></span>
+        <span class="adm-upind__text" data-upload-text>{copy.uploading[lang]}</span>
+        <span class="adm-upind__bar" aria-hidden="true"><span data-upload-bar></span></span>
+      </a>
+    </div>
+
+    <div class="adm-side__foot">
+      <a class="adm-side__util" href={localizePath('/', lang)} target="_blank" rel="noopener" title={copy.siteLabel[lang]}>
+        <Icon name="external-link" size={16} />
+        <span>{copy.site[lang]}</span>
+      </a>
+      <a class="adm-side__util" href={altAdmin} data-lang-switch data-base={altAdmin} hreflang={alt} lang={alt} title={copy.switchLang[lang]}>
+        <Icon name="globe" size={16} />
+        <span>{alt === 'en' ? 'English' : 'עברית'}</span>
+      </a>
+      <button class="adm-side__util" type="button" data-logout>
+        <Icon name="log-out" size={16} class="flip-rtl" />
+        <span>{copy.logout[lang]}</span>
+      </button>
+    </div>
+  </aside>
+
+  <header class="adm-top">
+    <a class="adm-brand adm-brand--sm" href="#/galleries" aria-label={`${site.name[lang]} — ${copy.studio[lang]}`}>
+      <span class="adm-brand__word" dir="ltr">{site.brand}</span>
+      <span class="adm-brand__sub">{copy.studio[lang]}</span>
+    </a>
+    <div class="adm-top__actions">
+      <a class="adm-iconbtn adm-iconbtn--light" href={localizePath('/', lang)} target="_blank" rel="noopener" aria-label={copy.siteLabel[lang]}>
+        <Icon name="external-link" size={18} />
+      </a>
+      <a class="adm-top__lang" href={altAdmin} data-lang-switch data-base={altAdmin} hreflang={alt} lang={alt} aria-label={copy.switchLang[lang]}>{alt === 'en' ? 'EN' : 'עב'}</a>
+      <button class="adm-iconbtn adm-iconbtn--light" type="button" data-logout aria-label={copy.logout[lang]}>
+        <Icon name="log-out" size={18} class="flip-rtl" />
+      </button>
+    </div>
+    <div class="adm-upind adm-upind--top" data-upload-indicator hidden>
+      <a class="adm-upind__link" href="#/galleries">
+        <span class="adm-spinner" aria-hidden="true"></span>
+        <span class="adm-upind__text" data-upload-text>{copy.uploading[lang]}</span>
+        <span class="adm-upind__bar" aria-hidden="true"><span data-upload-bar></span></span>
+      </a>
+    </div>
+  </header>
+
+  <nav class="adm-tabs" aria-label={copy.nav[lang]}>
+    {
+      items.map((i) => (
+        <a class="adm-tabs__link" href={`#/${i.id}`} data-nav-link={i.id}>
+          <span class="adm-tabs__icon">
+            <Icon name={i.icon} size={22} />
+            {i.badge && <span class="adm-badge adm-badge--dot" data-leads-badge hidden />}
+          </span>
+          <span class="adm-tabs__label">{i.label[lang]}</span>
+        </a>
+      ))
+    }
+  </nav>
+</div>

@@ -1,0 +1,15 @@
+---
+/** Printable table card (filled in by editor/share.ts). Vector wordmark for crisp print. */
+import { wordmark } from '~/shared/logo-paths';
+---
+<article class="adm-tc" data-sh-card>
+  <div class="adm-tc__frame">
+    <svg class="adm-tc__word" viewBox={wordmark.viewBox} role="img" aria-label="MOSHIK"><path d={wordmark.d} fill="currentColor"></path></svg>
+    <span class="adm-tc__rule" aria-hidden="true"></span>
+    <h3 class="adm-tc__title" data-card-title dir="auto"></h3>
+    <p class="adm-tc__sub" data-card-sub></p>
+    <div class="adm-tc__qr" data-card-qr></div>
+    <p class="adm-tc__cta" data-card-cta></p>
+    <p class="adm-tc__visit"><span data-card-visit></span> <strong class="adm-tc__code" data-card-code dir="ltr"></strong></p>
+  </div>
+</article>
