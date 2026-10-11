@@ -1,5 +1,5 @@
 # dependencies
-node_modules/
+node_modules
 
 # build output
 dist/
@@ -31,3 +31,5 @@ playwright-report/
 
 # local agent worktrees
 .claude/worktrees/
+.astro-cache/
+public/models/
