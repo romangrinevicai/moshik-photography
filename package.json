@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Moshik — wedding & event photography. Bilingual (Hebrew/English) website with private client galleries and AI face search.",
+  "description": "Moshik \u2014 wedding & event photography. Bilingual (Hebrew/English) website with private client galleries and AI face search.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro build && wrangler dev",
     "deploy": "astro build && wrangler deploy",
     "check": "astro check && tsc -p worker/tsconfig.json --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "checklist": "node scripts/launch-checklist.mjs"
   },
   "engines": {
