@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // One Cloudflare Worker serves the static Astro site (./dist) and the API
+  // used by the booking form, the client galleries and the admin panel.
+  "name": "moshik-photography",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/media/*"]
+  },
+  // Create the bucket once with:  npx wrangler r2 bucket create moshik-photography
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "moshik-photography"
+    }
+  ],
+  "vars": {
+    // Where new booking inquiries are emailed (requires RESEND_API_KEY secret).
+    "NOTIFY_EMAIL": "",
+    // Sender address for notification emails, on a domain verified in Resend.
+    "MAIL_FROM": "Moshik Website <onboarding@resend.dev>",
+    // Public site URL, used in links inside notification emails.
+    "SITE_URL": ""
+  },
+  // Secrets (set with `npx wrangler secret put NAME`, never commit them):
+  //   ADMIN_PASSWORD        password for /admin
+  //   SESSION_SECRET        long random string used to sign admin sessions
+  //   RESEND_API_KEY        optional, email notifications via resend.com
+  //   TELEGRAM_BOT_TOKEN    optional, instant lead alerts on Telegram
+  //   TELEGRAM_CHAT_ID      optional, the chat that receives the alerts
+  //   TURNSTILE_SECRET_KEY  optional, Cloudflare Turnstile spam protection
+  "observability": {
+    "enabled": true
+  }
+}

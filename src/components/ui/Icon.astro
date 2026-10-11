@@ -1,0 +1,15 @@
+---
+import { iconSvg, type IconName } from '~/shared/icons';
+
+interface Props {
+  name: IconName;
+  size?: number | string;
+  stroke?: number;
+  class?: string;
+  label?: string;
+}
+const { name, size, stroke, class: className, label } = Astro.props;
+const arrowish = name === 'arrow-right' || name === 'arrow-left' || name === 'arrow-up-right';
+const svg = iconSvg(name, { size, stroke, label, className: [className, arrowish ? 'icon--arrow' : ''].filter(Boolean).join(' ') });
+---
+<Fragment set:html={svg} />
