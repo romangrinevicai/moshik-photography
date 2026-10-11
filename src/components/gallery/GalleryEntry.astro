@@ -1,0 +1,343 @@
+---
+/**
+ * Split-screen code entry (photo · form), reused for friendly error
+ * screens, plus the full-screen loader shown while a gallery opens.
+ */
+import { Picture } from 'astro:assets';
+import Logo from '~/components/ui/Logo.astro';
+import Icon from '~/components/ui/Icon.astro';
+import { photosIn } from '~/data/photos';
+import { whatsappLink } from '~/config/site';
+import { accent } from '~/shared/text';
+import { localizePath, type Lang } from '~/i18n';
+import { str } from './copy';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const heroes = photosIn('hero');
+const photo = heroes[1] ?? heroes[0];
+const s = (k: Parameters<typeof str>[0]) => str(k, lang);
+---
+<section class="g-entry" data-view="entry" aria-labelledby="g-entry-title">
+  <div class="g-entry__media on-noir">
+    {
+      photo && (
+        <Picture
+          src={photo.src}
+          alt=""
+          widths={[640, 960, 1280, 1600, 2000]}
+          sizes="(min-width: 901px) 50vw, 100vw"
+          formats={['avif', 'webp']}
+          loading="lazy"
+          decoding="async"
+          class="g-entry__img"
+        />
+      )
+    }
+    <div class="g-entry__shade" aria-hidden="true"></div>
+    <div class="g-entry__media-text" aria-hidden="true">
+      <p class="g-entry__media-title" set:html={accent(s('entryMediaTitle'))} />
+      <p class="g-entry__media-caption">{s('entryMediaCaption')}</p>
+    </div>
+  </div>
+
+  <div class="g-entry__panel">
+    <div class="g-entry__inner">
+      <div class="g-pane" data-entry-pane="form">
+        <p class="eyebrow">{s('entryEyebrow')}</p>
+        <h1 class="g-entry__title" id="g-entry-title" set:html={accent(s('entryTitle'))} />
+        <p class="g-entry__lead">{s('entryLead')}</p>
+
+        <form class="g-code" data-entry-form novalidate method="get">
+          <label class="field__label" for="g-code-input">{s('entryLabel')}</label>
+          <div class="g-code__field">
+            <input
+              id="g-code-input"
+              class="g-code__input"
+              name="code"
+              type="text"
+              dir="ltr"
+              autocomplete="off"
+              autocapitalize="characters"
+              autocorrect="off"
+              spellcheck="false"
+              enterkeyhint="go"
+              maxlength="60"
+              placeholder="NOA-DANIEL-K7QM"
+              aria-describedby="g-code-hint g-code-error"
+              required
+              data-entry-input
+            />
+            <span class="g-code__line" aria-hidden="true"></span>
+          </div>
+          <p class="g-code__hint" id="g-code-hint">{s('entryHint')}</p>
+          <p class="g-code__error" id="g-code-error" data-entry-error aria-live="assertive"></p>
+          <button class="btn btn--solid btn--lg btn--block g-code__submit" type="submit" data-entry-submit>
+            <span data-entry-submit-label>{s('entrySubmit')}</span>
+            <span class="g-code__spinner" aria-hidden="true"></span>
+            <Icon name="arrow-right" />
+          </button>
+        </form>
+
+        <div class="g-recent" data-recent hidden>
+          <p class="g-recent__label">{s('entryRecent')}</p>
+          <ul class="g-recent__list" role="list" data-recent-list></ul>
+        </div>
+
+        <p class="g-entry__help">
+          <span>{s('entryHelp')}</span>
+          <a class="link" href={whatsappLink(s('waNeedCode'))} target="_blank" rel="noopener" data-track="whatsapp_click">
+            <Icon name="whatsapp" size={16} />
+            {s('entryHelpLink')}
+          </a>
+        </p>
+        <noscript><p class="g-entry__noscript">{s('noscript')}</p></noscript>
+      </div>
+
+      <div class="g-pane g-status" data-entry-pane="status" hidden>
+        <span class="g-status__icon" data-status-icon aria-hidden="true"></span>
+        <h1 class="g-status__title" data-status-title tabindex="-1"></h1>
+        <p class="g-status__text" data-status-text></p>
+        <div class="g-status__actions">
+          <a class="btn btn--solid" data-status-wa href={whatsappLink()} target="_blank" rel="noopener" data-track="whatsapp_click">
+            <Icon name="whatsapp" />
+            {s('actMessage')}
+          </a>
+          <button class="btn" type="button" data-status-retry hidden>
+            <Icon name="refresh-cw" />
+            {s('actRetry')}
+          </button>
+        </div>
+        <a class="link g-status__code" href={localizePath('/gallery/', lang)} data-status-code>
+          {s('actEnterCode')}
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="g-boot on-noir" data-g-boot>
+  <div class="g-boot__inner">
+    <Logo size="lg" />
+    <span class="g-boot__line" aria-hidden="true"></span>
+    <p class="g-boot__text" role="status">{s('loading')}</p>
+  </div>
+</div>
+
+<style is:global>
+  /* ── split screen ── */
+  .g-entry {
+    min-block-size: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    background: var(--paper);
+  }
+  html.g-booting .g-entry { display: none; }
+  .g-entry__media { position: relative; overflow: hidden; min-block-size: 100%; isolation: isolate; }
+  .g-entry__media picture,
+  .g-entry__media img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .g-entry__media img { animation: g-entry-zoom 14s var(--ease-out) both; }
+  @keyframes g-entry-zoom { from { transform: scale(1.12); } to { transform: scale(1); } }
+  .g-entry__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgb(10 8 6 / 0.82), rgb(10 8 6 / 0.15) 55%, rgb(10 8 6 / 0.35)),
+      radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(10 8 6 / 0.4));
+  }
+  .g-entry__media-text {
+    position: absolute;
+    inset-inline: clamp(1.5rem, 1rem + 3vw, 4rem);
+    inset-block-end: clamp(2rem, 1.5rem + 3vw, 4.5rem);
+    display: grid;
+    gap: 1rem;
+  }
+  .g-entry__media-title {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-size: clamp(2.2rem, 1.4rem + 2.6vw, 4.2rem);
+    line-height: 1.04;
+    letter-spacing: var(--display-tracking);
+    max-inline-size: 11ch;
+    color: var(--on-noir);
+    text-wrap: balance;
+  }
+  .g-entry__media-title em { font-style: italic; font-weight: 300; color: var(--gold-soft); }
+  :lang(he) .g-entry__media-title em { font-style: normal; }
+  .g-entry__media-caption {
+    font-size: var(--fs-eyebrow);
+    font-weight: 600;
+    letter-spacing: var(--eyebrow-tracking);
+    text-transform: var(--label-transform);
+    color: rgb(243 237 229 / 0.75);
+  }
+
+  .g-entry__panel {
+    display: grid;
+    align-items: center;
+    padding: calc(var(--g-head-h) + 2rem) clamp(1.5rem, 1rem + 4vw, 6rem) 3rem;
+  }
+  .g-entry__inner { inline-size: 100%; max-inline-size: 31rem; margin-inline: auto; }
+  .g-pane { display: grid; gap: 1.4rem; animation: g-pane-in 0.8s var(--ease-out) both; }
+  .g-pane[hidden] { display: none; }
+  @keyframes g-pane-in { from { opacity: 0; transform: translateY(14px); } }
+  .g-entry__title { font-size: clamp(2.6rem, 1.8rem + 2.6vw, 4.4rem); }
+  .g-entry__title em { color: var(--accent); }
+  .g-entry__lead { color: var(--fg-soft); font-size: 1.08rem; line-height: 1.65; max-inline-size: 36ch; }
+
+  /* ── code field ── */
+  .g-code { display: grid; gap: 0.55rem; margin-block-start: 0.6rem; }
+  .g-code__field { position: relative; }
+  .g-code__input {
+    inline-size: 100%;
+    padding: 0.9rem 0 0.8rem;
+    border: 0;
+    border-block-end: 1px solid var(--line-strong);
+    border-radius: 0;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.8rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    caret-color: var(--gold);
+  }
+  .g-code__input::placeholder { color: var(--muted); opacity: 0.35; letter-spacing: 0.14em; }
+  .g-code__input:focus { outline: none; }
+  .g-code__line {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.6s var(--ease-out);
+  }
+  .g-code__input:focus-visible + .g-code__line,
+  .g-code__input:focus + .g-code__line { transform: scaleX(1); }
+  .g-code.is-invalid .g-code__input { border-block-end-color: var(--danger); }
+  .g-code.is-invalid .g-code__line { background: var(--danger); }
+  .g-code.is-shaking .g-code__field { animation: g-shake 0.45s var(--ease-soft); }
+  @keyframes g-shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+  .g-code__hint { font-size: 0.85rem; color: var(--muted); text-align: center; }
+  .g-code__error { min-block-size: 1.3em; font-size: 0.92rem; color: var(--danger); text-align: center; line-height: 1.45; }
+  .g-code__error strong { display: block; font-weight: 700; }
+  .g-code__submit { margin-block-start: 0.4rem; }
+  .g-code__spinner {
+    display: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    animation: g-spin 0.8s linear infinite;
+  }
+  .g-code.is-busy .g-code__spinner { display: inline-block; }
+  .g-code.is-busy .g-code__submit .icon { display: none; }
+  .g-code.is-busy .g-code__submit { pointer-events: none; opacity: 0.85; }
+  @keyframes g-spin { to { transform: rotate(360deg); } }
+
+  /* ── recent galleries ── */
+  .g-recent { display: grid; gap: 0.7rem; padding-block-start: 1.2rem; border-block-start: 1px solid var(--line); }
+  .g-recent__label { font-size: 0.8rem; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; }
+  .g-recent__list { display: grid; gap: 0.5rem; }
+  .g-recent__item {
+    display: grid;
+    grid-template-columns: 3rem 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.5rem;
+    padding-inline-end: 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: border-color 0.3s, background 0.3s, transform 0.4s var(--ease-out);
+  }
+  .g-recent__item:hover { border-color: var(--ink); background: var(--paper-deep); }
+  .g-recent__thumb {
+    inline-size: 3rem;
+    block-size: 3rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--sand);
+    display: grid;
+    place-items: center;
+    color: var(--gold-text);
+  }
+  .g-recent__thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .g-recent__text { min-inline-size: 0; display: grid; line-height: 1.3; }
+  .g-recent__title { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .g-recent__sub { font-size: 0.82rem; color: var(--muted); }
+  .g-recent__item .icon--arrow { transition: transform 0.4s var(--ease-out); }
+  .g-recent__item:hover .icon--arrow { transform: translateX(0.25rem); }
+  [dir='rtl'] .g-recent__item:hover .icon--arrow { transform: translateX(-0.25rem) scaleX(-1); }
+
+  .g-entry__help { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.8rem; font-size: 0.92rem; color: var(--muted); }
+  .g-entry__help .link { color: var(--ink); }
+  .g-entry__noscript { padding: 1rem; border: 1px solid var(--danger); color: var(--danger); }
+
+  /* ── friendly error screen ── */
+  .g-status { justify-items: start; }
+  .g-status__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 4.2rem;
+    block-size: 4.2rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    color: var(--accent);
+  }
+  .g-status__title { font-size: clamp(2.3rem, 1.7rem + 2vw, 3.6rem); }
+  .g-status__title:focus { outline: none; }
+  .g-status__text { color: var(--fg-soft); font-size: 1.08rem; max-inline-size: 38ch; }
+  .g-status__actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-block-start: 0.4rem; }
+  .g-status__code { margin-block-start: 0.4rem; }
+
+  /* ── loader ── */
+  .g-boot { display: none; }
+  html.g-booting .g-boot {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    background: var(--noir);
+    transition: opacity 0.7s var(--ease-soft), visibility 0.7s;
+  }
+  html.g-booting .g-boot.is-done { opacity: 0; visibility: hidden; }
+  .g-boot__inner { display: grid; justify-items: center; gap: 1.6rem; color: var(--on-noir); text-align: center; }
+  .g-boot__line { position: relative; inline-size: 7rem; block-size: 1px; background: rgb(243 237 229 / 0.18); overflow: hidden; }
+  .g-boot__line::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inline-size: 40%;
+    background: var(--gold-soft);
+    animation: g-boot-line 1.4s var(--ease-in-out) infinite;
+  }
+  @keyframes g-boot-line { from { inset-inline-start: -40%; } to { inset-inline-start: 100%; } }
+  .g-boot__text { font-size: 0.85rem; letter-spacing: 0.06em; color: var(--on-noir-muted); }
+
+  @media (max-width: 900px) {
+    .g-entry { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .g-entry__media { min-block-size: 40svh; }
+    .g-entry__media-text { inset-block-end: 1.6rem; }
+    .g-entry__media-title { font-size: clamp(2rem, 1.4rem + 3vw, 2.8rem); }
+    .g-entry__panel { padding: 2.4rem 1.25rem 3rem; align-items: start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-entry__media img, .g-pane, .g-boot__line::after { animation: none; }
+  }
+  html.a11y-motion .g-entry__media img { animation: none; }
+</style>

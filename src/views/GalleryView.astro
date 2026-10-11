@@ -1,0 +1,55 @@
+---
+/**
+ * Private client gallery (/gallery/, /en/gallery/).
+ *
+ * One static page with three states, driven by src/scripts/gallery:
+ *   1. code entry      — no ?g / ?code
+ *   2. loading / error — while opening, or when a gallery can't be shown
+ *   3. the gallery     — cover, people, filters, justified grid, lightbox,
+ *                        favourites, downloads, selections and "find me"
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import GalleryHeader from '~/components/gallery/GalleryHeader.astro';
+import GalleryEntry from '~/components/gallery/GalleryEntry.astro';
+import GalleryApp from '~/components/gallery/GalleryApp.astro';
+import GalleryDialogs from '~/components/gallery/GalleryDialogs.astro';
+import { clientStrings, str } from '~/components/gallery/copy';
+import { site } from '~/config/site';
+import { localizePath, otherLang, type Lang } from '~/i18n';
+import 'photoswipe/style.css';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const config = {
+  lang,
+  strings: clientStrings(lang),
+  home: localizePath('/', lang),
+  contact: localizePath('/contact/', lang),
+  galleryPath: localizePath('/gallery/', lang),
+  otherGalleryPath: localizePath('/gallery/', otherLang(lang)),
+  siteName: site.name[lang],
+};
+---
+<BaseLayout lang={lang} path="/gallery/" title={str('seoTitle', lang)} description={str('seoDescription', lang)} chrome="minimal" noindex alternates={false}>
+  <script is:inline slot="head">
+    // Before first paint: links that open a gallery skip the code screen.
+    (function () {
+      if (/[?&](g|code)=[^&]/.test(location.search)) document.documentElement.classList.add('g-booting');
+    })();
+  </script>
+  <GalleryHeader slot="chrome" lang={lang} />
+
+  <GalleryEntry lang={lang} />
+  <GalleryApp lang={lang} />
+  <GalleryDialogs lang={lang} />
+
+  <div class="g-toasts" data-toasts role="status" aria-live="polite"></div>
+  <p class="sr-only" data-announce aria-live="polite"></p>
+
+  <script type="application/json" id="gallery-config" set:html={JSON.stringify(config).replace(/</g, '\\u003c')} />
+  <script>
+    import '~/scripts/gallery/main';
+  </script>
+</BaseLayout>
