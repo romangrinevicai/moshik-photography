@@ -14,6 +14,8 @@ import InquiriesPanel from '~/components/admin/InquiriesPanel.astro';
 import AvailabilityPanel from '~/components/admin/AvailabilityPanel.astro';
 import HelpPanel from '~/components/admin/HelpPanel.astro';
 import '~/components/admin/admin.css';
+import { STATIC_SITE } from '~/config/base';
+import { localizePath } from '~/i18n';
 import { services } from '~/data/services';
 import { pricing, addons } from '~/data/packages';
 import { site } from '~/config/site';
@@ -28,6 +30,12 @@ const copy = {
   title: { he: 'ניהול האתר', en: 'Studio admin' },
   description: { he: 'אזור הניהול של מושיק: גלריות, פניות ויומן זמינות.', en: 'Moshik’s admin area: galleries, inquiries and availability.' },
   loading: { he: 'טוען…', en: 'Loading…' },
+  staticTitle: { he: 'אזור הניהול אינו זמין בתצוגה המקדימה', en: 'The admin panel isn’t part of this preview' },
+  staticText: {
+    he: 'הגלריות, הפניות ויומן הזמינות רצים על השרת של Cloudflare, והתצוגה המקדימה הזו היא אתר סטטי בלבד. אחרי ההעלאה לאוויר, כאן תתחברו עם הסיסמה שלכם.',
+    en: 'Galleries, inquiries and the availability calendar run on the Cloudflare backend, and this preview is a static site. Once the site is live, this is where you sign in with your password.',
+  },
+  staticBack: { he: 'חזרה לאתר', en: 'Back to the site' },
 };
 
 /* Labels for values stored on inquiries (mirrors BookingForm.astro). */
@@ -77,21 +85,36 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
   <AdminNav lang={lang} slot="chrome" />
 
   <div class="adm" data-adm data-state="boot" data-lenis-prevent>
-    <div class="adm-boot" data-boot role="status">
-      <span class="adm-boot__word" dir="ltr">{site.brand}</span>
-      <span class="adm-spinner adm-spinner--lg" aria-hidden="true"></span>
-      <span class="sr-only">{copy.loading[lang]}</span>
-    </div>
+    {
+      !STATIC_SITE && (
+        <div class="adm-boot" data-boot role="status">
+          <span class="adm-boot__word" dir="ltr">{site.brand}</span>
+          <span class="adm-spinner adm-spinner--lg" aria-hidden="true"></span>
+          <span class="sr-only">{copy.loading[lang]}</span>
+        </div>
+      )
+    }
 
-    <AdminLogin lang={lang} />
-
-    <div class="adm-app" data-app hidden>
-      <GalleriesPanel lang={lang} />
-      <GalleryEditor lang={lang} />
-      <InquiriesPanel lang={lang} />
-      <AvailabilityPanel lang={lang} />
-      <HelpPanel lang={lang} />
-    </div>
+    {
+      STATIC_SITE ? (
+        <div class="adm-static">
+          <h1 class="adm-static__title">{copy.staticTitle[lang]}</h1>
+          <p>{copy.staticText[lang]}</p>
+          <a class="btn btn--solid" href={localizePath('/', lang)}>{copy.staticBack[lang]}</a>
+        </div>
+      ) : (
+        <>
+          <AdminLogin lang={lang} />
+          <div class="adm-app" data-app hidden>
+            <GalleriesPanel lang={lang} />
+            <GalleryEditor lang={lang} />
+            <InquiriesPanel lang={lang} />
+            <AvailabilityPanel lang={lang} />
+            <HelpPanel lang={lang} />
+          </div>
+        </>
+      )
+    }
 
     <div class="adm-toasts" data-toasts aria-live="polite" aria-relevant="additions"></div>
   </div>
@@ -100,6 +123,20 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
 </BaseLayout>
 
 <script>
+  import { STATIC_SITE } from '~/config/base';
   import { initAdmin } from '~/scripts/admin/main';
-  initAdmin();
+  if (!STATIC_SITE) initAdmin();
 </script>
+
+<style>
+  .adm-static {
+    display: grid;
+    gap: 1.2rem;
+    justify-items: start;
+    max-inline-size: 36rem;
+    margin: clamp(4rem, 12vh, 8rem) auto;
+    padding-inline: 1.5rem;
+  }
+  .adm-static__title { font-size: clamp(1.8rem, 1.2rem + 2vw, 2.6rem); line-height: 1.15; }
+  .adm-static p { color: var(--muted); }
+</style>

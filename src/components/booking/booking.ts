@@ -2,6 +2,7 @@ import { loadAvailability, statusFor, formatLongDate, type Availability } from '
 import { whatsappLinkClient } from '~/scripts/wa';
 import { track } from '~/scripts/core';
 import { site } from '~/config/site';
+import { STATIC_SITE } from '~/config/base';
 
 interface Config {
   lang: 'he' | 'en';
@@ -249,6 +250,7 @@ function setup(root: HTMLElement) {
       summary: summary(),
     };
     try {
+      if (STATIC_SITE) throw new Error('no backend');
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
