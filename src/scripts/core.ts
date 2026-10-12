@@ -242,6 +242,8 @@ function initSectionSnap() {
   let dir = 0;
   let keyAt = 0;
   let timer = 0;
+  // Safari before 26 has no scrollend event: settle after scroll events go quiet instead.
+  const hasScrollEnd = 'onscrollend' in window;
   window.addEventListener('keydown', () => (keyAt = performance.now()), { passive: true });
 
   const settle = () => {
@@ -269,7 +271,7 @@ function initSectionSnap() {
       const y = window.scrollY;
       if (y !== lastY) dir = y > lastY ? 1 : -1;
       lastY = y;
-      if (!('onscrollend' in window)) {
+      if (!hasScrollEnd) {
         clearTimeout(timer);
         timer = window.setTimeout(settle, 180);
       }
