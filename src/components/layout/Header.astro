@@ -145,7 +145,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 <style>
   .site-header {
     --hfg: var(--ink);
-    --hbg: rgb(246 242 236 / 0.92);
+    --hbg: rgb(246 242 236 / 0.97);
     position: fixed;
     inset-block-start: 0;
     inset-inline: 0;
@@ -157,15 +157,11 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       background-color 0.4s var(--ease-soft),
       box-shadow 0.4s;
     background-color: var(--hbg);
-    backdrop-filter: saturate(1.4) blur(14px);
-    -webkit-backdrop-filter: saturate(1.4) blur(14px);
     box-shadow: 0 1px 0 var(--line);
   }
   .site-header[data-variant='overlay']:not([data-scrolled]) {
     --hfg: var(--on-noir);
     background-color: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     box-shadow: none;
   }
   .site-header[data-variant='overlay']:not([data-scrolled])::before {
@@ -181,8 +177,6 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     --hfg: var(--on-noir);
     background-color: transparent;
     box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     transform: none;
   }
   :global(html.menu-open) .site-header::before { display: none; }

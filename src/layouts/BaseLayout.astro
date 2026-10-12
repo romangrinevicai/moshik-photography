@@ -54,10 +54,12 @@ const {
 } = Astro.props;
 const t = useTranslations(lang);
 const { dir } = languages[lang];
+/** The home page's sections snap into place on desktop (see global.css). */
+const snap = chrome === 'full' && path === '/';
 const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormorantLatin, assistantLatin];
 ---
 <!doctype html>
-<html lang={lang} dir={dir} class="no-js">
+<html lang={lang} dir={dir} class:list={['no-js', { 'snap-sections': snap }]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

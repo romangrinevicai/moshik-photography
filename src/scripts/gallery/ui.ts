@@ -1,14 +1,11 @@
 /** Small UI primitives: modal dialogs, toasts, announcements, scrolling. */
-import { getLenis, lockScroll, motionOff } from '~/scripts/core';
+import { lockScroll, motionOff } from '~/scripts/core';
 import { iconSvg, type IconName } from '~/shared/icons';
 
 /* ─────────────────────────── scrolling ─────────────────────────── */
 
 export function scrollToY(y: number, smooth = true) {
-  const lenis = getLenis();
-  const animate = smooth && !motionOff();
-  if (lenis) lenis.scrollTo(y, { immediate: !animate, force: true, duration: animate ? 1.1 : 0 });
-  else window.scrollTo({ top: y, behavior: animate ? 'smooth' : 'auto' });
+  window.scrollTo({ top: y, behavior: smooth && !motionOff() ? 'smooth' : 'auto' });
 }
 
 /* ──────────────────────────── dialogs ──────────────────────────── */

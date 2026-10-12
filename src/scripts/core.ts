@@ -4,53 +4,23 @@
  * and analytics hooks. Everything degrades gracefully without JS and
  * respects reduced-motion preferences.
  */
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 
 const html = document.documentElement;
 const reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
 export const motionOff = () => reducedMotionQuery.matches || html.classList.contains('a11y-motion');
 
-let lenis: Lenis | null = null;
-export const getLenis = () => lenis;
 
-/* ─────────────────────────── smooth scroll ─────────────────────────── */
-/** App-like pages (client gallery, admin) keep native scrolling and cursor. */
+/** App-like pages (client gallery, admin) keep the native cursor. */
 const isAppPage = () => document.body.hasAttribute('data-app-page');
 
-function initSmoothScroll() {
-  if (lenis || motionOff() || isAppPage()) return;
-  lenis = new Lenis({
-    autoRaf: true,
-    duration: 1.15,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    anchors: { offset: -90 },
-    prevent: (node) => node.closest('[data-lenis-prevent], .pswp, dialog') !== null,
-  });
-  html.classList.add('lenis-active');
-}
-function destroySmoothScroll() {
-  lenis?.destroy();
-  lenis = null;
-  html.classList.remove('lenis-active');
-}
-window.addEventListener('a11y:change', () => (motionOff() ? destroySmoothScroll() : initSmoothScroll()));
-
 export function lockScroll(locked: boolean) {
-  if (locked) {
-    lenis?.stop();
-    document.body.style.overflow = 'hidden';
-  } else {
-    lenis?.start();
-    document.body.style.overflow = '';
-  }
+  document.body.style.overflow = locked ? 'hidden' : '';
 }
 
 export function scrollToTarget(target: number | HTMLElement) {
-  if (lenis) lenis.scrollTo(target, { offset: typeof target === 'number' ? 0 : -90 });
-  else if (typeof target === 'number') window.scrollTo({ top: target, behavior: motionOff() ? 'auto' : 'smooth' });
-  else target.scrollIntoView({ behavior: motionOff() ? 'auto' : 'smooth', block: 'start' });
+  const top = typeof target === 'number' ? target : target.getBoundingClientRect().top + window.scrollY - 90;
+  window.scrollTo({ top, behavior: motionOff() ? 'auto' : 'smooth' });
 }
 
 /* ───────────────────────────── header ──────────────────────────────── */
@@ -257,43 +227,56 @@ function initParallax() {
   update();
 }
 
-/* ─────────────────────────── cursor ────────────────────────────────── */
-function initCursor() {
-  if (!finePointer.matches || isAppPage()) return;
-  const cursor = document.createElement('div');
-  cursor.className = 'cursor';
-  cursor.setAttribute('aria-hidden', 'true');
-  cursor.innerHTML = '<span class="cursor__ring"></span><span class="cursor__label"></span>';
-  document.body.appendChild(cursor);
-  const label = cursor.querySelector<HTMLElement>('.cursor__label')!;
-  let x = -100, y = -100, cx = -100, cy = -100;
-  let raf = 0;
-  const loop = () => {
-    cx += (x - cx) * 0.2;
-    cy += (y - cy) * 0.2;
-    cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
-    raf = Math.abs(x - cx) + Math.abs(y - cy) > 0.1 ? requestAnimationFrame(loop) : 0;
+/* ─────────────────────────── section snap ──────────────────────────── */
+/**
+ * Home page, desktop: when scrolling stops with two sections on screen, settle on one —
+ * the next one once a fifth of it is showing in the direction of travel, otherwise
+ * back. A section that fills the screen is left alone, so tall sections read freely.
+ */
+function initSectionSnap() {
+  if (!html.classList.contains('snap-sections')) return;
+  const sections = [...document.querySelectorAll<HTMLElement>('main > section, .site-footer')];
+  if (sections.length < 2) return;
+  const wide = matchMedia('(min-width: 761px) and (min-height: 600px)');
+  let lastY = window.scrollY;
+  let dir = 0;
+  let keyAt = 0;
+  let timer = 0;
+  window.addEventListener('keydown', () => (keyAt = performance.now()), { passive: true });
+
+  const settle = () => {
+    if (!wide.matches || motionOff() || performance.now() - keyAt < 800) return;
+    const vh = window.innerHeight;
+    const y = window.scrollY;
+    // The section at the top of the screen (a gap such as the marquee counts as part of it).
+    let i = -1;
+    sections.forEach((s, n) => s.getBoundingClientRect().top <= 1 && (i = n));
+    const cur = sections[i];
+    const next = sections[i + 1];
+    if (!cur || !next) return;
+    const top = cur.getBoundingClientRect().top;
+    const edge = next.getBoundingClientRect().top;
+    if (edge >= vh - 1) return;
+    const toNext = y + edge;
+    const toCur = edge - top > vh ? y + edge - vh : y + top;
+    const target = (dir > 0 ? vh - edge >= vh * 0.2 : edge < vh * 0.2) ? toNext : toCur;
+    if (Math.abs(target - y) > 1) window.scrollTo({ top: target, behavior: 'smooth' });
   };
+
   window.addEventListener(
-    'pointermove',
-    (e) => {
-      if (e.pointerType !== 'mouse') return;
-      x = e.clientX;
-      y = e.clientY;
-      cursor.classList.add('is-visible');
-      if (!raf) raf = requestAnimationFrame(loop);
+    'scroll',
+    () => {
+      const y = window.scrollY;
+      if (y !== lastY) dir = y > lastY ? 1 : -1;
+      lastY = y;
+      if (!('onscrollend' in window)) {
+        clearTimeout(timer);
+        timer = window.setTimeout(settle, 180);
+      }
     },
     { passive: true },
   );
-  document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'));
-  document.addEventListener('pointerover', (e) => {
-    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-cursor]');
-    const text = target?.dataset.cursor ?? '';
-    cursor.classList.toggle('has-label', !!text);
-    label.textContent = text;
-    const interactive = !text && (e.target as HTMLElement).closest('a, button, input, select, textarea, label, [role="button"]');
-    cursor.classList.toggle('is-link', !!interactive);
-  });
+  window.addEventListener('scrollend', settle);
 }
 
 /* ───────────────────────── magnetic buttons ────────────────────────── */
@@ -378,14 +361,13 @@ function initScrollTop() {
 }
 
 function init() {
-  initSmoothScroll();
   initHeader();
   initMegaMenu();
   initMobileMenu();
   initReveals();
   initCounters();
   initParallax();
-  initCursor();
+  initSectionSnap();
   initMagnetic();
   initAvailability();
   initActionBar();
