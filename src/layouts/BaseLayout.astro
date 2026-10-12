@@ -1,6 +1,7 @@
 ---
 import type { ImageMetadata } from 'astro';
 import '~/styles/global.css';
+import '~/styles/themes/index.css';
 import SEO from '~/components/layout/SEO.astro';
 import Header from '~/components/layout/Header.astro';
 import Footer from '~/components/layout/Footer.astro';
@@ -11,6 +12,7 @@ import PreviewTag from '~/components/layout/PreviewTag.astro';
 import { site } from '~/config/site';
 import { withBase } from '~/config/base';
 import { showPreviewTag } from '~/config/preview';
+import { themes } from '~/config/themes';
 import { languages, useTranslations, type Lang } from '~/i18n';
 
 import frankHe from '@fontsource-variable/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-wght-normal.woff2?url';
@@ -56,6 +58,8 @@ const t = useTranslations(lang);
 const { dir } = languages[lang];
 /** The home page's sections snap into place on desktop (see global.css). */
 const snap = chrome === 'full' && path === '/';
+/** TEMPORARY: design directions to compare (marketing pages only). */
+const themeIds = chrome === 'full' && site.features.themeSwitcher ? themes.map((t) => t.id) : [];
 const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormorantLatin, assistantLatin];
 ---
 <!doctype html>
@@ -80,7 +84,9 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
           try {
             var f = document.fonts;
             Promise.race([
-              Promise.all([f.load('350 1em "Frank Ruhl"', 'א'), f.load('400 1em "Cormorant"', 'M'), f.load('400 1em "Assistant"', 'אM')]),
+              Promise.all(['--font-display', '--font-body'].map(function (v) {
+              return f.load('400 1em ' + getComputedStyle(d).getPropertyValue(v).split(',')[0], 'אM');
+            })),
               new Promise(function (r) { setTimeout(r, 1400); }),
             ]).then(ready, ready);
           } catch (e) {
@@ -96,6 +102,18 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
         } catch (e) {}
       })();
     </script>
+    {
+      themeIds.length > 0 && (
+        <script is:inline define:vars={{ themeIds }}>
+          try {
+            var q = new URLSearchParams(location.search).get('theme');
+            if (q) localStorage.setItem('moshik-theme', q);
+            var th = q || localStorage.getItem('moshik-theme');
+            if (th && th !== 'classic' && themeIds.indexOf(th) > -1) document.documentElement.dataset.theme = th;
+          } catch (e) {}
+        </script>
+      )
+    }
     {preloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
     <meta name="theme-color" content="#161311" />
     <meta name="color-scheme" content="light" />

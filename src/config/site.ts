@@ -100,6 +100,8 @@ export const site = {
   },
 
   features: {
+    /** TEMPORARY: header button that switches between design directions (src/config/themes.ts). */
+    themeSwitcher: true,
     /** Private client galleries (requires the Cloudflare Worker + R2 bucket). */
     clientGalleries: true,
     /** Floating accessibility menu (text size, contrast, motion…). */

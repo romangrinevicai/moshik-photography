@@ -7,6 +7,7 @@ import { services } from '~/data/services';
 import { photo } from '~/data/photos';
 import { site, whatsappLink, telLink, mailLink } from '~/config/site';
 import { localizePath, otherLang, useTranslations, type Lang } from '~/i18n';
+import ThemeSwitcher from '~/components/layout/ThemeSwitcher.astro';
 
 interface Props {
   lang: Lang;
@@ -83,6 +84,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
           </a>
         )
       }
+      {site.features.themeSwitcher && <ThemeSwitcher lang={lang} />}
       <a class="site-header__lang" href={localizePath(path, alt)} hreflang={alt} lang={alt} data-lang-switch>
         <span>{alt === 'en' ? 'EN' : 'עב'}</span>
         <span class="sr-only"> — {t('nav.switchLangLabel')}</span>
