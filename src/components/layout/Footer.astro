@@ -3,6 +3,7 @@ import Logo from '~/components/ui/Logo.astro';
 import Icon from '~/components/ui/Icon.astro';
 import { footerNav } from '~/data/nav';
 import { services } from '~/data/services';
+import { withBase } from '~/shared/base';
 import { site, whatsappLink, telLink, mailLink } from '~/config/site';
 import { localizePath, useTranslations, type Lang } from '~/i18n';
 
@@ -96,7 +97,7 @@ const socials = [
           </li>
           <li class="site-footer__muted"><Icon name="map-pin" size={16} /> <span>{site.location.base[lang]}</span></li>
           <li>
-            <a href="/moshik.vcf" download><Icon name="user-plus" size={16} /> <span>{t('contact.saveContact')}</span></a>
+            <a href={withBase('/moshik.vcf')} download><Icon name="user-plus" size={16} /> <span>{t('contact.saveContact')}</span></a>
           </li>
         </ul>
       </div>

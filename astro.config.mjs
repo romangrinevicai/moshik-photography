@@ -11,6 +11,8 @@ const SITE_URL = process.env.SITE_URL || 'https://moshik-photography.example';
 
 export default defineConfig({
   site: SITE_URL,
+  // Served from a sub-path on the GitHub Pages preview (BASE_PATH=/moshik-photography).
+  base: process.env.BASE_PATH || undefined,
   // Lets parallel builds (e.g. separate git worktrees) keep separate caches.
   cacheDir: process.env.ASTRO_CACHE_DIR || './node_modules/.astro',
   trailingSlash: 'ignore',

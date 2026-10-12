@@ -9,6 +9,7 @@ import A11yMenu from '~/components/layout/A11yMenu.astro';
 import Analytics from '~/components/layout/Analytics.astro';
 import PreviewTag from '~/components/layout/PreviewTag.astro';
 import { site } from '~/config/site';
+import { withBase } from '~/shared/base';
 import { showPreviewTag } from '~/config/preview';
 import { languages, useTranslations, type Lang } from '~/i18n';
 
@@ -97,10 +98,10 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
     <meta name="theme-color" content="#161311" />
     <meta name="color-scheme" content="light" />
     <meta name="format-detection" content="telephone=no" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="48x48" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="manifest" href={withBase('/site.webmanifest')} />
     <meta name="author" content={site.fullName[lang]} />
     <SEO lang={lang} path={path} title={title} description={description} image={image} type={type} noindex={noindex} jsonLd={jsonLd} alternates={alternates} />
     <slot name="head" />

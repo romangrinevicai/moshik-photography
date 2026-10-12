@@ -6,6 +6,7 @@ import FaqList from '~/components/ui/FaqList.astro';
 import Icon from '~/components/ui/Icon.astro';
 import { faq } from '~/data/faq';
 import { breadcrumbSchema, businessSchema } from '~/data/schema';
+import { withBase } from '~/shared/base';
 import { site, whatsappLink, telLink, mailLink } from '~/config/site';
 import { localizePath, useTranslations, type Lang } from '~/i18n';
 import type { IconName } from '~/shared/icons';
@@ -80,7 +81,7 @@ const bookingFaq = faq.filter((f) => f.topics.includes('booking')).slice(0, 4);
               </li>
             ))}
           </ul>
-          <a class="contact__vcard" href="/moshik.vcf" download><Icon name="user-plus" size={16} /> {t('contact.saveContact')}</a>
+          <a class="contact__vcard" href={withBase('/moshik.vcf')} download><Icon name="user-plus" size={16} /> {t('contact.saveContact')}</a>
         </div>
         <dl class="contact__facts">
           <div>

@@ -5,10 +5,10 @@ const host = new URL(import.meta.env.SITE ?? 'https://moshik-photography.example
 
 /**
  * A build without the site's real address (SITE_URL), or one meant for a
- * Cloudflare preview domain, is a preview: every page is marked noindex so
+ * preview domain (workers.dev, pages.dev, github.io), is a preview: every page is marked noindex so
  * sample content never reaches search engines.
  */
-export const isPreview = /(^|\.)(example|workers\.dev|pages\.dev|localhost)$/.test(host);
+export const isPreview = /(^|\.)(example|workers\.dev|pages\.dev|github\.io|localhost)$/.test(host);
 
 /** Sample reviews or stories are still on the site (`npm run checklist` lists them). */
 export const hasSampleContent = testimonials.some((t) => t.sample) || stories.some((s) => s.sample);

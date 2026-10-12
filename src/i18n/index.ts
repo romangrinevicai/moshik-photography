@@ -1,3 +1,5 @@
+import { withBase } from '../shared/base';
+
 export const languages = {
   he: { label: 'עברית', short: 'עב', dir: 'rtl', locale: 'he-IL', ogLocale: 'he_IL' },
   en: { label: 'English', short: 'EN', dir: 'ltr', locale: 'en-US', ogLocale: 'en_US' },
@@ -17,8 +19,8 @@ export const dirOf = (lang: Lang) => languages[lang].dir;
 export function localizePath(path: string, lang: Lang): string {
   let p = path.startsWith('/') ? path : `/${path}`;
   if (!p.endsWith('/') && !p.includes('#') && !p.includes('?') && !/\.[a-z0-9]+$/i.test(p)) p += '/';
-  if (lang === defaultLang) return p;
-  return p === '/' ? `/${lang}/` : `/${lang}${p}`;
+  if (lang !== defaultLang) p = p === '/' ? `/${lang}/` : `/${lang}${p}`;
+  return withBase(p);
 }
 
 /** Remove a language prefix from a pathname, returning the language-neutral path. */

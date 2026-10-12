@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import Icon from '~/components/ui/Icon.astro';
+import { localizePath } from '~/i18n';
 ---
 <BaseLayout lang="he" path="/404/" title="העמוד לא נמצא · Page not found" description="העמוד שחיפשתם לא נמצא." noindex footerCta={false} alternates={false}>
   <section class="nf">
@@ -10,12 +11,12 @@ import Icon from '~/components/ui/Icon.astro';
         <div class="nf__col" lang="he" dir="rtl">
           <h1 class="display nf__title">הרגע הזה <em>לא צולם</em></h1>
           <p class="lead">העמוד שחיפשתם לא קיים או שהועבר. בואו נחזור לרגעים היפים.</p>
-          <a class="btn btn--solid" href="/">לדף הבית <Icon name="arrow-right" /></a>
+          <a class="btn btn--solid" href={localizePath('/', 'he')}>לדף הבית <Icon name="arrow-right" /></a>
         </div>
         <div class="nf__col" lang="en" dir="ltr">
           <h2 class="display nf__title">This moment <em>wasn’t captured</em></h2>
           <p class="lead">The page you’re looking for doesn’t exist or has moved. Let’s get you back to the good part.</p>
-          <a class="btn" href="/en/">Back home <Icon name="arrow-right" /></a>
+          <a class="btn" href={localizePath('/', 'en')}>Back home <Icon name="arrow-right" /></a>
         </div>
       </div>
     </div>

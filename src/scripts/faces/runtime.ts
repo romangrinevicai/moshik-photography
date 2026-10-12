@@ -5,6 +5,7 @@
  */
 import { FaceError } from './errors';
 import type { ProgressFn } from './types';
+import { withBase } from '../../shared/base';
 
 export type FaceApi = typeof import('@vladmandic/face-api/dist/face-api.esm.js');
 export type Backend = 'webgl' | 'wasm' | 'cpu';
@@ -33,10 +34,10 @@ export interface FaceSettings {
 }
 
 export const settings: FaceSettings = {
-  modelUrl: '/models/face-api',
+  modelUrl: withBase('/models/face-api'),
   // Self-hosted by scripts/copy-face-models.mjs. The binaries must match the TF.js
   // version bundled in the engine exactly (4.22.0, pinned in package.json).
-  wasmPath: '/models/tfjs-wasm/',
+  wasmPath: withBase('/models/tfjs-wasm/'),
   backend: null,
 };
 
