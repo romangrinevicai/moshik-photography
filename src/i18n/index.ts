@@ -1,4 +1,4 @@
-import { withBase } from '../shared/base';
+import { withBase } from '../config/base';
 
 export const languages = {
   he: { label: 'עברית', short: 'עב', dir: 'rtl', locale: 'he-IL', ogLocale: 'he_IL' },

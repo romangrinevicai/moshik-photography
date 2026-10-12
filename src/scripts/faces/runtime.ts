@@ -5,7 +5,7 @@
  */
 import { FaceError } from './errors';
 import type { ProgressFn } from './types';
-import { withBase } from '../../shared/base';
+import { withBase } from '../../config/base';
 
 export type FaceApi = typeof import('@vladmandic/face-api/dist/face-api.esm.js');
 export type Backend = 'webgl' | 'wasm' | 'cpu';
