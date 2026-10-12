@@ -10,22 +10,22 @@ export const about = {
   seo: {
     title: { he: 'אודות מושיק — צלם חתונות ואירועים', en: 'About Moshik — Wedding & Event Photographer' },
     description: {
-      he: 'הכירו את מושיק: הסיפור, הגישה והאנשים שמאחורי המצלמה. צילום אותנטי, רגוע ואישי לחתונות ולאירועים.',
+      he: 'הכירו את מושיק: הסיפור, הגישה והאיש שמאחורי המצלמה. צילום טבעי, רגוע ואישי לחתונות ולשמחות.',
       en: 'Meet Moshik: the story, the approach and the person behind the camera. Candid, calm and personal photography for weddings and celebrations.',
     },
   },
   eyebrow: { he: 'אודות', en: 'About' },
   title: { he: 'נעים מאוד, *אני מושיק*', en: 'Nice to meet you, *I’m Moshik*' },
   intro: {
-    he: 'צלם חתונות ואירועים, מספר סיפורים באור, ואדם שמאמין שהתמונות הכי טובות נולדות כשמרגישים בנוח.',
+    he: 'צלם חתונות ואירועים. מספר סיפורים באור. ומאמין גדול בכך שהתמונות הטובות ביותר נולדות כשמרגישים בבית.',
     en: 'Wedding and event photographer, storyteller in light, and someone who believes the best photos happen when people feel at ease.',
   },
   story: {
     he: [
-      'התאהבתי בצילום בגלל הרגעים שבין הרגעים: המבט של אמא רגע לפני החופה, הצחוק של חבר ילדות באמצע נאום, היד של סבא שמחזיקה חזק. את הרגעים האלה אי אפשר לביים — אפשר רק להיות שם, קשוב ומוכן.',
-      'מאז צילמתי מאות חתונות, בר ובת מצווה ושמחות משפחתיות בכל רחבי הארץ. בכל אירוע אני מגיע עם אותה סקרנות ואותו כבוד לאנשים ולמנהגים שלהם — מחתונת חוף קלילה ועד חתונה מסורתית עם אלף אורחים.',
-      'הסגנון שלי משלב תיעוד טבעי עם פורטרטים מוקפדים: מעט הכוונה, הרבה תשומת לב, ואור שמחמיא לכולם. אחרי האירוע אני עורך כל תמונה בעצמי — כי בעיניי העריכה היא חצי מהסיפור.',
-      'כשאני לא מצלם, תמצאו אותי מטייל עם המשפחה, מחפש לוקיישנים חדשים לשעת הזהב או שותה קפה טוב מדי.',
+      'התאהבתי בצילום בגלל הרגעים שבין הרגעים: המבט של אמא שנייה לפני החופה, חבר ילדות שפורץ בצחוק באמצע נאום, יד של סבא שאוחזת חזק. רגעים כאלה אי אפשר לביים. אפשר רק להיות שם — קשוב ומוכן.',
+      'מאז צילמתי מאות חתונות, בר ובת מצווה ושמחות משפחתיות, מקצה הארץ ועד קצה. לכל אירוע אני מגיע עם אותה סקרנות ואותו כבוד לאנשים ולמנהגים שלהם — מחתונה יחפה על החוף ועד חתונה מסורתית של אלף אורחים.',
+      'הסגנון שלי משלב תיעוד טבעי עם פורטרטים מוקפדים: מעט הכוונה, הרבה תשומת לב, ואור שמחמיא לכולם. אחרי האירוע אני עורך כל תמונה בעצמי — כי בעיניי, העריכה היא חצי מהסיפור.',
+      'כשאני לא מצלם, תמצאו אותי מטייל עם המשפחה, מחפש פינות חדשות לשעת הזהב, או שותה קצת יותר מדי קפה טוב.',
     ],
     en: [
       'I fell in love with photography because of the moments between moments: a mother’s glance just before the chuppah, a childhood friend laughing mid-speech, a grandfather’s hand holding on tight. You can’t stage those moments — you can only be there, attentive and ready.',
@@ -35,7 +35,7 @@ export const about = {
     ],
   } as Localized<string[]>,
   quote: {
-    he: 'אני לא מצלם איך היום נראה. אני מצלם איך הוא הרגיש.',
+    he: 'אני לא מצלם את היום. אני מצלם את מה שהרגשתם בו.',
     en: 'I don’t photograph how the day looked. I photograph how it felt.',
   },
   valuesTitle: { he: 'מה חשוב *לי*', en: 'What matters *to me*' },
@@ -43,27 +43,27 @@ export const about = {
     {
       icon: 'heart' as IconName,
       title: { he: 'אמיתי, לא מבוים', en: 'Real over posed' },
-      text: { he: 'רגעים אמיתיים מנצחים פוזות. אני מכוון בעדינות ונותן לכם להיות אתם.', en: 'Real moments beat poses. I guide gently and let you be yourselves.' },
+      text: { he: 'רגע אמיתי שווה יותר מכל פוזה. אני מכוון בעדינות ונותן לכם להיות אתם.', en: 'Real moments beat poses. I guide gently and let you be yourselves.' },
     },
     {
       icon: 'feather' as IconName,
       title: { he: 'נוכחות שקטה', en: 'A calm presence' },
-      text: { he: 'רגוע, דיסקרטי ומאורגן — כדי שאתם תוכלו פשוט ליהנות מהיום.', en: 'Calm, discreet and organised — so you can simply enjoy your day.' },
+      text: { he: 'רגוע, דיסקרטי ומאורגן — כדי שלכם יישאר רק ליהנות.', en: 'Calm, discreet and organised — so you can simply enjoy your day.' },
     },
     {
       icon: 'aperture' as IconName,
       title: { he: 'עין לפרטים', en: 'An eye for detail' },
-      text: { he: 'מהטבעת ועד הרקמה על השמלה — הפרטים הקטנים מספרים את הסיפור הגדול.', en: 'From the ring to the lace on the dress — small details tell the big story.' },
+      text: { he: 'מהטבעת ועד התחרה בשמלה — הפרטים הקטנים הם שמספרים את הסיפור הגדול.', en: 'From the ring to the lace on the dress — small details tell the big story.' },
     },
     {
       icon: 'gift' as IconName,
-      title: { he: 'מסירה מושקעת', en: 'Delivered with care' },
-      text: { he: 'גלריה מעוצבת עם זיהוי פנים, אלבומים בעבודת יד וזמני מסירה שעומדים בהם.', en: 'A designed gallery with face search, hand-crafted albums and delivery times I keep.' },
+      title: { he: 'מסירה מוקפדת', en: 'Delivered with care' },
+      text: { he: 'גלריה מעוצבת עם זיהוי פנים, אלבומים בעבודת יד ולוחות זמנים שאני עומד בהם.', en: 'A designed gallery with face search, hand-crafted albums and delivery times I keep.' },
     },
   ],
   bts: { he: 'מאחורי הקלעים', en: 'Behind the scenes' },
   btsText: {
-    he: 'ציוד מקצועי כפול, גיבוי בזמן אמת, ותכנון מראש של כל רגע — כדי שביום עצמו הכל ירגיש קליל.',
+    he: 'ציוד מקצועי כפול, גיבוי בזמן אמת ותכנון קפדני של כל רגע — כדי שביום עצמו הכול ירגיש קליל.',
     en: 'Professional backup gear, real-time dual-card backup and careful planning of every moment — so that on the day itself everything feels effortless.',
   },
 };

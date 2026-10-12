@@ -28,22 +28,22 @@ export const services: Service[] = [
     cover: 'portfolio/weddings/01.jpg',
     title: { he: 'חתונות', en: 'Weddings' },
     summary: {
-      he: 'מההתארגנות ועד הריקוד האחרון — כל היום, מסופר כמו שהוא באמת היה.',
+      he: 'מההתארגנות ועד הריקוד האחרון — היום כולו, בדיוק כפי שהיה.',
       en: 'From getting ready to the last dance — the whole day, told the way it really felt.',
     },
     headline: {
-      he: 'החתונה שלכם, *כמו שהרגשתם אותה*',
+      he: 'החתונה שלכם, *כפי שהרגשתם אותה*',
       en: 'Your wedding, *the way it felt*',
     },
     intro: {
-      he: 'חתונה היא יום אחד שמכיל עולם שלם: התרגשות של בוקר, דמעות מתחת לחופה, חברים שלא ראיתם שנים ורחבה שלא מתרוקנת. התפקיד שלי הוא לתפוס את כל זה — בלי לביים, בלי להפריע, ועם עין לרגעים הקטנים שאתם אפילו לא תדעו שקרו.',
+      he: 'חתונה היא יום אחד שמכיל עולם שלם: פרפרים של בוקר, דמעות מתחת לחופה, חברים שלא ראיתם שנים ורחבה שלא מתרוקנת. התפקיד שלי הוא לתפוס את כל זה — בלי לביים, בלי להפריע, ועם עין לרגעים הקטנים שאפילו לא תדעו שקרו.',
       en: 'A wedding is one day that holds a whole world: morning nerves, tears under the chuppah, friends you haven’t seen in years and a dance floor that never empties. My job is to catch all of it — without staging, without getting in the way, and with an eye for the small moments you won’t even know happened.',
     },
     body: {
       he: [
-        'אני מגיע מוכן: אחרי פגישת תכנון שבה נעבור יחד על לוח הזמנים, על המקומות ועל רשימת צילומי המשפחה — כדי שביום עצמו תוכלו פשוט ליהנות.',
-        'הסגנון שלי משלב צילום תיעודי טבעי עם פורטרטים מוקפדים באור הכי יפה של היום. צילומי הזוגיות לוקחים בדרך כלל 20–30 דקות בלבד, ומרגישים כמו הפסקה נעימה ולא כמו עבודה.',
-        'אחרי החתונה תקבלו תוך 48 שעות טעימה ראשונה, ואת הגלריה המלאה — ערוכה תמונה־תמונה — בגלריה פרטית ומעוצבת עם זיהוי פנים לאורחים.',
+        'אני מגיע מוכן. בפגישת תכנון נעבור יחד על לוח הזמנים, על המקומות ועל רשימת צילומי המשפחה — כדי שביום עצמו תוכלו פשוט ליהנות.',
+        'הסגנון שלי משלב תיעוד טבעי עם פורטרטים מוקפדים, באור היפה ביותר של היום. צילומי הזוגיות נמשכים בדרך כלל 20–30 דקות בלבד, ומרגישים כמו הפסקה נעימה — לא כמו עבודה.',
+        'תוך 48 שעות מהחתונה תקבלו טעימה ראשונה, ואחריה את כל התמונות — ערוכות תמונה־תמונה — בגלריה פרטית ומעוצבת, עם זיהוי פנים לאורחים.',
       ],
       en: [
         'I come prepared: after a planning meeting where we go through the timeline, the locations and your family-photo list together — so on the day itself you can simply enjoy.',
@@ -52,14 +52,14 @@ export const services: Service[] = [
       ],
     },
     highlights: {
-      he: ['התארגנות ו־First Look', 'קבלת פנים וחופה', 'צילומי זוגיות באור הזהב', 'מסיבה עד הסוף', 'טעימה ראשונה תוך 48 שעות', 'גלריה פרטית עם זיהוי פנים'],
+      he: ['התארגנות ו־First Look', 'קבלת פנים וחופה', 'צילומי זוגיות באור הזהב', 'המסיבה, עד הסוף', 'טעימה ראשונה תוך 48 שעות', 'גלריה פרטית עם זיהוי פנים'],
       en: ['Getting ready & first look', 'Reception & chuppah', 'Golden-hour couple portraits', 'The party, until the end', 'Sneak peek within 48 hours', 'Private gallery with face search'],
     },
     pricing: 'weddings',
     seo: {
       title: { he: 'צלם חתונות', en: 'Wedding Photographer in Israel' },
       description: {
-        he: 'צלם חתונות אותנטי וקולנועי בכל רחבי הארץ. חבילות צילום חתונה, צלם נוסף, מגנטים, אלבומים וגלריה פרטית עם זיהוי פנים לאורחים.',
+        he: 'צילום חתונות טבעי וקולנועי בכל רחבי הארץ. חבילות צילום חתונה, צלם נוסף, מגנטים, אלבומים וגלריה פרטית עם זיהוי פנים לאורחים.',
         en: 'Candid, cinematic wedding photography across Israel. Wedding packages with second shooter, magnets, albums and a private gallery with face search for your guests.',
       },
     },
@@ -71,22 +71,22 @@ export const services: Service[] = [
     cover: 'portfolio/bar-bat-mitzvah/01.jpg',
     title: { he: 'בר ובת מצווה', en: 'Bar & Bat Mitzvah' },
     summary: {
-      he: 'מצילומי הבוקר בכותל או בטבע ועד הדלקת הנרות והרחבה — חגיגה שלמה.',
+      he: 'מצילומי בוקר בכותל או בטבע ועד הדלקת הנרות והרחבה — החגיגה כולה.',
       en: 'From a morning shoot at the Western Wall or in nature to candle-lighting and the dance floor.',
     },
     headline: {
-      he: 'הרגע שבו הם *מתחילים לגדול*',
+      he: 'רגע אחד, *והם כבר גדולים*',
       en: 'The moment they *start growing up*',
     },
     intro: {
-      he: 'בר ובת מצווה הם רגע מרגש במיוחד — לילדים, להורים, לסבים ולסבתות. אני יודע איך לגרום לבני ובנות 12–13 להרגיש בנוח מול המצלמה (גם את אלה שבטוחים שהם “לא פוטוגניים”), ואיך לתעד את כל המשפחה בחום ובכבוד.',
+      he: 'בר ובת מצווה הם רגע מרגש במיוחד — לילדים, להורים, לסבים ולסבתות. אני יודע איך לעזור לבני ובנות 12–13 להרגיש בנוח מול המצלמה (גם לאלה שבטוחים שהם “לא פוטוגניים”), ואיך לתעד את כל המשפחה בחום ובכבוד.',
       en: 'A bar or bat mitzvah is a deeply moving moment — for the kids, the parents and the grandparents. I know how to make 12–13 year-olds comfortable in front of the camera (even the ones who are sure they’re “not photogenic”), and how to capture the whole family with warmth and respect.',
     },
     body: {
       he: [
-        'אפשר לפתוח בצילומי בוקר — בכותל, ביפו העתיקה, בחוף או בטבע — ולקבל סט תמונות אישי ומיוחד שמוכן גם להקרנה באירוע.',
-        'באירוע עצמו אני מתעד את קבלת הפנים, את טקס הדלקת הנרות על כל הרגעים המרגשים שבו, את המשפחה המורחבת ואת הרחבה.',
-        'כל התמונות נמסרות בגלריה פרטית שבה כל אורח יכול למצוא את עצמו בעזרת סלפי — בלי לדפדף באלפי תמונות.',
+        'אפשר לפתוח בצילומי בוקר — בכותל, ביפו העתיקה, בחוף או בטבע — ולקבל סדרת פורטרטים אישית, שמוכנה גם להקרנה באירוע.',
+        'באירוע עצמו אני מתעד את קבלת הפנים, את טקס הדלקת הנרות על כל רגעיו המרגשים, את המשפחה המורחבת ואת הרחבה.',
+        'כל התמונות נמסרות בגלריה פרטית שבה כל אורח מוצא את עצמו בסלפי — בלי לדפדף בין אלפי תמונות.',
       ],
       en: [
         'We can start with a morning shoot — at the Western Wall, in Old Jaffa, on the beach or in nature — for a personal set of portraits that’s also ready to be projected at the event.',
@@ -122,7 +122,7 @@ export const services: Service[] = [
       en: 'Every celebration deserves *beautiful photos*',
     },
     intro: {
-      he: 'לא כל אירוע הוא חתונה — אבל כל אירוע הוא רגע שלא יחזור. ברית, חינה צבעונית, מסיבת אירוסין או יום הולדת 70 לסבתא: אני מגיע עם אותה רמת השקעה, אותה עין ואותו חיוך.',
+      he: 'לא כל אירוע הוא חתונה — אבל כל אירוע הוא רגע שלא יחזור. ברית, חינה צבעונית, מסיבת אירוסין או יום הולדת 70 לסבתא: אני מגיע עם אותה מסירות, אותה עין ואותו חיוך.',
       en: 'Not every event is a wedding — but every event is a moment that won’t come again. A brit, a colourful henna, an engagement party or grandma’s 70th birthday: I bring the same care, the same eye and the same smile.',
     },
     body: {
@@ -163,13 +163,13 @@ export const services: Service[] = [
       en: 'Just the two of you, *and the right light*',
     },
     intro: {
-      he: 'צילומי זוגיות הם ההזדמנות להכיר אחד את השנייה מול המצלמה — ואותי — עוד לפני היום הגדול. בלי לחץ של לוח זמנים, באור של שעת הזהב ובמקום שאתם אוהבים.',
+      he: 'צילומי זוגיות הם הזדמנות להתרגל למצלמה — וגם אליי — עוד לפני היום הגדול. בלי לחץ של לוח זמנים, באור של שעת הזהב ובמקום שאתם אוהבים.',
       en: 'A couple session is the chance to get comfortable in front of the camera — and with me — before the big day. No timeline pressure, golden-hour light and a place you love.',
     },
     body: {
       he: [
         'ממכתש רמון ועד סמטאות יפו, מחוף קיסריה ועד אבני ירושלים — נבחר יחד לוקיישן שמספר משהו עליכם.',
-        'התמונות מושלמות להזמנות, ל־Save the Date, להקרנה בחתונה או פשוט לקיר בבית.',
+        'התמונות מתאימות להזמנות, ל־Save the Date ולהקרנה בחתונה — או פשוט לקיר בבית.',
       ],
       en: [
         'From the Ramon Crater to the alleys of Jaffa, from Caesarea’s beach to the stones of Jerusalem — we’ll choose a location together that says something about you.',
@@ -182,7 +182,7 @@ export const services: Service[] = [
     },
     pricing: 'couples',
     seo: {
-      title: { he: 'צילומי זוגיות ופרה וודינג', en: 'Couple & Pre-wedding Photography' },
+      title: { he: 'צילומי זוגיות ופרה־וודינג', en: 'Couple & Pre-wedding Photography' },
       description: {
         he: 'צילומי זוגיות, פרה־וודינג ו־Save the Date במדבר, בים, ביפו ובירושלים. שעת הזהב, הכוונה מלאה וגלריה פרטית.',
         en: 'Couple, pre-wedding and save-the-date sessions in the desert, by the sea, in Jaffa and Jerusalem. Golden-hour light, full guidance and a private gallery.',
@@ -196,7 +196,7 @@ export const services: Service[] = [
     cover: 'portfolio/portraits/01.jpg',
     title: { he: 'פורטרטים ומשפחה', en: 'Portraits & Family' },
     summary: {
-      he: 'צילומי משפחה, הריון ופורטרטים אישיים — טבעיים, חמים ונטולי מתח.',
+      he: 'צילומי משפחה, הריון ופורטרטים אישיים — טבעיים, חמים ובלי לחץ.',
       en: 'Family, maternity and personal portraits — natural, warm and stress-free.',
     },
     headline: {

@@ -5,15 +5,15 @@ export const home = {
   seo: {
     title: { he: 'מושיק — צלם חתונות ואירועים', en: 'Moshik — Wedding & Event Photographer in Israel' },
     description: {
-      he: 'צילום חתונות, בר ובת מצווה ואירועים — אותנטי, קולנועי ומרגש. חבילות ומחירים, גלריה פרטית עם זיהוי פנים לאורחים ובדיקת תאריך מהירה בוואטסאפ.',
+      he: 'צילום חתונות, בר ובת מצווה ואירועים בכל הארץ — טבעי, קולנועי, מלא רגש. חבילות ומחירים, גלריה פרטית שבה כל אורח מוצא את עצמו בסלפי, ובדיקת תאריך מהירה בוואטסאפ.',
       en: 'Candid, cinematic photography for weddings, bar & bat mitzvahs and celebrations across Israel. Packages, a private gallery with face search for guests, and quick date checks on WhatsApp.',
     },
   },
   hero: {
     eyebrow: { he: 'צילום חתונות ואירועים · בכל הארץ', en: 'Wedding & event photography · Israel' },
-    title: { he: 'היום חולף.|*התמונות נשארות.*', en: 'The day flies by.|*The photos stay.*' },
+    title: { he: 'הזמן לא עוצר.|*התמונה כן.*', en: 'The day flies by.|*The photos stay.*' },
     text: {
-      he: 'צילום אותנטי וקולנועי לחתונות, לבר ובת מצווה ולכל שמחה — לאנשים שרוצים להרגיש הכל מחדש, בכל פעם שהם מסתכלים.',
+      he: 'צילום טבעי וקולנועי לחתונות, לבר ובת מצווה ולכל שמחה — תמונות שמחזירות אתכם לשם, בכל מבט מחדש.',
       en: 'Candid, cinematic photography for weddings, bar & bat mitzvahs and every celebration — for people who want to feel it all again, every time they look.',
     },
     captions: [
@@ -30,11 +30,11 @@ export const home = {
   },
   intro: {
     eyebrow: { he: 'נעים מאוד', en: 'Hello' },
-    title: { he: 'אני מושיק, ואני מצלם *רגשות*, לא רק תמונות.', en: 'I’m Moshik, and I photograph *feelings*, not just pictures.' },
+    title: { he: 'אני מושיק, ואני מצלם *את מה שמרגישים*.', en: 'I’m Moshik, and I photograph *feelings*, not just pictures.' },
     text: {
       he: [
-        'כבר יותר מעשור אני מצלם אנשים ברגעים הכי חשובים בחיים שלהם — ועדיין מתרגש בכל פעם מחדש. אני מאמין שתמונה טובה לא מתחילה במצלמה, אלא בחיבור.',
-        'כשנוח לכם, אתם פשוט אתם. ואז קורה הקסם: מבט, צחוק, דמעה של אבא — רגעים קטנים שהופכים לזיכרונות של כל החיים.',
+        'כבר יותר מעשור אני מצלם אנשים ברגעים הגדולים של חייהם, ועדיין מתרגש כמו בפעם הראשונה. תמונה טובה לא מתחילה במצלמה. היא מתחילה בחיבור.',
+        'כשנוח לכם, אתם פשוט אתם. ואז זה קורה: מבט, צחוק, דמעה בעין של אבא — רגעים קטנים שנשארים לכל החיים.',
       ],
       en: [
         'For more than a decade I’ve been photographing people on the most important days of their lives — and it still moves me every single time. I believe a great photograph doesn’t start with the camera, but with connection.',
@@ -50,33 +50,33 @@ export const home = {
   } as Localized<string[]>,
   services: {
     eyebrow: { he: 'מה אני מצלם', en: 'What I photograph' },
-    title: { he: 'לכל שמחה יש *סיפור* משלה', en: 'Every celebration has its own *story*' },
+    title: { he: 'לכל שמחה *סיפור משלה*', en: 'Every celebration has its own *story*' },
     intro: {
-      he: 'חתונה גדולה או ברית אינטימית, בר מצווה או כנס חברה — כל אירוע מקבל את אותה תשומת לב, את אותה סקרנות ואת אותה עין לפרטים.',
+      he: 'חתונה גדולה או ברית בחוג מצומצם, בר מצווה או כנס חברה — כל אירוע זוכה אצלי לאותה תשומת לב, לאותה סקרנות ולאותה עין לפרטים.',
       en: 'A big wedding or an intimate brit, a bar mitzvah or a company conference — every event gets the same attention, the same curiosity and the same eye for detail.',
     },
   },
   work: {
     eyebrow: { he: 'עבודות נבחרות', en: 'Selected work' },
-    title: { he: 'רגעים ששווה *לשמור*', en: 'Moments worth *keeping*' },
+    title: { he: 'רגעים *שנועדו להישמר*', en: 'Moments worth *keeping*' },
   },
   stories: {
     eyebrow: { he: 'סיפורים', en: 'Featured stories' },
-    title: { he: 'ימים אמיתיים, *אנשים אמיתיים*', en: 'Real days, *real people*' },
+    title: { he: 'החיים, *כפי שהם*', en: 'Real days, *real people*' },
   },
   stats: {
     years: { he: 'שנים מאחורי המצלמה', en: 'Years behind the camera' },
     events: { he: 'אירועים שצילמתי', en: 'Events photographed' },
-    couples: { he: 'זוגות מאושרים', en: 'Happy couples' },
+    couples: { he: 'זוגות שסמכו עליי', en: 'Happy couples' },
     rating: { he: 'דירוג ממוצע', en: 'Average rating' },
   },
   process: {
     eyebrow: { he: 'איך זה עובד', en: 'How it works' },
-    title: { he: 'רגוע, פשוט, *אישי*', en: 'Calm, simple, *personal*' },
+    title: { he: 'בלי לחץ, *ובגובה העיניים*', en: 'Calm, simple, *personal*' },
   },
   testimonials: {
     eyebrow: { he: 'מילים חמות', en: 'Kind words' },
-    title: { he: 'מה אומרים *עליי*', en: 'What clients *say*' },
+    title: { he: 'במילים *שלהם*', en: 'What clients *say*' },
     allReviews: { he: 'לכל הביקורות בגוגל', en: 'Read all reviews on Google' },
   },
   gallery: {
@@ -129,10 +129,10 @@ export const home = {
     },
   },
   pricing: {
-    eyebrow: { he: 'השקעה', en: 'Investment' },
-    title: { he: 'חבילות *בהתאמה אישית*', en: 'Packages made to *measure*' },
+    eyebrow: { he: 'מחירים', en: 'Investment' },
+    title: { he: 'חבילות *תפורות למידה*', en: 'Packages made to *measure*' },
     intro: {
-      he: 'מחירים שקופים, בלי אותיות קטנות. בחרו חבילה כנקודת פתיחה — ונתאים אותה בדיוק לאירוע שלכם.',
+      he: 'הכול שקוף, בלי אותיות קטנות. בחרו חבילה כנקודת פתיחה — ויחד נתאים אותה בדיוק לאירוע שלכם.',
       en: 'Transparent pricing, no fine print. Pick a package as a starting point — and we’ll tailor it to your event.',
     },
     cta: { he: 'לכל החבילות ולמחשבון', en: 'All packages & quote builder' },
@@ -146,7 +146,7 @@ export const home = {
     eyebrow: { he: 'בואו נבדוק', en: 'Let’s check' },
     title: { he: 'התאריך שלכם *עדיין פנוי?*', en: 'Is your date *still free?*' },
     text: {
-      he: 'תאריכים מבוקשים נתפסים מהר. בחרו תאריך ותקבלו תשובה מיידית — ואז נמשיך בוואטסאפ או בטופס.',
+      he: 'התאריכים המבוקשים נחטפים מהר. בחרו תאריך וקבלו תשובה מיד — ומשם נמשיך בוואטסאפ או בטופס.',
       en: 'Popular dates go fast. Pick a date for an instant answer — then let’s continue on WhatsApp or through the form.',
     },
   },
