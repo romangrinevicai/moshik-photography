@@ -168,6 +168,19 @@ In short:
 
 **Full guide, including Git-connected auto-deploys and all optional integrations: [`docs/DEPLOY.md`](docs/DEPLOY.md).**
 
+### Preview on GitHub Pages
+
+Every push also publishes a static preview to <https://romangrinevicai.github.io/moshik-photography/> through [`.github/workflows/pages.yml`](.github/workflows/pages.yml). It needs a one-time switch in the repository: **Settings → Pages → Source: GitHub Actions**.
+
+The preview has no Cloudflare backend. It is built with `BASE_PATH=/moshik-photography` (the site lives under a sub-path) and `PUBLIC_STATIC_SITE=1`. In that mode:
+
+- the booking form goes straight to its WhatsApp / email fallback;
+- the availability calendar uses the sample dates in `src/data/availability.ts`;
+- the admin panel shows a notice instead of the login;
+- every page is `noindex` and shows the "Preview" tag.
+
+To try the same build locally: `BASE_PATH=/moshik-photography PUBLIC_STATIC_SITE=1 npm run build`, then serve the folder that contains `dist/` renamed to `moshik-photography/`.
+
 ---
 
 ## Costs
