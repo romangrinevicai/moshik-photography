@@ -7,7 +7,9 @@ import Footer from '~/components/layout/Footer.astro';
 import FloatingContact from '~/components/layout/FloatingContact.astro';
 import A11yMenu from '~/components/layout/A11yMenu.astro';
 import Analytics from '~/components/layout/Analytics.astro';
+import PreviewTag from '~/components/layout/PreviewTag.astro';
 import { site } from '~/config/site';
+import { showPreviewTag } from '~/config/preview';
 import { languages, useTranslations, type Lang } from '~/i18n';
 
 import frankHe from '@fontsource-variable/frank-ruhl-libre/files/frank-ruhl-libre-hebrew-wght-normal.woff2?url';
@@ -113,6 +115,7 @@ const preloads = lang === 'he' ? [frankHe, assistantHe, cormorantLatin] : [cormo
     </main>
     {chrome === 'full' && <Footer lang={lang} cta={footerCta} />}
     {chrome === 'full' && <FloatingContact lang={lang} message={waMessage} />}
+    {chrome === 'full' && showPreviewTag && <PreviewTag lang={lang} />}
     {site.features.accessibilityMenu && <A11yMenu lang={lang} />}
     <script>
       import '~/scripts/core';

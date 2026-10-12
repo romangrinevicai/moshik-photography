@@ -87,6 +87,8 @@ Choose one option:
 
 If you skip this, every canonical URL, `hreflang` link, social preview and the sitemap point to `moshik-photography.example`, which is bad for SEO. `npm run checklist` warns you about it.
 
+> **Preview mode.** Until `SITE_URL` holds the real address (a `*.workers.dev` address counts as a preview), every page is marked `noindex`, so search engines skip it. A small "Preview · sample photos, prices & reviews" tag also shows at the bottom of the public pages. It stays while sample reviews or stories remain in `src/data/`, and disappears on its own once both are replaced.
+
 ### b) Worker variables in `wrangler.jsonc`
 
 These variables are read by the Worker at runtime:

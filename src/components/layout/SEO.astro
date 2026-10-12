@@ -2,6 +2,7 @@
 import type { ImageMetadata } from 'astro';
 import { getImage } from 'astro:assets';
 import { site } from '~/config/site';
+import { isPreview } from '~/config/preview';
 import { languages, langs, localizePath, defaultLang, type Lang } from '~/i18n';
 import { photosIn } from '~/data/photos';
 
@@ -36,7 +37,7 @@ const ogUrl = og ? new URL(og.src, siteUrl).href : undefined;
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+{(noindex || isPreview) && <meta name="robots" content="noindex, nofollow" />}
 {
   alternates &&
     langs.map((l) => (

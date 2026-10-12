@@ -1,0 +1,71 @@
+---
+import type { Lang } from '~/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const copy = {
+  title: { he: 'תצוגה מקדימה', en: 'Preview' },
+  note: { he: 'תמונות, מחירים והמלצות לדוגמה', en: 'sample photos, prices & reviews' },
+};
+---
+<p class="preview-tag" role="note">
+  <span class="preview-tag__dot" aria-hidden="true"></span>
+  <strong>{copy.title[lang]}</strong>
+  <span class="preview-tag__note">{copy.note[lang]}</span>
+</p>
+
+<style>
+  .preview-tag {
+    position: fixed;
+    z-index: 79;
+    inset-inline: 0;
+    inset-block-end: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+    margin-inline: auto;
+    inline-size: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: rgb(22 19 17 / 0.84);
+    color: #f3ede5;
+    font-size: 0.74rem;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+    pointer-events: none;
+    transition: translate 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
+  }
+  .preview-tag strong { font-weight: 600; }
+  .preview-tag__dot {
+    inline-size: 0.45rem;
+    block-size: 0.45rem;
+    border-radius: 50%;
+    background: var(--gold, #c8a97e);
+  }
+  .preview-tag__note {
+    padding-inline-start: 0.55rem;
+    border-inline-start: 1px solid rgb(243 237 229 / 0.28);
+    color: rgb(243 237 229 / 0.78);
+  }
+  :global(html.menu-open) .preview-tag { opacity: 0; }
+  /* Phones: just under the header, clear of the hero controls and the call / WhatsApp bar. */
+  @media (max-width: 760px) {
+    .preview-tag {
+      inset-block-start: calc(var(--header-h) + 0.4rem);
+      inset-block-end: auto;
+    }
+    :global(.site-header[data-hidden]) ~ .preview-tag { translate: 0 calc(-1 * var(--header-h)); }
+  }
+  @media (max-width: 340px) {
+    .preview-tag__note { display: none; }
+  }
+  @media print {
+    .preview-tag { display: none; }
+  }
+</style>
